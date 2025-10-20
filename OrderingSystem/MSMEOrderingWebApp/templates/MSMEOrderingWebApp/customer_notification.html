@@ -1,0 +1,174 @@
+{% extends 'MSMEOrderingWebApp/customer_base.html' %}
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Header Section -->
+    <div class="notifications-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1 class="page-title">
+                    <i class="fas fa-bell"></i>
+                    Notifications
+                </h1>
+                <p class="page-subtitle">Keep track of your orders and stay informed on the latest updates</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Section -->
+    <div id="customer-notifications" class="ajax-refresh">
+        {% include 'partials/customer_notifications_list.html' with notifications=notifications %}
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-color: {{ customization.primary_color|default:'#FF5733' }};
+        --secondary-color: {{ customization.secondary_color|default:'#FF5733' }};
+        --accent-color: {{ customization.accent_color|default:'#FF5733' }};
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-10px) rotate(1deg); }
+    }
+
+    body {
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        {% if customization.general_background_type == 'solid' %}
+        body {
+            background-color: {{ customization.general_solid_color|default:"#ffffff" }};
+        }
+        {% elif customization.general_background_type == 'gradient' %}
+        body {
+            background: linear-gradient(
+                {{ customization.general_gradient_direction|default:"to right" }},
+                {{ customization.general_gradient_color_1|default:"#ffffff" }},
+                {{ customization.general_gradient_color_2|default:"#000000" }}
+                {% if customization.general_gradient_color_3 %}
+                    , {{ customization.general_gradient_color_3 }}
+                {% endif %}
+            );
+        }
+        {% elif customization.general_background_type == 'image' %}
+        body {
+            background-image: url("{{ customization.general_background_image.url }}");
+        }
+        {% endif %}
+
+
+
+    .notifications-header {
+        font-family: {{ customization.header_font_family|default:"Arial" }};
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        border-radius: var(--border-radius);
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+        border: 3px solid var(--primary-color);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .header-left {
+        flex: 1;
+    }
+
+    .page-title {
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-family: "{{ customization.header_font_family|default:"Arial" }}";
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 40 %}40{% else %}{{ customization.header_font_size|default:24 }}{% endif %}px;
+        font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+        font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+            
+    }
+
+    .page-title i {
+        opacity: 0.9;
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 35 %}35{% else %}{{ customization.header_font_size|default:24 }}{% endif %}px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .page-subtitle {
+        margin: 0;
+        opacity: 0.9;
+        font-weight: 600;
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16
+        {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            
+    }
+
+
+    @media (max-width: 480px) {
+        .notifications-container {
+            padding: 0.75rem;
+        }
+        
+        .notifications-header {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .page-title {
+            font-family: "{{ customization.header_font_family|default:"Arial" }}";
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 25 %}{{ customization.header_font_size|default:20 }}{% else %}25{% endif %}px;
+
+        }
+        
+        .page-subtitle {
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        }
+        
+        .notifications-content {
+            padding: 1rem;
+        }
+    }
+
+    /* Animation for content updates */
+    .notifications-content {
+        transition: opacity 0.3s ease;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+
+{% endblock %}

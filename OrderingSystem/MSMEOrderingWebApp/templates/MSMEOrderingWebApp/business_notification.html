@@ -1,0 +1,250 @@
+{% extends 'MSMEOrderingWebApp/business_owner_base.html' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <!-- Header Section -->
+    <div class="notifications-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1 class="page-title">
+                    <i class="fas fa-bell"></i>
+                    Notifications
+                </h1>
+                <p class="page-subtitle">Stay updated with your business activities</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Orders Section -->
+    <div class="orders-section">
+        <!-- Dynamic Content Area -->
+        <div id="pending-orders" class="orders-content">
+            {% include "partials/pending_orders_list.html" %}
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-color: {{ customization.primary_color|default:'#FF5733' }};
+    --secondary-color: {{ customization.secondary_color|default:'#FF5733' }};
+    --accent-color: {{ customization.accent_color|default:'#FF5733' }};
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+}
+
+.notifications-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.notifications-header {
+    font-family: {{ customization.header_font_family|default:"Arial" }};
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(20px);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow-lg);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.page-title {
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.page-title i {
+    color: var(--primary-color);
+    font-size: 2rem;
+    opacity: 0.9;
+}
+
+.page-subtitle {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    margin: 0;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+.header-right {
+    flex-shrink: 0;
+}
+
+.notification-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius-sm);
+    padding: 1.5rem;
+    text-align: center;
+    min-width: 120px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    opacity: 0.9;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.orders-section {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.orders-content {
+    min-height: 200px;
+    position: relative;
+}
+
+/* Loading state */
+.orders-content.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.orders-content.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid var(--gray-200);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 10;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .notifications-header {
+        padding: 1.5rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+        justify-content: center;
+    }
+    
+    .section-header {
+        padding: 1rem 1.5rem;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .section-title {
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .section-actions {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .notifications-container {
+        padding: 0 1rem;
+    }
+    
+    .notifications-header {
+        margin-bottom: 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.75rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+        min-width: 100px;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+}
+
+/* Animation for content updates */
+.orders-content {
+    transition: opacity 0.3s ease;
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+{% endblock %}

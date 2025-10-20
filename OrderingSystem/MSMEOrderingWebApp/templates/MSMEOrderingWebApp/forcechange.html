@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Force Change Email & Password</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"> <!-- Font Awesome for icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet"> <!-- Bootstrap Icons -->
+
+    <style>
+        body {
+            background-color: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .popup-container {
+            background: white;
+            padding: 30px 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 400px;
+        }
+        .popup-container h3 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+        .form-control { margin-bottom: 15px; }
+        .btn-save { width: 100%; }
+        .password-toggle {
+            cursor: pointer;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .label-class {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .input-class {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #000000;
+            border-radius: 15px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .input-class:focus {
+            border-color: rgb(77, 77, 77);
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="popup-container">
+        <h3>FORCE CHANGE EMAIL AND PASSWORD</h3>
+        <form method="post">
+            {% csrf_token %}
+            <label for="new_email" class="label-class">New Email Address</label>
+            <input type="email" id="new_email" name="new_email" class="form-control input-class" required>
+
+            <label for="new_password" class="label-class">New Password</label>
+            <div class="position-relative">
+                <input type="password" id="new_password" name="new_password" class="form-control input-class" required>
+                <!-- Eye icon to toggle password visibility -->
+                <i class="fas fa-eye password-toggle" id="toggle-password" onclick="togglePassword()"></i>
+            </div>
+            <small class="text-muted d-block mb-3">
+                Enter a valid email address and password must be at least 8 characters long, and include letters, numbers, and special characters.
+            </small>
+
+            <button type="submit" class="btn btn-dark btn-save">Save</button>
+        </form>
+    </div>
+
+    {% if messages %}
+    <div aria-live="polite" aria-atomic="true" class="position-relative">
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        {% for message in messages %}
+        <div class="toast align-items-center 
+            {% if message.tags == 'success' %} text-bg-success 
+            {% else %} text-bg-danger {% endif %} 
+            border-0 show" role="alert">
+        <div class="d-flex">
+            <div class="toast-body">
+            {{ message }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        </div>
+        {% endfor %}
+    </div>
+    </div>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function togglePassword() {
+            const passwordField = document.getElementById("new_password");
+            const toggleIcon = document.getElementById("toggle-password");
+
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+                toggleIcon.classList.remove("fa-eye");
+                toggleIcon.classList.add("fa-eye-slash");
+            } else {
+                passwordField.type = "password";
+                toggleIcon.classList.remove("fa-eye-slash");
+                toggleIcon.classList.add("fa-eye");
+            }
+        }
+    </script>
+</body>
+</html>

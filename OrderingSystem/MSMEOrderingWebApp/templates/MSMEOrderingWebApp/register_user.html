@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration</title>
+
+    {% load static %}
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caudex:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Arapey:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Brawler:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+<style>
+    :root {
+        /* Color Customizations */
+        --primary-color: {{ customization.primary_color|default:'#3b82f6' }};
+        --secondary-color: {{ customization.secondary_color|default:'#1d4ed8' }};
+        --accent-color: {{ customization.accent_color|default:'#059669' }};
+    }
+
+    body, html {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            {% if customization.register_background_type == 'solid' %}
+                background-color: {{ customization.register_solid_color|default:"#ffffff" }};
+            {% elif customization.register_background_type == 'gradient' %}
+                 background: linear-gradient(
+                    {{ customization.register_gradient_direction|default:"to right" }},
+                    {{ customization.register_gradient_color_1|default:"#ffffff" }},
+                    {{ customization.register_gradient_color_2|default:"#000000" }}
+                    {% if customization.register_gradient_color_3 %}
+                        , {{ customization.register_gradient_color_3 }}
+                    {% endif %}
+                );
+            {% elif customization.register_background_type == 'image' %}
+                background-image: url("{{ customization.register_background_image_url }}");
+                background-size: cover;
+                background-position: center;
+            {% endif %}
+        }
+
+    .container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        height: 100vh;
+        width: 100%;
+    }
+
+    .form-side {
+        width: 50%;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        position: absolute;
+        top: 0;
+        left: 1rem;
+        height: 100%;
+        overflow-y: auto;
+        background: transparent; /* Ensure it doesn’t override the background set on the body */
+    }
+
+    .form-side h2 {
+        margin-bottom: 15px;
+        text-align: left;
+        line-height: 1;
+        font-family: "{{ customization.header_font_family|default:"Arial" }}";
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 50 %}50{% else %}{{ customization.header_font_size|default:24 }}{% endif %}px;
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+        font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+    }
+
+    .form-side input {
+        width: 100%;
+        padding: 10px;
+        background: white;
+        margin-bottom: 2px;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+        font-weight: 500;
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        border-width: {{ customization.input_border_width|default:1 }}px; 
+        border-style: {{ customization.input_border_style|default:'solid' }};
+        border-color: {{ customization.primary_color|default:'#000000' }};
+        border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+
+    }
+
+    .form-side input:hover, .form-side input:focus {
+        color: {{ customization.body_font_color|default:"#000000" }};
+        border-color: {{ customization.secondary_color|default:'#000000' }};
+        outline: none;
+    }
+
+    .form-side label {
+        font-weight: 600;
+        margin-bottom: 3px;
+        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16
+        {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        color: {{ customization.body_font_color|default:"#000000" }};
+    }
+
+    .form-side button {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 17px;
+        transition: all 0.3s ease;
+        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+        font-family: {{ customization.header_font_family|default:"Arial" }};
+        background-color: {{ customization.primary_color|default:'#000000' }};
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+    }
+
+    .form-side button:hover {
+        background-color: {{ customization.secondary_color|default:'#808080' }};
+    }
+
+    .form-side a {
+        display: block;
+        text-align: center;
+        margin-top: 5px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        font-family: {{ customization.header_font_family|default:"Arial" }};
+        color: {{ customization.primary_color|default:'#0000EE' }};
+    }
+
+    .form-side a:hover .sign-in-text {
+        color: {{ customization.secondary_color|default:'#808080' }};
+        text-decoration: underline;
+        font-weight: bold;
+    }
+
+    /* Image side styles */
+    .image-side {
+        width: 45%;
+        background-image: url('{% if customization.register_background_image %}{{ customization.register_background_image.url }}{% else %}{{ customization.register_background_image_url }}{% endif %}');
+        background-size: cover;
+        background-position: center;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        right: 0;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            flex-direction: column;
+        }
+
+        .image-side, .form-side {
+            width: 100%;
+            height: auto;
+        }
+
+        .form-side {
+            max-height: 90vh;
+            overflow-y: auto;
+            align-items: center;
+            left: 0;
+        }
+
+        .form-side h2 {
+            font-size: 45px;
+            text-align: center;
+        }
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-wrapper input {
+        width: 100%;
+        padding-right: 40px; /* leave space for eye icon */
+    }
+
+    .input-wrapper .toggle-password {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: {{ customization.primary_color|default:'#0000EE' }};
+    }
+
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+    }
+
+    .toast {
+        background-color: #f44336;
+        color: white;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        display: none;
+        font-size: 14px;
+        width: 250px;
+    }
+
+    .toast.show {
+        display: block;
+        animation: fadeInOut 3s forwards;
+    }
+
+    @keyframes fadeInOut {
+        0% { opacity: 0; }
+        20% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+
+    .agreement-box {
+        background-color: rgba(255, 255, 255, 0.63);
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .agreement-box .form-check-input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        /* Add these to ensure clickability */
+        margin-right: 8px;
+        position: relative;
+        z-index: 0;
+        pointer-events: auto;
+    }
+
+    .agreement-box .form-check-label {
+        cursor: pointer; /* Make the label clickable too */
+    }
+
+    .agreement-box a {
+        display: inline-block;
+        color: var(--primary-color);
+        transition: color 0.2s ease, text-decoration 0.2s ease;
+    }
+
+    /* Maintain the checkmark color when checked and hovered */
+    .agreement-box .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .agreement-box .form-check-input:checked:hover {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    /* Optional: smooth hover effect without hiding checkmark */
+    .agreement-box .form-check-input {
+        transition: all 0.2s ease;
+    }
+    
+    /* Links inside the label hover normally */
+    .agreement-box a:hover {
+        color: var(--secondary-color);
+        text-decoration: underline;
+        font-weight: 800;
+    }
+
+        /* Disabled state for register button */
+    #registerBtn:disabled {
+        background-color: #ccc !important;
+        cursor: not-allowed;
+        opacity: 0.6;
+        border: none;
+    }
+
+    /* Normal enabled button */
+    #registerBtn {
+        transition: background-color 0.3s, opacity 0.3s;
+    }
+
+
+    /* Checkbox hover effect */
+    .form-check-input:hover {
+        cursor: pointer;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.6);
+    }
+
+    /* Checkbox checked + hover */
+    .form-check-input:checked:hover {
+        box-shadow: 0 0 8px rgba(0, 200, 100, 0.8);
+    }
+
+
+        .modal-content {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 1.5rem 2rem;
+            position: relative;
+        }
+
+        .modal-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+            background-size: 300% 300%;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            text-shadow: var(--text-shadow);
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        }
+
+        .btn-close {
+            filter: brightness(0) invert(1);
+            opacity: 0.8;
+            transition: all 0.2s ease;
+        }
+
+        .btn-close:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            background: #fafbfc;
+            max-height: 60vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .terms-content {
+            font-weight: 600;
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}15{% endif %}px;
+        }
+
+        .terms-content h3 {
+            margin: 1.5rem 0 0.75rem 0;
+            border-left: 4px solid var(--primary-color);
+            background: linear-gradient(90deg, var(--secondary-color), transparent);
+            padding-top: 0.5rem;
+            left: 5px;
+            padding-bottom: 0.5rem;
+            font-weight: 700;
+            font-size: min({{ customization.header_font_size|default:15 }}px, 18px);
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        }
+
+        .terms-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .terms-content p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        .terms-content ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .terms-content li {
+            margin-bottom: 0.25rem;
+            position: relative;
+        }
+
+        .terms-content li::marker {
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+
+        .modal-footer {
+            background: white;
+            border: none;
+            padding: .5rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary {
+            border: none;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            background-color: {{ customization.primary_color|default:'#000000' }};
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            background-color: {{ customization.secondary_color|default:'#000000' }};
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+        }
+
+        .section-icon {
+            margin-left: 15px;
+            margin-right: 10px;
+            color: {{ customization.button_text_color|default:'#ffffff' }};;
+            font-size: 0.9rem;
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Force visible checkmark on checkbox */
+        .agreement-box .form-check-input[type="checkbox"] {
+            appearance: none; /* remove default OS style */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--primary-color);
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .agreement-box .form-check-input[type="checkbox"]:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .agreement-box .form-check-input[type="checkbox"]:checked::after {
+            content: "✔";
+            color: #fff;
+            font-size: 12px;
+            line-height: 1;
+        }
+
+        .verify-note {
+            background-color: rgba(37, 99, 235, 0.08); /* soft blue tone */
+            border-left: 4px solid var(--primary-color);
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            line-height: 1.5;
+        }
+
+        .verify-note i {
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+
+
+</style>
+
+</head>
+<body>
+
+<div class="container">
+    <div class="form-side">
+        <h2><b>
+            USER REGISTRATION
+        </b></h2>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" 
+                        value="{{ first_name|default:'' }}" 
+                        title="Only letters, spaces, and periods are allowed"
+                        required>
+                </div>
+                <div class="col-md-6">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" 
+                        value="{{ last_name|default:'' }}" 
+                        title="Only letters, spaces, and periods are allowed"
+                        required>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="contact_number">Contact Number</label>
+                    <input type="tel" id="contact_number" name="contact_number" 
+                        placeholder="09XXXXXXXXX"
+                        maxlength="11"
+                        required>
+                </div>
+                <div class="col-md-6">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" value="{{ email|default:'' }}" required>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="address">Address</label>
+                    <input type="text" id="address" name="address" placeholder="House No., Street, Subdivision/Barangay" value="{{ address|default:'' }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="city">City/Municipality</label>
+                    <input type="text" id="city" name="city" value="{{ city|default:'' }}" required>
+                </div>
+            </div>
+
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="province">Province</label>
+                    <input type="text" id="province" name="province" value="{{ province|default:'' }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="zipcode">Zip Code</label>
+                    <input type="text" id="zipcode" name="zipcode" 
+                        value="{{ zipcode|default:'' }}" 
+                        maxlength="4"
+                        required>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper position-relative">
+                        <input type="password" id="password" name="password" required>
+                        <i class="fa fa-eye toggle-password" id="toggle-password"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="confirm_password">Confirm Password</label>
+                    <div class="input-wrapper position-relative">
+                        <input type="password" id="confirm_password" name="confirm_password" required>
+                        <i class="fa fa-eye toggle-password" id="toggle-confirm-password"></i>
+                    </div>
+                </div>
+            </div>
+            <!-- Password Requirements -->
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <small class="form-text text-muted">
+                        <strong>Password must meet the following requirements:</strong><br>
+                        <span id="password-length" class="requirement">- At least 8 characters long</span><br>
+                        <span id="password-letter-number" class="requirement">- Includes both letters and numbers</span><br>
+                        <span id="password-special" class="requirement">- Contains at least one special character (e.g., !@#$%^&*)</span><br>
+                    </small>
+                </div>
+            </div>
+
+            <div class="agreement-box border rounded p-3 mb-3">
+                <div class="form-check">
+                    <input class="form-check-input me-2" type="checkbox" id="agreementCheckbox">
+                    <label for="agreementCheckbox">
+                        I agree to the 
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal" class="sign-in-text">Terms and Conditions</a> 
+                        and the 
+                        <a href="https://privacy.gov.ph/data-privacy-act/" target="_blank" class="sign-in-text">Data Privacy Act</a>.
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" id="registerBtn" disabled>
+                Register
+            </button>
+
+            <div class="verify-note p-2 rounded mb-3 mt-3 d-flex align-items-center">
+                <i class="fas fa-envelope me-2"></i>
+                <span>
+                    After completing your registration, please check your email for the activation link.
+                </span>
+            </div>
+
+
+            <a href="{% url 'login' %}">Already have an account? <span class="sign-in-text">Sign In</span></a>
+        </form>
+    </div>
+
+    <div class="image-side"></div>
+</div>
+
+<!-- Enhanced Terms and Conditions Modal -->
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content fade-in">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="termsModalLabel">
+                        <i class="fas fa-shield-alt"></i>
+                        Terms and Conditions
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="terms-content">
+                        <h3><i class="fas fa-info-circle section-icon"></i>1. Introduction</h3>
+                        <p>These Terms and Conditions govern your use of our Online Ordering and Management System, operated by {{ business.business_name }}. By accessing or using our System, you agree that you have read, understood, and agree to be bound by these Terms. If you do not agree, you may not use the System.</p>
+
+                        <h3><i class="fas fa-check-circle section-icon"></i>2. Acceptance of Terms</h3>
+                        <p>By creating an account, placing an order, or accessing the System, you acknowledge that you accept these Terms and agree to comply with them. These Terms apply to all users, including business owners, staff, and customers.</p>
+
+                        <h3><i class="fas fa-cogs section-icon"></i>3. Description of Service</h3>
+                        <p>The System is a web-based platform designed to facilitate online food ordering and management for micro, small, and medium enterprises (MSMEs). It provides tools for:</p>
+                        <ul>
+                            <li>Menu browsing and order placement</li>
+                            <li>Dine-in, pick-up, and delivery requests</li>
+                            <li>Secure online payment and receipt generation</li>
+                            <li>Inventory and sales management for business owners</li>
+                            <li>Customer account creation, reviews, and notifications</li>
+                        </ul>
+
+                        <div class="highlight-section">
+                            <h3><i class="fas fa-user-plus section-icon"></i>4. User Eligibility and Account Registration</h3>
+                            <p>4.1 Eligibility – You must be at least 18 years of age to create an account or place an order.</p>
+                            <p>4.2 Registration  – Users must provide accurate and current information. You are responsible for maintaining the confidentiality of your login credentials and for all activities under your account.</p>
+                            <p>4.3 Customer and Business Accounts – The System supports different account types, including customers and registered business owners.</p>
+                        </div>
+
+                        <h3><i class="fas fa-shield-alt section-icon"></i>5. Acceptable Use Policy</h3>
+                        <p>5.1 Permitted Uses – You may use the System for lawful ordering, sales, and business management purposes only.</p>
+                        <p>5.2 Prohibited Uses – You may NOT use the System to:</p>
+                        <ul>
+                            <li>Submit false or fraudulent orders</li>
+                            <li>Violate laws, regulations, or third-party rights</li>
+                            <li>Spread harmful content, malware, or spam</li>
+                            <li>Access or attempt to access another user's account without authorization</li>
+                            <li>Manipulate system functions to cause disruption</li>
+                        </ul>
+
+                        <h3><i class="fas fa-user-shield section-icon"></i>6. Privacy and Data Protection</h3>
+                        <p>6.1 Data Collection – We collect and process personal information in accordance with our Privacy Policy.</p>
+                        <p>6.2 Data Privacy Act Compliance – We comply with the Data Privacy Act of 2012 (RA 10173) and other applicable laws.</p>
+                        <p>6.3 Security – We implement measures to safeguard your information but cannot guarantee absolute security.</p>
+
+                        <h3><i class="fas fa-credit-card section-icon"></i>7. Orders, Payments, and Refunds</h3>
+                        <p>7.1 Order Processing – Orders are confirmed only after acceptance by the business. Estimated preparation and delivery times may vary.</p>
+                        <p>7.2 Payments – Payments may be made through supported methods (cash on delivery, e-wallets, or online banking).</p>
+                        <p>7.3 Refunds – Refunds are subject to business policies. The System is not liable for disputes between customers and businesses regarding product quality, cancellations, or refunds.</p>
+
+                        <h3><i class="fas fa-copyright section-icon"></i>8. Intellectual Property Rights</h3>
+                        <p>The System and its content, including software, logos, and design, remain the property of [Your Team/Company Name] and licensors. You may not reproduce, copy, or exploit any part of the System without authorization.</p>
+
+                        <h3><i class="fas fa-tasks section-icon"></i>9. User Responsibilities</h3>
+                        <ul>
+                            <li>Customers must provide accurate delivery information and ensure timely payment.</li>
+                            <li>Business owners must keep their menus, prices, and stock availability updated.</li>
+                            <li>Users must comply with fair and ethical use of the System.</li>
+                        </ul>
+
+                        <div class="highlight-section">
+                            <h3><i class="fas fa-exclamation-triangle section-icon"></i>10. Disclaimers</h3>
+                            <p>The System is provided on an "AS IS" basis. We do not guarantee uninterrupted or error-free service, and businesses are solely responsible for the products they sell.</p>
+                        </div>
+
+                        <h3><i class="fas fa-balance-scale section-icon"></i>11. Limitation of Liability</h3>
+                        <p>To the fullest extent permitted by law, we are not liable for indirect, incidental, or consequential damages arising from your use of the System, including but not limited to delays, cancellations, or product issues.</p>
+
+                        <h3><i class="fas fa-handshake section-icon"></i>12. Indemnification</h3>
+                        <p>You agree to indemnify and hold harmless [Your Team/Company Name], its developers, and affiliates from claims, damages, or liabilities resulting from your misuse of the System.</p>
+
+                        <h3><i class="fas fa-gavel section-icon"></i>13. Governing Law</h3>
+                        <p>These Terms shall be governed by and construed under the laws of the Republic of the Philippines.</p>
+
+                        <h3><i class="fas fa-edit section-icon"></i>14. Changes to Terms</h3>
+                        <p>We reserve the right to modify or update these Terms at any time. Updates will take effect immediately upon posting on the System.</p>
+
+                        <h3><i class="fas fa-phone section-icon"></i>15. Contact Information</h3>
+                        <p>For questions or concerns about these Terms, contact us at:</p>
+                        <p><i class="fas fa-store"></i> {{ business.business_name }}</p>
+                        <p><i class="fas fa-map-marker-alt"></i> {{ business.store_address }}</p>
+                        <p><i class="fas fa-envelope"></i> {{ business.email_address }}</p>
+                        <p><i class="fas fa-phone"></i> {{ business.contact_number }}</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% if messages %}
+<script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+        {% for message in messages %}
+            toastr["{{ message.tags }}"]("{{ message|escapejs }}");
+        {% endfor %}
+    });
+</script>
+{% endif %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+toastr.options = {
+    "closeButton": true,
+    "progressBar": true,
+    "positionClass": "toast-top-right",
+    "timeOut": "4000"
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- Add Font Awesome -->
+
+<script>
+
+    const agreementCheckbox = document.getElementById("agreementCheckbox");
+    const registerBtn = document.getElementById("registerBtn");
+
+    // Toggle button state when checkbox changes
+    agreementCheckbox.addEventListener("change", function() {
+        registerBtn.disabled = !this.checked;
+    });
+
+
+    // Allow letters (including Ñ ñ and accented), spaces, and periods
+    document.querySelectorAll("#first_name, #last_name, #address, #city, #province").forEach(input => {
+        input.addEventListener("input", function() {
+            if (this.id === "address") {
+                // Allow accented letters, Ñ/ñ, numbers, space, comma, period, and dash
+                this.value = this.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿÑñ0-9 ,.\-]/g, "");
+            } else {
+                // Allow accented letters, Ñ/ñ, spaces, and periods
+                this.value = this.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿÑñ .]/g, "");
+            }
+
+            // Auto-capitalize first letter of each word
+            this.value = this.value.replace(/\b([A-Za-zÀ-ÖØ-öø-ÿÑñ])/g, function(char) {
+                return char.toUpperCase();
+            });
+        });
+    });
+
+
+    // Allow only numbers in Zip Code (max 4 digits)
+    document.getElementById("zipcode").addEventListener("input", function() {
+        this.value = this.value.replace(/[^0-9]/g, ""); // remove anything not a number
+        if (this.value.length > 4) {
+            this.value = this.value.slice(0, 4); // enforce 4 digits max
+        }
+    });
+
+    const contactInput = document.getElementById("contact_number");
+
+    contactInput.addEventListener("input", function() {
+        // Remove non-numeric characters
+        this.value = this.value.replace(/[^0-9]/g, "");
+
+        // Force it to start with "09"
+        if (!this.value.startsWith("09")) {
+            this.value = "09" + this.value.replace(/^0+/, "");
+        }
+
+        // Limit to 11 digits total
+        if (this.value.length > 11) {
+            this.value = this.value.slice(0, 11);
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const togglePassword = document.getElementById("toggle-password");
+        const toggleConfirmPassword = document.getElementById("toggle-confirm-password");
+        const passwordField = document.getElementById("password");
+        const confirmPasswordField = document.getElementById("confirm_password");
+
+        togglePassword.addEventListener("click", function () {
+            const type = passwordField.type === "password" ? "text" : "password";
+            passwordField.type = type;
+            this.classList.toggle("fa-eye");
+            this.classList.toggle("fa-eye-slash");
+        });
+
+        toggleConfirmPassword.addEventListener("click", function () {
+            const type = confirmPasswordField.type === "password" ? "text" : "password";
+            confirmPasswordField.type = type;
+            this.classList.toggle("fa-eye");
+            this.classList.toggle("fa-eye-slash");
+        });
+    });
+  
+    document.addEventListener("DOMContentLoaded", function () {
+        const passwordField = document.getElementById("password");
+        const passwordLengthRequirement = document.getElementById("password-length");
+        const letterNumberRequirement = document.getElementById("password-letter-number");
+        const specialCharRequirement = document.getElementById("password-special");
+
+        // Regex to check password requirements
+        const lengthRegex = /^.{8,}$/;  // At least 8 characters
+        const letterNumberRegex = /(?=.*[a-zA-Z])(?=.*\d)/;  // Letters and numbers
+        const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;  // Special characters
+
+        // Monitor password input for changes
+        passwordField.addEventListener("input", function () {
+            // Check for length requirement
+            if (lengthRegex.test(passwordField.value)) {
+                passwordLengthRequirement.style.color = "green";
+                passwordLengthRequirement.innerHTML = '<span style="color: green;">✔</span> At least 8 characters long';
+            } else {
+                passwordLengthRequirement.style.color = "red";
+                passwordLengthRequirement.innerHTML = '- At least 8 characters long';
+            }
+
+            // Check for letter and number requirement
+            if (letterNumberRegex.test(passwordField.value)) {
+                letterNumberRequirement.style.color = "green";
+                letterNumberRequirement.innerHTML = '<span style="color: green;">✔</span> Includes both letters and numbers';
+            } else {
+                letterNumberRequirement.style.color = "red";
+                letterNumberRequirement.innerHTML = '- Includes both letters and numbers';
+            }
+
+            // Check for special character requirement
+            if (specialCharRegex.test(passwordField.value)) {
+                specialCharRequirement.style.color = "green";
+                specialCharRequirement.innerHTML = '<span style="color: green;">✔</span> Contains at least one special character';
+            } else {
+                specialCharRequirement.style.color = "red";
+                specialCharRequirement.innerHTML = '- Contains at least one special character (e.g., !@#$%^&*)';
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

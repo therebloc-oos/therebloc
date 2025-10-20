@@ -1,0 +1,1090 @@
+{% extends 'MSMEOrderingWebApp/business_owner_base.html' %}
+
+{% block title %}Online Payment Details{% endblock %}
+
+{% block content %}
+
+<!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Abel&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gloock:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500&display=swap" rel="stylesheet">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+
+    :root {
+        --primary-color: {{ customization.primary_color|default:'#3b82f6' }};
+        --secondary-color: {{ customization.secondary_color|default:'#1d4ed8' }};
+        --accent-color: {{ customization.accent_color|default:'#059669' }};
+    }
+
+     * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+    {% if customization.general_background_type == 'solid' %}
+    body {
+        background-color: {{ customization.general_solid_color|default:"#ffffff" }};
+    }
+    {% elif customization.general_background_type == 'gradient' %}
+    body {
+        background: linear-gradient(
+            {{ customization.general_gradient_direction|default:"to right" }},
+            {{ customization.general_gradient_color_1|default:"#ffffff" }},
+            {{ customization.general_gradient_color_2|default:"#000000" }}
+            {% if customization.general_gradient_color_3 %}
+                , {{ customization.general_gradient_color_3 }}
+            {% endif %}
+        );
+    }
+    {% elif customization.general_background_type == 'image' %}
+    body {
+        background-image: url("{{ customization.general_background_image.url }}");
+    }
+    {% endif %}
+
+
+    .payment-setup-container {
+        min-height: 100vh;
+    }
+
+    /* Card Enhancements */
+    .card {
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        transition: all 0.3s ease;
+    }
+
+
+    .card-title {
+        justify-content: center;
+        align-items: center;
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        position: relative;
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 25 %}{{ customization.header_font_size|default:15 }}{% else %}25{% endif %}px;
+        font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+        font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+
+    }
+
+
+    .card-title .bi {
+        color: {{ customization.header_font_color|default:"#000000" }};
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.267) !important;
+    }
+
+/* QR Upload Styling */
+    .qr-upload-zone {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .qr-container {
+        height: 350px;
+        border: 3px dashed var(--primary-color);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(20px);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        position: relative; /* Needed for overlay positioning */
+    }
+
+    /* Hover effect */
+    .qr-upload-zone:hover .qr-container {
+        border-color: var(--secondary-color);
+        background: #f1f5f9;
+        transform: scale(1.02);
+    }
+
+    /* Show overlay only when there's an image AND it's being hovered */
+    .qr-container.has-image:hover .qr-overlay {
+        display: flex;
+        opacity: 0.5;
+    }
+
+    .qr-empty-state {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    /* The image */
+    .qr-display {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    /* Overlay styling */
+    .qr-overlay {
+        display: none; /* Hidden by default */
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7); /* Better visibility */
+        color: white;
+        border-radius: 12px;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.3s ease;
+        z-index: 2;
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+    }
+
+    /* Modern Form Inputs */
+    .modern-input {
+        padding: 12px;
+        transition: all 0.3s ease;
+        font-weight: 500;   
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        color: {{ customization.body_font_color|default:"#000000" }};     
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        border-width: {{ customization.input_border_width|default:1 }}px; 
+        border-style: {{ customization.input_border_style|default:'solid' }};
+        border-color: var(--primary-color);
+        border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+    }
+
+    .modern-input:focus {
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-weight: 500;
+        border-color: var(--secondary-color) !important;
+        box-shadow: none;
+        transform: translateY(-1px);
+    }
+
+
+    .input-label {
+        margin-bottom: 5px;
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        font-weight: 600;
+    }
+
+    /* Enhanced Buttons */
+    .btn {
+        padding: 0.875rem 1.5rem;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        box-shadow: transparent;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: transparent;
+        background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    }
+
+    .btn-outline-secondary {
+        background: white;
+        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .btn-outline-secondary:hover {
+        background: #f8f9fa;
+        border-color: var(--secondary-color);
+        color: var(--secondary-color);
+        transform: translateY(-1px);
+    }
+
+    .btn-outline-danger {
+        border: 2px solid #af0000 ;
+        color: #af0000;
+        background: white;
+    }
+
+    .btn-outline-danger:hover {
+        background: #fef2f2;
+        border-color:  #5a0101;
+        color: #5a0101;
+        transform: translateY(-1px);
+    }
+
+    /* Icon Enhancements */
+    .bi {
+        transition: all 0.3s ease;
+    }
+
+    .card-title .bi {
+        font-size: 1.25rem;
+        color: var(--primary-color);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 991.98px) {
+        .payment-setup-container {
+            padding: 2rem 0;
+        }
+        
+        .display-4 {
+            font-size: 2.5rem;
+        }
+        
+        .qr-container {
+            height: 280px;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .payment-setup-container {
+            padding: 1.5rem 0;
+        }
+        
+        .display-4 {
+            font-size: 2rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem !important;
+        }
+        
+        .qr-container {
+            height: 250px;
+        }
+        
+        .qr-empty-state {
+            padding: 1rem;
+        }
+    }
+
+    /* Animation Classes */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .card:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+
+    /* Custom scrollbar for webkit browsers */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: gray;
+        border-radius: 2px;
+    }
+
+    
+    .saved-payment-title {
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 25px;
+        border-radius: 20px;
+        border: 2px solid var(--accent-color);
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .saved-payment-count {
+        font-size: 16px; /* Font size for the count */
+        font-weight: 800; /* Font weight for the count */
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+    }
+
+    #payment-table {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        font-size: 0.95rem;   
+    }
+
+    #payment-table thead th {
+        text-align: center;
+        border-right: 1px solid var(--primary-color);
+        border-top: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 1rem 0.75rem;
+        white-space: nowrap;
+        background-color: var(--accent-color);
+        color: {{customization.body_font_color|default:"#ffffff"}};
+        font-family: '{{ customization.header_font_family|default:"Arial" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:10 }}{% else %}13{% endif %}px;
+    }
+
+    #payment-table tbody td {
+        text-align: center;
+        padding: 0.80rem;
+        vertical-align: middle;
+        font-weight: 600;
+        border-bottom: 1px solid var(--accent-color);
+        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:10 }}{% else %}13{% endif %}px;
+        color: {{ customization.body_font_color|default:"#000000" }};
+    }
+
+    #payment-table tbody tr:hover {
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    #payment-table img {
+        border: 2px solid #dee2e6;
+        transition: transform 0.2s ease;
+    }
+
+    #payment-table img:hover {
+        transform: scale(1.05);
+    }
+
+    .btn-outline-primary {
+        border-color: var(--primary-color);
+        background-color: transparent;
+        transition: all 0.3s ease;
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+
+    }
+
+    .btn-outline-primary i {
+        margin-right: 4px;
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        transition: color 0.3s ease;
+    }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow-x: auto;
+    }
+
+    @media (max-width: 576px) {
+        #payment-table thead {
+            font-size: 0.85rem;
+        }
+
+        #payment-table td,
+        #payment-table th {
+            font-size: 0.85rem;
+            padding: 8px;
+        }
+
+        .btn-outline-primary {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+        }
+    }
+
+    .qr-display {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    #qrModalImage {
+        max-width: 100%;
+        max-height: 75vh;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 12px;
+    }
+
+    #empty-state {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    #empty-state i {
+        font-size: 55px;
+        margin-bottom: 3px;
+        color: var(--text-muted);
+    }
+
+    #empty-state h5 {
+        text-transform: uppercase;
+        font-weight: 800;
+        color: var(--text-muted);
+        margin-bottom: 5px; /* Adjust spacing for the heading */
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 18 %}{{ customization.body_font_size|default:12 }}{% else %}18{% endif %}px;
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+    }
+
+    #empty-state p {
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: var(--text-muted);
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 15 %}{{ customization.body_font_size|default:12 }}{% else %}15{% endif %}px;
+
+    }
+
+    #empty-state span.badge {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        padding: 5px 10px;
+        border-radius: 10px;
+    }
+
+
+</style>
+
+<div class="payment-setup-container">
+    <div class="container-fluid">
+
+    <div class="mb-3">
+        <a href="{% url 'settings' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+        <!-- Payment Form -->
+        <div class="row justify-content-center">
+            <div class="col-12 col-xl-10">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="payment_id" id="payment_id" value="{{ payment_details.id|default:'' }}">
+                    <div class="row g-4">
+                        <!-- Left Side - QR Upload Section -->
+                        <div class="col-lg-6">
+                            <div class="card border-0 shadow-lg h-100" style="border-radius: 24px;">
+                                <div class="card-body p-4">
+                                    <div class="text-center mb-4">
+                                        <h3 class="card-title mb-0">
+                                            <i class="bi-qr-code-scan me-2"></i>
+                                            QR Code Upload
+                                        </h3>
+                                    </div>
+
+                                    <div class="qr-upload-zone" onclick="document.getElementById('qr-file').click()">
+                                        <div class="qr-container position-relative {% if payment_details and payment_details.qr_image %}has-image{% endif %}">
+                                            {% if payment_details and payment_details.qr_image %}
+                                                <img id="qr-preview" src="{{ payment_details.qr_image.url }}" alt="QR Code" class="qr-display">
+                                            {% else %}
+                                                <img id="qr-preview" src="" alt="QR Code" class="qr-display d-none">
+                                            {% endif %}
+
+                                            <div id="empty-state" class="qr-empty-state {% if payment_details and payment_details.qr_image %}d-none{% endif %}">
+                                                <i class="bi bi-cloud-upload fs-1 text-muted mb-3"></i>
+                                                <h5>Upload QR Code</h5>
+                                                <p>Click or drag to upload your payment QR code</p>
+                                            </div>
+
+                                            <div class="qr-overlay">
+                                                <div class="text-center">
+                                                    <i class="bi bi-camera-fill fs-1 mb-2"></i>
+                                                    <div class="fw-semibold">Change QR Code</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="qr-file" name="qr_image" accept="image/*" class="d-none" onchange="handleFileUpload(event)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Side - Payment Details -->
+                        <div class="col-lg-6">
+                            <div class="card border-0 shadow-lg h-100" style="border-radius: 24px;">
+                                <div class="card-body p-4">
+                                    <div class="mb-4">
+                                        <h3 class="card-title mb-0">
+                                            <i class="bi-credit-card me-2"></i>
+                                            Payment Information
+                                        </h3>
+                                    </div>
+
+                                <!-- Bank/Platform Name -->
+                            <!-- Bank/Platform Name -->
+                            <div class="mb-2">
+                                <div class="form-group">
+                                    <label for="bank_name" class="input-label">
+                                        <i class="bi bi-bank me-2"></i>Bank/Platform Name
+                                    </label>
+                                    <input type="text" name="bank_name" id="bank_name" class="form-control modern-input" 
+                                        value="{{ payment_details.bank_name|default:'' }}" required>
+                                </div>
+                            </div>
+
+                            <!-- Account Holder Name -->
+                            <div class="mb-2">
+                                <div class="form-group">
+                                    <label for="recipient_name" class="input-label">
+                                        <i class="bi bi-person-circle me-2"></i>Account Holder Name
+                                    </label>
+                                    <input type="text" name="recipient_name" id="recipient_name" class="form-control modern-input" 
+                                        value="{{ payment_details.recipient_name|default:'' }}" required>
+                                </div>
+                            </div>
+
+                            <!-- Phone Number -->
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label for="phone_number" class="input-label">
+                                        <i class="bi bi-telephone me-2"></i>Account Number
+                                    </label>
+                                    <input type="tel" name="phone_number" id="phone_number" 
+                                        class="form-control modern-input" 
+                                        value="{{ payment_details.phone_number|default:'' }}"
+                                        required>
+                                </div>
+                            </div>
+
+
+
+                                    <!-- Action Buttons -->
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" name="save" class="btn btn-primary">
+                                            Save Details
+                                        </button>
+
+                                        <!-- Row-based Edit/Remove -->
+                                        <div id="rowActionButtons" class="row g-2 mt-2 d-none">
+                                            <div class="col">
+                                                <button type="submit" name="edit" class="btn btn-outline-secondary w-100" id="editBtn">
+                                                    Edit Details
+                                                </button>
+                                            </div>
+                                            <div class="col">
+                                                <button type="button" 
+                                                        class="btn btn-outline-danger w-100" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteConfirmModal">
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table of Saved Payment Details (moved to bottom) -->
+        <div class="mt-5">
+            <h4 class="saved-payment-title mb-3">
+                <span>Saved Online Payment Details</span>
+                <span class="saved-payment-count">(0)</span> <!-- Default to 0, will be updated dynamically -->
+            </h4>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle text-center" id="payment-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Bank/Platform</th>
+                            <th>Account Holder</th>
+                            <th>Account Number</th>
+                            <th>QR</th>
+                            <th>Action</th> <!-- New column for view button -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in all_payments %}
+                        <tr
+                            data-id="{{ item.id }}"
+                            data-bank="{{ item.bank_name }}"
+                            data-recipient="{{ item.recipient_name }}"
+                            data-phone="{{ item.phone_number }}"
+                            data-qr="{% if item.qr_image %}{{ item.qr_image.url }}{% endif %}"
+                        >
+                            <td>{{ item.bank_name|title }}</td>
+                            <td>{{ item.recipient_name|title }}</td>
+                            <td>{{ item.phone_number }}</td>
+                            <td>
+                                {% if item.qr_image %}
+                                    <img src="{{ item.qr_image.url }}" alt="QR Code" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer;" onclick="showQrInModal('{{ item.qr_image.url }}')">
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="viewPaymentDetails(this)">
+                                   <i class="bi bi-eye"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">No payment methods saved.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div class="modal fade" id="qrImageModal" tabindex="-1" aria-labelledby="qrImageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header">
+        <h5 class="modal-title" id="qrImageModalLabel">
+          <i class="bi bi-qr-code me-2 text-primary"></i>QR Code Preview
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="qrModalImage" src="" alt="QR Preview" class="img-fluid rounded shadow">
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Removal
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="mb-0">Are you sure you want to remove this payment configuration?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="submit" name="delete" value="true" class="btn btn-danger">
+          Remove
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+   document.addEventListener('DOMContentLoaded', function () {
+        // Select the saved-payment-count element
+        const paymentCountElement = document.querySelector('.saved-payment-count');
+
+        // Count the number of saved payment methods
+        const paymentRows = document.querySelectorAll('#payment-table tbody tr');
+        const savedPaymentCount = paymentRows.length;
+
+        // Update the element's content with the dynamic value
+        paymentCountElement.textContent = `(${savedPaymentCount})`;
+    });
+
+    /// new 
+    document.addEventListener('DOMContentLoaded', function () {
+        const saveDetailsBtn = document.querySelector('[name="save"]');
+        const editDetailsBtn = document.getElementById('editBtn');
+        const deleteDetailsBtn = document.getElementById('deleteBtn');
+        const rowActionButtons = document.getElementById('rowActionButtons');
+
+        let currentlyViewedButton = null;
+
+        // View payment details logic
+        function viewPaymentDetails(button) {
+            const row = button.closest('tr');
+            const preview = document.getElementById('qr-preview');
+            const emptyState = document.getElementById('empty-state');
+            const qrContainer = document.querySelector('.qr-container');
+
+            // Hide Save button and show Edit/Remove buttons
+            saveDetailsBtn.classList.add('d-none');
+            rowActionButtons.classList.remove('d-none');
+
+            // If same row is being unviewed, reset everything
+            if (currentlyViewedButton === button) {
+                resetView();
+                return;
+            }
+
+            // Reset previously active button
+            if (currentlyViewedButton) {
+                currentlyViewedButton.innerHTML = `<i class="bi bi-eye"></i> View`;
+            }
+
+            // Load selected row data into the form
+            document.getElementById('payment_id').value = row.dataset.id;
+            document.getElementById('bank_name').value = row.dataset.bank;
+            document.getElementById('recipient_name').value = row.dataset.recipient;
+            document.getElementById('phone_number').value = row.dataset.phone;
+
+            // Update preview or empty state for QR code
+            if (row.dataset.qr) {
+                preview.src = row.dataset.qr;
+                preview.classList.remove('d-none');
+                if (emptyState) emptyState.classList.add('d-none');
+                qrContainer.classList.add('has-image');
+            } else {
+                preview.src = '';
+                preview.classList.add('d-none');
+                if (emptyState) emptyState.classList.remove('d-none');
+                qrContainer.classList.remove('has-image');
+            }
+
+            // Change the "View" button text to "Unview"
+            button.innerHTML = `Unview`;
+            currentlyViewedButton = button;
+
+            // Scroll to the top of the form for better UX
+            document.querySelector('form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Reset the form and show the save button when not viewing
+        function resetView() {
+            // Clear form values
+            document.getElementById('payment_id').value = '';
+            document.getElementById('bank_name').value = '';
+            document.getElementById('recipient_name').value = '';
+            document.getElementById('phone_number').value = '';
+
+            // Hide QR preview and show empty state
+            const preview = document.getElementById('qr-preview');
+            const emptyState = document.getElementById('empty-state');
+            const qrContainer = document.querySelector('.qr-container');
+
+            preview.src = '';
+            preview.classList.add('d-none');
+            if (emptyState) emptyState.classList.remove('d-none');
+            qrContainer.classList.remove('has-image');
+
+            // Hide Edit/Remove buttons and show Save button
+            rowActionButtons.classList.add('d-none');
+            saveDetailsBtn.classList.remove('d-none');
+
+            // Reset button UI
+            currentlyViewedButton.innerHTML = `<i class="bi bi-eye"></i> View`;
+            currentlyViewedButton = null;
+        }
+
+        // Edit button logic: show Save button, hide Edit/Remove buttons
+        editDetailsBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            // Show Save button and hide Edit/Remove buttons
+            saveDetailsBtn.classList.remove('d-none');
+            rowActionButtons.classList.add('d-none');
+            setFormFieldsDisabled(false); // Enable the fields for editing
+            showToast('You can now update and save this payment method.', 'info');
+        });
+
+        // Helper function to disable/enable the form fields
+        function setFormFieldsDisabled(disabled) {
+            document.getElementById('bank_name').disabled = disabled;
+            document.getElementById('recipient_name').disabled = disabled;
+            document.getElementById('phone_number').disabled = disabled;
+            document.getElementById('qr-file').disabled = disabled;
+
+            const qrZone = document.querySelector('.qr-upload-zone');
+            if (qrZone) {
+                qrZone.style.pointerEvents = disabled ? 'none' : 'auto';
+                qrZone.style.opacity = disabled ? '0.6' : '1';
+            }
+        }
+
+    function showToast(message, type = 'info') {
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+
+        const toastId = 'toast-' + Date.now();
+        const bgClass = type === 'error' ? 'bg-danger' : type === 'success' ? 'bg-success' : 'bg-primary';
+        const icon = type === 'error' ? 'bi-exclamation-triangle' : type === 'success' ? 'bi-check-circle' : 'bi-info-circle';
+
+        const toastHTML = `
+            <div id="${toastId}" class="toast ${bgClass} text-white" role="alert">
+                <div class="toast-body d-flex align-items-center">
+                    <i class="bi ${icon} me-2"></i>
+                    ${message}
+                </div>
+            </div>
+        `;
+
+        toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+
+        const toastElement = document.getElementById(toastId);
+        const bsToast = new bootstrap.Toast(toastElement, { delay: 3000 });
+        bsToast.show();
+
+        toastElement.addEventListener('hidden.bs.toast', () => {
+            toastElement.remove();
+        });
+    }
+
+
+        // Attach viewPaymentDetails function to all "View" buttons
+        const viewButtons = document.querySelectorAll('.btn-outline-primary');
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                viewPaymentDetails(button);
+            });
+        });
+
+    });
+
+function showQrInModal(imageUrl) {
+    const modalImg = document.getElementById('qrModalImage');
+    modalImg.src = imageUrl;
+    const modal = new bootstrap.Modal(document.getElementById('qrImageModal'));
+    modal.show();
+}
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('File size must be less than 5MB', 'error');
+        return;
+    }
+
+    if (!file.type.match('image.*')) {
+        showToast('Please select a valid image file', 'error');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('qr-preview');
+        const emptyState = document.getElementById('empty-state');
+        const qrContainer = document.querySelector('.qr-container');
+
+        preview.src = e.target.result;
+        preview.classList.remove('d-none');
+        if (emptyState) emptyState.classList.add('d-none');
+
+        // ✅ Add class to enable overlay
+        qrContainer.classList.add('has-image');
+
+        showToast('QR code uploaded successfully!', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.documentElement.style.scrollBehavior = 'smooth';
+    const formControls = document.querySelectorAll('.form-control');
+    formControls.forEach(control => {
+        control.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        control.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+    });
+
+    // Edit button enables inputs
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'editBtn') {
+            e.preventDefault();
+            setFormFieldsDisabled(false);
+            showToast('You can now update and save this payment method.', 'info');
+        }
+    });
+
+    // ✅ Set returnToSettingsEditMode flag when clicking "Save Details"
+    const saveButton = document.querySelector('button[name="save"]');
+    if (saveButton) {
+        saveButton.addEventListener('click', function() {
+            sessionStorage.setItem('returnToSettingsEditMode', 'true');
+        });
+    }
+
+    // Disable QR upload zone initially if not editing
+    setFormFieldsDisabled(false); // optional: can start in editable mode or view-only mode
+});
+
+// Enable/disable all form fields including QR upload
+function setFormFieldsDisabled(disabled) {
+    document.getElementById('bank_name').disabled = disabled;
+    document.getElementById('recipient_name').disabled = disabled;
+    document.getElementById('phone_number').disabled = disabled;
+    document.getElementById('qr-file').disabled = disabled;
+
+    const qrZone = document.querySelector('.qr-upload-zone');
+    if (qrZone) {
+        qrZone.style.pointerEvents = disabled ? 'none' : 'auto';
+        qrZone.style.opacity = disabled ? '0.6' : '1';
+    }
+}
+
+// Tracks which "View" button is currently active
+let currentlyViewedButton = null;
+
+function viewPaymentDetails(button) {
+    const row = button.closest('tr');
+
+    const preview = document.getElementById('qr-preview');
+    const emptyState = document.getElementById('empty-state');
+    const qrContainer = document.querySelector('.qr-container');
+
+    // If same row is being unviewed
+    if (currentlyViewedButton === button) {
+        // Clear form
+        document.getElementById('payment_id').value = '';
+        document.getElementById('bank_name').value = '';
+        document.getElementById('recipient_name').value = '';
+        document.getElementById('phone_number').value = '';
+
+        // Hide image preview and show empty state
+        preview.src = '';
+        preview.classList.add('d-none');
+        if (emptyState) emptyState.classList.remove('d-none');
+
+        // Remove image-indicator class
+        qrContainer.classList.remove('has-image');
+
+        // Hide action buttons and enable form
+        document.getElementById('rowActionButtons').classList.add('d-none');
+        setFormFieldsDisabled(false);
+
+        // Reset button UI
+        button.innerHTML = `<i class="bi bi-eye"></i> View`;
+        currentlyViewedButton = null;
+        return;
+    }
+
+    // Reset previously active button
+    if (currentlyViewedButton) {
+        currentlyViewedButton.innerHTML = `<i class="bi bi-eye"></i> View`;
+    }
+
+    // Load selected row data into form
+    document.getElementById('payment_id').value = row.dataset.id;
+    document.getElementById('bank_name').value = row.dataset.bank;
+    document.getElementById('recipient_name').value = row.dataset.recipient;
+    document.getElementById('phone_number').value = row.dataset.phone;
+
+    // Update preview or empty state
+    if (row.dataset.qr) {
+        preview.src = row.dataset.qr;
+        preview.classList.remove('d-none');
+        if (emptyState) emptyState.classList.add('d-none');
+        qrContainer.classList.add('has-image'); // ✅ show overlay on hover
+    } else {
+        preview.src = '';
+        preview.classList.add('d-none');
+        if (emptyState) emptyState.classList.remove('d-none');
+        qrContainer.classList.remove('has-image'); // ❌ hide overlay
+    }
+
+    // Show action buttons and disable form
+    document.getElementById('rowActionButtons').classList.remove('d-none');
+    setFormFieldsDisabled(true);
+
+    // Change button UI
+    button.innerHTML = `Unview`;
+    currentlyViewedButton = button;
+
+    // Scroll to top of form
+    document.querySelector('form').scrollIntoView({ behavior: 'smooth' });
+}
+
+document.querySelector('form').addEventListener('submit', function (e) {
+    const qrImageInput = document.getElementById('qr-file');
+    const previewImage = document.getElementById('qr-preview');
+    const action = e.submitter?.name;
+});
+
+// Auto-capitalize first letter of each word
+function capitalizeWords(input) {
+    input.value = input.value
+        .toLowerCase()
+        .replace(/\b\w/g, char => char.toUpperCase());
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const bankName = document.getElementById('bank_name');
+    const recipientName = document.getElementById('recipient_name');
+
+    // Bank/Platform Name → Auto capitalize only
+    if (bankName) {
+        bankName.addEventListener('input', function () {
+            capitalizeWords(bankName);
+        });
+    }
+
+    // Account Holder Name → Allow letters, spaces, and period
+    if (recipientName) {
+        recipientName.addEventListener('input', function () {
+            // Remove invalid characters (anything except letters, space, and .)
+            recipientName.value = recipientName.value.replace(/[^a-zA-Z.\s]/g, '');
+            capitalizeWords(recipientName);
+        });
+    }
+});
+
+</script>
+
+    
+{% endblock %}

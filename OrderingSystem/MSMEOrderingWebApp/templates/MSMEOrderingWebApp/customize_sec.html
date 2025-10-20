@@ -1,0 +1,2277 @@
+
+<div class="main-container mt-3">
+    <form method="POST" action="{% url 'save_customization' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <!-- Website UI Customization Section -->
+        <div class="customize-section">
+            <div class="card2 customize-card">
+                <div class="card2-header">
+                    <h3 class="card2-title d-flex flex-lg-row flex-column justify-content-between align-items-lg-center align-items-start ">
+                        <span class="mb-1 mb-lg-0">
+                            <i class="fas fa-palette"></i> Website Personalization
+                        </span>
+                        <div class="d-flex flex-lg-row flex-column g-3">
+                            <!-- Toggle Button: Save Changes / Customize -->
+                            <button type="button" id="customize_button" class="save-button flex-fill">
+                                <i class="fas fa-edit"></i> Customize
+                            </button>
+                            <!-- Save Changes Button -->
+                            <button type="submit" id="save_changes" class="save-button flex-fill">
+                                <i class="fas fa-save me-2"></i> Save Changes
+                            </button>
+                        </div>
+                    </h3>
+                </div>
+
+
+                <div class="card2-body">
+                    <div class="row g-2">
+                        <!-- LEFT SECTION - Typography and Background -->
+                        <div class="col-lg-6">
+                            <div class="row g-4">
+                                <!-- Typography Settings -->
+                                <div class="col-12">
+                                    <div class="card custom-card">
+                                        <div class="card1-header">
+                                            <h5>Typography Design Settings</h5>
+                                        </div>
+                                        <div class="card2-body">
+                                            <!-- Header Settings -->
+                                            <h6 class="fw-bold mb-1">Header</h6>          
+                                            <div class="row g-2 mb-0">
+                                                <!-- Font Family and Font Size in One Row (on large screens) -->
+                                                <div class="col-12 col-xl-4 col-lg-12 col-md-12 col-sm-12">
+                                                    <label for="header_font_family" class="form2-label small">Font Family</label>
+                                                    <select id="header_font_family" name="header_font_family" class="form2-select" onchange="previewCustomization()">
+                                                        <option value="Arial" {% if customization.header_font_family == 'Arial' %}selected{% endif %}>Arial</option>
+                                                        <option value="Bitter" {% if customization.header_font_family == 'Bitter' %}selected{% endif %}>Bitter</option>
+                                                        <option value="Brawler" {% if customization.header_font_family == 'Brawler' %}selected{% endif %}>Brawler</option>
+                                                        <option value="Caudex" {% if customization.header_font_family == 'Caudex' %}selected{% endif %}>Caudex</option>
+                                                        <option value="Clash Grotesk" {% if customization.header_font_family == 'Clash Grotesk' %}selected{% endif %}>Clash Grotesk</option>
+                                                        <option value="Helvetica" {% if customization.header_font_family == 'Helvetica' %}selected{% endif %}>Helvetica</option>
+                                                        <option value="Inter" {% if customization.header_font_family == 'Inter' %}selected{% endif %}>Inter</option>
+                                                        <option value="Lora" {% if customization.header_font_family == 'Lora' %}selected{% endif %}>Lora</option>
+                                                        <option value="Merriweather" {% if customization.header_font_family == 'Merriweather' %}selected{% endif %}>Merriweather</option>
+                                                        <option value="Montserrat" {% if customization.header_font_family == 'Montserrat' %}selected{% endif %}>Montserrat</option>
+                                                        <option value="Roboto" {% if customization.header_font_family == 'Roboto' %}selected{% endif %}>Roboto</option>
+                                                        <option value="Snell Roundhand" {% if customization.header_font_family == 'Snell Roundhand' %}selected{% endif %}>Snell Roundhand</option>
+                                                        <option value="Source Sans 3" {% if customization.header_font_family == 'Source Sans 3' %}selected{% endif %}>Source Sans 3</option>
+                                                        <option value="Times New Roman" {% if customization.header_font_family == 'Times New Roman' %}selected{% endif %}>Times New Roman</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-12 col-xl-3 col-lg-12 col-md-12 col-sm-12 mb2">
+                                                    <label for="header_font_size" class="form2-label small">Size</label>
+                                                    <div>
+                                                        <input type="number" id="header_font_size" name="header_font_size" class="form2-control" min="10" max="70" value="{{ customization.header_font_size|default:32 }}">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Font Color and Font Style in One Row (on large screens) -->
+                                                <div class="col-12 col-xl-5 col-lg-12 col-md-12 col-sm-12">
+                                                    <label for="header_font_color" class="form2-label small">Color</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="color" id="header_font_color" name="header_font_color" class="form-control form-control-color" value="{{ customization.header_font_color|default:'#2c3e50' }}" onchange="syncColorToHex('header')">
+                                                        <span class="input-group-text">#</span>
+                                                        <input type="text" id="header_font_color_hex" name="header_font_color_hex" class="form-control" value="{{ customization.header_font_color|default:'2c3e50' }}" maxlength="6" onkeyup="syncHexToColor('header')">
+                                                    </div>
+                                                </div>
+                                                <div class="col-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 mb-3">
+                                                    <label class="form2-label small">Style</label>
+                                                    <div class="btn-group w-100" role="group">
+                                                        <!-- Normal -->
+                                                        <input type="radio" class="btn-check" name="header_font_style" id="header_normal" value="normal" {% if customization.header_font_style == 'normal' %}checked{% endif %}>
+                                                        <label class="btn btn-outline-primary btn-sm" for="header_normal">Normal</label>
+
+                                                        <!-- Bold -->
+                                                        <input type="radio" class="btn-check" name="header_font_style" id="header_bold" value="bold" {% if customization.header_font_style == 'bold' %}checked{% endif %}>
+                                                        <label class="btn btn-outline-primary btn-sm fw-bold" for="header_bold">Bold</label>
+
+                                                        <!-- Italic -->
+                                                        <input type="radio" class="btn-check" name="header_font_style" id="header_italic" value="italic" {% if customization.header_font_style == 'italic' %}checked{% endif %}>
+                                                        <label class="btn btn-outline-primary btn-sm fst-italic" for="header_italic">Italic</label>
+
+                                                        <!-- Bold Italic -->
+                                                        <input type="radio" class="btn-check" name="header_font_style" id="header_bolditalic" value="bolditalic" {% if customization.header_font_style == 'bolditalic' %}checked{% endif %}>
+                                                        <label class="btn btn-outline-primary btn-sm fw-bold fst-italic" for="header_bolditalic">Bold Italic</label>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Body Settings -->  
+                                            <h6 class="fw-bold mb-1" >Body</h6>
+                                            <div class="row g-2">
+                                                <!-- Font Family Input -->
+                                                <div class="col-12 col-xl-4 col-lg-12 col-md-12 col-sm-12">
+                                                    <label for="body_font_family" class="form2-label small">Font Family</label>
+                                                    <select id="body_font_family" name="body_font_family" class="form2-select form2-select-sm" onchange="previewCustomization()">
+                                                        <option value="Arial" {% if customization.body_font_family == 'Arial' %}selected{% endif %}>Arial</option>
+                                                        <option value="Bitter" {% if customization.body_font_family == 'Bitter' %}selected{% endif %}>Bitter</option>
+                                                        <option value="Brawler" {% if customization.body_font_family == 'Brawler' %}selected{% endif %}>Brawler</option>
+                                                        <option value="Caudex" {% if customization.body_font_family == 'Caudex' %}selected{% endif %}>Caudex</option>
+                                                        <option value="Clash Grotesk" {% if customization.body_font_family == 'Clash Grotesk' %}selected{% endif %}>Clash Grotesk</option>
+                                                        <option value="Helvetica" {% if customization.body_font_family == 'Helvetica' %}selected{% endif %}>Helvetica</option>
+                                                        <option value="Inter" {% if customization.body_font_family == 'Inter' %}selected{% endif %}>Inter</option>
+                                                        <option value="Lora" {% if customization.body_font_family == 'Lora' %}selected{% endif %}>Lora</option>
+                                                        <option value="Merriweather" {% if customization.body_font_family == 'Merriweather' %}selected{% endif %}>Merriweather</option>
+                                                        <option value="Montserrat" {% if customization.body_font_family == 'Montserrat' %}selected{% endif %}>Montserrat</option>
+                                                        <option value="Roboto" {% if customization.body_font_family == 'Roboto' %}selected{% endif %}>Roboto</option>
+                                                        <option value="Snell Roundhand" {% if customization.body_font_family == 'Snell Roundhand' %}selected{% endif %}>Snell Roundhand</option>
+                                                        <option value="Source Sans 3" {% if customization.body_font_family == 'Source Sans 3' %}selected{% endif %}>Source Sans 3</option>
+                                                        <option value="Times New Roman" {% if customization.body_font_family == 'Times New Roman' %}selected{% endif %}>Times New Roman</option>
+                                                    </select>
+                                                </div>
+
+                                                <!-- Font Size Input -->
+                                                <div class="col-12 col-xl-3 col-lg-12 col-md-12 col-sm-12">
+                                                    <label for="body_font_size" class="form2-label small">Size</label>
+                                                    <div class="form2-control-sm">
+                                                        <input type="number" id="body_font_size" name="body_font_size" class="form2-control" min="7" max="20" value="{{ customization.body_font_size|default:16 }}">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Font Color Input -->
+                                                <div class="col-12 col-xl-5 col-lg-12 col-md-12 col-sm-12 mb-2">
+                                                    <label for="body_font_color" class="form2-label small">Color</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="color" id="body_font_color" name="body_font_color" class="form-control form-control-color" value="{{ customization.body_font_color|default:'#2c3e50' }}" onchange="syncColorToHex('body')">
+                                                        <span class="input-group-text">#</span>
+                                                        <input type="text" id="body_font_color_hex" name="body_font_color_hex" class="form-control" value="{{ customization.body_font_color|default:'2c3e50' }}" maxlength="6" onkeyup="syncHexToColor('body')">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>    
+                        <!-- END LEFT SECTION -->   
+                        <!-- RIGHT SECTION - UI Elements and Preview -->
+                        <div class="col-lg-6">
+                            <div class="row g-4">
+                                <!-- Button & Input Customization -->
+                                <div class="col-12">
+                                    <div class="card custom-card mb-3">
+                                        <div class="card1-header">
+                                            <h5>Styling and Appearance Settings</h5>
+                                        </div>
+                                        <div class="card2-body">
+                                            <h6 class="fw-bold mb-1">Button Customization</h6>
+                                            <div class="row g-2">
+                                                <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                    <label for="button_rounded_corner" class="form2-label small">Radius</label>
+                                                    <input type="number" id="button_rounded_corner" name="button_rounded_corner" class="form2-control" value="{{ customization.button_rounded_corner|default:1 }}" min="1" max="50" onchange="previewCustomization()">
+                                                </div>
+                                                <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12 mb-3">
+                                                    <label for="button_text_color" class="form2-label small">Text Color</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="color" id="button_text_color" name="button_text_color" class="form-control form-control-color" value="{{ customization.button_text_color|default:'#ffffff' }}" onchange="syncColorToHex('button_text')">
+                                                        <span class="input-group-text">#</span>
+                                                        <input type="text" id="button_text_color_hex" name="button_text_color_hex" class="form-control" value="{{ customization.button_text_color|default:'ffffff' }}" maxlength="6" onkeyup="syncHexToColor('button_text')">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Input Customization -->
+                                            <h6 class="fw-bold mb-1">Input Customization</h6>
+                                            <div class="row g-2">
+                                                <div class="col-12 col-12 col-xl-4 col-lg-6 col-md-6 col-sm-12">
+                                                    <label for="input_border_width" class="form2-label small mb-0">Width</label>
+                                                    <input type="number" id="input_border_width" name="input_border_width" class="form2-control" value="{{ customization.input_border_width|default:1 }}" min="1" max="10" onchange="previewCustomization()">
+                                                </div>
+                                                <div class="col-12 col-xl-4 col-lg-6 col-md-6 col-sm-12">
+                                                    <label for="input_rounded_corner" class="form2-label small">Radius</label>
+                                                    <input type="number" id="input_rounded_corner" name="input_rounded_corner" class="form2-control" value="{{ customization.input_rounded_corner|default:1 }}" min="1" max="50" onchange="previewCustomization()">
+                                                </div>
+                                                <div class="col-12 col-xl-4 col-lg-12 col-md-12 col-sm-12 mb-3">
+                                                    <label for="input_border_style" class="form2-label small">Style</label>
+                                                    <select id="input_border_style" name="input_border_style" onchange="previewCustomization()" class="form2-select form2-select-sm">
+                                                        <option value="solid" {% if customization.input_border_style == 'solid' %}selected{% endif %}>Solid</option>
+                                                        <option value="dashed" {% if customization.input_border_style == 'dashed' %}selected{% endif %}>Dashed</option>
+                                                        <option value="dotted" {% if customization.input_border_style == 'dotted' %}selected{% endif %}>Dotted</option>
+                                                        <option value="inset" {% if customization.input_border_style == 'inset' %}selected{% endif %}>Inset</option>
+                                                        <option value="outset" {% if customization.input_border_style == 'outset' %}selected{% endif %}>Outset</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Color Palette -->
+                                            <h6 class="fw-bold mb-1">Color Palette</h6>
+                                            <div class="row g-2">
+                                                <div class="col-12 col-xl-4 col-lg-12 col-md-12 col-sm-12">
+                                                    <label for="primary_color" class="form3-label small">Primary Color</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="color" id="primary_color" name="primary_color" value="{{ customization.primary_color|default:'#0000EE' }}" onchange="previewCustomization()" class="form-control form-control-color">
+                                                        <span class="input-group-text">#</span>
+                                                        <input type="text" id="primary_color_hex" name="primary_color_hex" class="form-control" value="{{ customization.primary_color|default:'0000EE' }}" maxlength="6" onkeyup="syncHexToColor('hyperlink')">
+                                                    </div>
+                                                </div>
+                                                <div class="col-12 col-xl-4 col-lg-12 col-md-12 col-sm-12">
+                                                    <label for="secondary_color" class="form3-label small">Secondary Color</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="color" id="secondary_color" name="secondary_color" value="{{ customization.secondary_color|default:'#FF5733' }}" onchange="previewCustomization()" class="form-control form-control-color">
+                                                        <span class="input-group-text">#</span>
+                                                        <input type="text" id="secondary_color_hex" name="secondary_color_hex" class="form-control" value="{{ customization.secondary_color|default:'FF5733' }}" maxlength="6" onkeyup="syncHexToColor('hyperlink_hover')">
+                                                    </div>
+                                                </div>
+                                                <div class="col-12 col-xl-4 col-lg-12 col-md-12 col-sm-12">
+                                                    <label for="accent_color" class="form3-label small">Accent Color</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="color" id="accent_color" name="accent_color" value="{{ customization.accent_color|default:'FF5733' }}" onchange="previewCustomization()" class="form-control form-control-color">
+                                                        <span class="input-group-text">#</span>
+                                                        <input type="text" id="accent_color_hex" name="accent_color_hex" class="form-control" value="{{ customization.accent_color|default:'FF5733' }}" maxlength="6" onkeyup="syncHexToColor('hyperlink_hover')">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    <!-- Background Customization -->
+                    <div class="col-12">
+                        <div class="card custom-card h-100">
+                            <div class="card1-header">
+                                <h5>Other Page Configuration</h5>
+                            </div>
+
+                            <!-- Move tab nav and content inside the same card body -->
+                            <div class="card2-body">
+                                <!-- Nav tabs -->
+                                <ul class="nav nav-tabs mt-1" id="backgroundTabs" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" id="general-background-tab" data-bs-toggle="tab" href="#general-background" role="tab">General Background</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="login-background-tab" data-bs-toggle="tab" href="#login-background" role="tab">Login</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="register-background-tab" data-bs-toggle="tab" href="#register-background" role="tab">Register</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="navigation-tab" data-bs-toggle="tab" href="#navigation" role="tab">Navigation</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="homepage-tab" data-bs-toggle="tab" href="#homepage" role="tab">Homepage</a>
+                                    </li>
+                                </ul>
+
+                                <!-- Tab content for background -->
+                                <div class="tab-content" id="backgroundTabsContent">
+                                    <!-- General Background Tab -->
+                                    <div class="tab-pane fade show active" id="general-background" role="tabpanel">
+                                        <div class="mt-3">
+                                            <!-- Background Type -->
+                                
+                                            <label for="general_background_type" class="form2-label">Background Type</label>
+                                            <select id="general_background_type" name="general_background_type" class="form-select" onchange="toggleBackgroundOptions('general')">
+                                                <option value="solid" {% if customization.general_background_type == 'solid' %}selected{% endif %}>Solid Color</option>
+                                                <option value="gradient" {% if customization.general_background_type == 'gradient' %}selected{% endif %}>Gradient</option>
+                                                <option value="image" {% if customization.general_background_type == 'image' %}selected{% endif %}>Image</option>
+                                            </select>
+
+
+                                            <!-- Solid Color Option -->
+                                            <div id="general_solid_color_option" class="mt-3" style="display:none;">
+                                                <div class="col-lg-12 col-md-12">
+                                                    <label for="general_solid_color" class="form2-label">Color</label>
+                                                    <div class="input-group">
+                                                        <input type="color" id="general_solid_color" name="general_solid_color" value="{{customization.general_solid_color|default:'#ffffff' }}" class="form-control form-control-color" onchange="previewCustomization()">
+                                                        <span class="input-group-text">#</span>
+                                                        <input type="text" id="general_solid_color_hex" name="general_solid_color_hex" value="{{ customizatizartion.general_solid_color|default:'ffffff' }}" maxlength="6" class="form-control" onchange="syncHexToColor('general')">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Gradient Options -->
+                                            <div id="general_gradient_option" class="mt-3" style="display:none;">
+                                                <div class="row g-3">
+                                                    <!-- General Gradient Direction -->
+                                                    <div class="col-12 col-xl-12 col-lg-12 col-md-12 col-sm-12" id="general_direction_wrapper">
+                                                        <label for="general_gradient_direction" class="form2-label">Direction</label>
+                                                        <select id="general_gradient_direction" name="general_gradient_direction" class="form-select" onchange="previewCustomization()">
+                                                            <option value="to right" {% if customization.general_gradient_direction == 'to right' %}selected{% endif %}>Left to Right</option>
+                                                            <option value="to left" {% if customization.general_gradient_direction == 'to left' %}selected{% endif %}>Right to Left</option>
+                                                            <option value="to bottom" {% if customization.general_gradient_direction == 'to bottom' %}selected{% endif %}>Top to Bottom</option>
+                                                            <option value="to top" {% if customization.general_gradient_direction == 'to top' %}selected{% endif %}>Bottom to Top</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Gradient Colors -->
+                                                <div class="row g-3 mt-2">
+                                                    <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                        <label for="general_gradient_color_1" class="form2-label">Color 1</label>
+                                                        <div class="input-group">
+                                                            <input type="color" id="general_gradient_color_1" name="general_gradient_color_1" value="{{ customization.general_gradient_color_1|default:'#000000' }}" class="form-control form-control-color" onchange="previewCustomization()">
+                                                            <span class="input-group-text">#</span>
+                                                            <input type="text" id="general_gradient_color_1_hex" name="general_gradient_color_1_hex" value="{{ customization.general_gradient_color_1|default:'000000' }}" maxlength="6" class="form-control" onchange="syncHexToColor('general')">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                        <label for="general_gradient_color_2" class="form2-label">Color 2</label>
+                                                        <div class="input-group">
+                                                            <input type="color" id="general_gradient_color_2" name="general_gradient_color_2" value="{{ customization.general_gradient_color_2|default:'#ffffff' }}" class="form-control form-control-color" onchange="previewCustomization()">
+                                                            <span class="input-group-text">#</span>
+                                                            <input type="text" id="general_gradient_color_2_hex" name="general_gradient_color_2_hex" value="{{ customization.general_gradient_color_2|default:'ffffff' }}" maxlength="6" class="form-control" onchange="syncHexToColor('general')">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Image Background Option -->
+                                            <div id="general_image_option" class="mt-3" style="display:none;">
+                                                <label class="form-label fw-semibold">General Background Image</label>
+                                                <div class="image-upload-container" onclick="document.getElementById('general_background_image').click()">
+                                                    <input type="file" id="general_background_image" name="general_background_image" accept="image/*" class="d-none" onchange="previewImage(this, 'general_preview')">
+                                                    <!-- hidden delete flag -->
+                                                    <input type="checkbox" id="remove_general_background_image" name="remove_general_background_image" class="d-none">
+                                                    <div class="upload-area" id="general_upload_area">
+                                                        {% if customization.general_background_image %}
+                                                            <img id="general_preview" src="{{ customization.general_background_image.url }}" class="preview-image" alt="General Background">
+                                                            <div class="image-overlay" id="general_overlay">
+                                                                <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('general_background_image').click()">
+                                                                    <i class="fas fa-edit"></i> Change
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('general_background_image', 'general_preview')">
+                                                                    <i class="fas fa-trash"></i> Remove
+                                                                </button>
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="upload-placeholder">
+                                                                <i class="fas fa-cloud-upload-alt mb-2" style="font-size: 2rem; color: #6c757d;"></i>
+                                                                <p class="mb-1">Click to upload image</p>
+                                                                <small class="text-muted">Recommended: Full HD</small>
+                                                            </div>
+                                                            <img id="general_preview" class="preview-image d-none" alt="Preview">
+                                                            <div class="image-overlay d-none" id="general_overlay">
+                                                                <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('general_background_image').click()">
+                                                                    <i class="fas fa-edit"></i> Change
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('general_background_image', 'general_preview')">
+                                                                    <i class="fas fa-trash"></i> Remove
+                                                                </button>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Login Background Tab -->
+                                    <div class="tab-pane fade" id="login-background" role="tabpanel">
+                                        <div class="mt-3">
+                                            <label for="login_background_type" class="form2-label">Background Type</label>
+                                            <select id="login_background_type" name="login_background_type" class="form-select" onchange="toggleBackgroundOptions('login')">
+                                                <option value="solid" {% if customization.login_background_type == 'solid' %}selected{% endif %}>Solid Color</option>
+                                                <option value="gradient" {% if customization.login_background_type == 'gradient' %}selected{% endif %}>Gradient</option>
+                                                <option value="image" {% if customization.login_background_type == 'image' %}selected{% endif %}>Image</option>
+                                            </select>
+
+
+                                            <!-- Solid Color Option -->
+                                            <div id="login_solid_color_option" class="mt-3" style="display:none;">
+                                                <label for="login_solid_color" class="form2-label">Background Color</label>
+                                                <div class="input-group">
+                                                    <input type="color" id="login_solid_color" name="login_solid_color" value="{{ customization.login_solid_color|default:'#ffffff' }}" class="form-control form-control-color" onchange="previewCustomization()">
+                                                    <span class="input-group-text">#</span>
+                                                    <input type="text" id="login_solid_color_hex" name="login_solid_color_hex" value="{{ customization.login_solid_color|default:'ffffff' }}" maxlength="6" class="form-control" onchange="syncHexToColor('login')">
+                                                </div>
+                                            </div>
+
+                                            <!-- Image Option -->
+                                            <div id="login_image_option" class="mt-3" style="display:none;">
+                                                <label class="form-label fw-semibold">Login Background Image</label>
+                                                <div class="image-upload-container" onclick="document.getElementById('login_background_image').click()">
+                                                    <input type="file" id="login_background_image" name="login_background_image" accept="image/*" class="d-none" onchange="previewImage(this, 'login_preview')">
+                                                    <!-- hidden delete flag -->
+                                                    <input type="checkbox" id="remove_login_background_image" name="remove_login_background_image" class="d-none">
+                                                    <div class="upload-area" id="login_upload_area">
+                                                        {% if customization.login_background_image %}
+                                                            <img id="login_preview" src="{{ customization.login_background_image.url }}" class="preview-image" alt="Login Background">
+                                                            <div class="image-overlay" id="login_overlay">
+                                                                <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('login_background_image').click()">
+                                                                    <i class="fas fa-edit"></i> Change
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('login_background_image', 'login_preview')">
+                                                                    <i class="fas fa-trash"></i> Remove
+                                                                </button>
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="upload-placeholder">
+                                                                <i class="fas fa-cloud-upload-alt mb-2" style="font-size: 2rem; color: #6c757d;"></i>
+                                                                <p class="mb-1">Click to upload image</p>
+                                                                <small class="text-muted">Recommended: Full HD</small>
+                                                            </div>
+                                                            <img id="login_preview" class="preview-image d-none" alt="Preview">
+                                                            <div class="image-overlay d-none" id="login_overlay">
+                                                                <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('login_background_image').click()">
+                                                                    <i class="fas fa-edit"></i> Change
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('login_background_image', 'login_preview')">
+                                                                    <i class="fas fa-trash"></i> Remove
+                                                                </button>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Gradient Options -->
+                                            <div id="login_gradient_option" class="mt-3" style="display:none;">
+                                                <div class="row g-3">
+                                                    
+                                                    <!-- Shared wrapper for Direction / Position -->
+                                                    <div class="col-12 col-xl-12 col-lg-12 col-md-12 col-sm-12" id="login_direction_or_position_wrapper">
+                                                        <!-- Linear Direction -->
+                                                        <div id="login_direction_wrapper">
+                                                            <label for="login_gradient_direction" class="form2-label">Direction</label>
+                                                            <select id="login_gradient_direction" name="login_gradient_direction" class="form-select" onchange="previewCustomization()">
+                                                                <option value="to right" {% if customization.login_gradient_direction == 'to right' %}selected{% endif %}>Left to Right</option>
+                                                                <option value="to left" {% if customization.login_gradient_direction == 'to left' %}selected{% endif %}>Right to Left</option>
+                                                                <option value="to bottom" {% if customization.login_gradient_direction == 'to bottom' %}selected{% endif %}>Top to Bottom</option>
+                                                                <option value="to top" {% if customization.login_gradient_direction == 'to top' %}selected{% endif %}>Bottom to Top</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Color Inputs Row -->
+                                                <div class="row g-3 mt-3">
+                                                    <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                        <label for="login_gradient_color_1" class="form2-label">Color 1</label>
+                                                        <div class="input-group">
+                                                            <input type="color" id="login_gradient_color_1" name="login_gradient_color_1" value="{{ customization.login_gradient_color_1|default:'#000000' }}" class="form-control form-control-color" onchange="previewCustomization()">
+                                                            <span class="input-group-text">#</span>
+                                                            <input type="text" id="login_gradient_color_1_hex" name="login_gradient_color_1_hex" value="{{ customization.login_gradient_color_1|default:'000000' }}" maxlength="6" class="form-control" onchange="syncHexToColor('login')">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                        <label for="login_gradient_color_2" class="form2-label">Color 2</label>
+                                                        <div class="input-group">
+                                                            <input type="color" id="login_gradient_color_2" name="login_gradient_color_2" value="{{ customization.login_gradient_color_2|default:'#ffffff' }}" class="form-control form-control-color" onchange="previewCustomization()">
+                                                            <span class="input-group-text">#</span>
+                                                            <input type="text" id="login_gradient_color_2_hex" name="login_gradient_color_2_hex" value="{{ customization.login_gradient_color_2|default:'ffffff' }}" maxlength="6" class="form-control" onchange="syncHexToColor('login')">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Register Background Tab -->
+                                    <div class="tab-pane fade" id="register-background" role="tabpanel">
+                                        <div class="mt-3">
+                                            <label for="register_background_type" class="form-label">Background Type</label>
+                                            <select id="register_background_type" name="register_background_type" class="form-select" onchange="toggleBackgroundOptions('register')">
+                                                <option value="solid" {% if customization.register_background_type == 'solid' %}selected{% endif %}>Solid Color</option>
+                                                <option value="gradient" {% if customization.register_background_type == 'gradient' %}selected{% endif %}>Gradient</option>
+                                            </select>
+
+
+                                            <!-- Solid Color Option -->
+                                            <div id="register_solid_color_option" class="mt-3" style="display:none;">
+                                                <label for="register_solid_color" class="form2-label">Background Color</label>
+                                                <div class="input-group">
+                                                    <input type="color" id="register_solid_color" name="register_solid_color" value="{{ customization.register_solid_color|default:'#ffffff' }}" class="form-control form-control-color" onchange="previewCustomization()">
+                                                    <span class="input-group-text">#</span>
+                                                    <input type="text" id="register_solid_color_hex" name="register_solid_color_hex" value="{{ customization.register_solid_color|default:'ffffff' }}" maxlength="6" class="form-control" onchange="syncHexToColor('register')">
+                                                </div>
+                                            </div>
+
+                                            <!-- Image Option -->
+                                            <div id="register_image_option" class="mt-3" style="display:none;">
+                                                <label for="register_background_image" class="form2-label">Background Image</label>
+                                                <input type="file" id="register_background_image" name="register_background_image" accept="image/*" class="form-control" onchange="previewCustomization()">
+                                            </div>
+
+                                            <!-- Gradient Options -->
+                                            <div id="register_gradient_option" class="mt-3" style="display:none;">
+                                                <div class="row g-3">
+                                                    <!-- Direction or Position -->
+                                                    <div class="col-12 col-xl-12 col-lg-12 col-md-12 col-sm-12" id="register_direction_or_position_wrapper">
+                                                        <div id="register_direction_wrapper">
+                                                            <label for="register_gradient_direction" class="form2-label">Direction</label>
+                                                            <select id="register_gradient_direction" name="register_gradient_direction" class="form-select" onchange="previewCustomization()">
+                                                                <option value="to right" {% if customization.register_gradient_direction == 'to right' %}selected{% endif %}>Left to Right</option>
+                                                                <option value="to left" {% if customization.register_gradient_direction == 'to left' %}selected{% endif %}>Right to Left</option>
+                                                                <option value="to bottom" {% if customization.register_gradient_direction == 'to bottom' %}selected{% endif %}>Top to Bottom</option>
+                                                                <option value="to top" {% if customization.register_gradient_direction == 'to top' %}selected{% endif %}>Bottom to Top</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Gradient Colors -->
+                                                <div class="row g-3 mt-3">
+                                                    <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                        <label for="register_gradient_color_1" class="form2-label">Color 1</label>
+                                                        <div class="input-group">
+                                                            <input type="color" id="register_gradient_color_1" name="register_gradient_color_1" value="{{ customization.register_gradient_color_1|default:'#000000' }}" class="form-control form-control-color" onchange="previewCustomization()">
+                                                            <span class="input-group-text">#</span>
+                                                            <input type="text" id="register_gradient_color_1_hex" name="register_gradient_color_1_hex" value="{{ customization.register_gradient_color_1|default:'000000' }}" maxlength="6" class="form-control" onchange="syncHexToColor('register')">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                        <label for="register_gradient_color_2" class="form2-label">Color 2</label>
+                                                        <div class="input-group">
+                                                            <input type="color" id="register_gradient_color_2" name="register_gradient_color_2" value="{{ customization.register_gradient_color_2|default:'#ffffff' }}" class="form-control form-control-color" onchange="previewCustomization()">
+                                                            <span class="input-group-text">#</span>
+                                                            <input type="text" id="register_gradient_color_2_hex" name="register_gradient_color_2_hex" value="{{ customization.register_gradient_color_2|default:'ffffff' }}" maxlength="6" class="form-control" onchange="syncHexToColor('register')">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Background Image Overlay Section -->
+                                            <div class="mt-4 pt-3 border-top">
+                                                <h6>Background Image Overlay</h6>
+                                                <p class="text-muted small">Add an image that will be overlaid on top of your background</p>
+
+                                                <div class="image-upload-container" onclick="document.getElementById('register_background_image').click()">
+                                                    <input
+                                                        type="file"
+                                                        id="register_background_image"
+                                                        name="register_background_image"
+                                                        accept="image/*"
+                                                        class="d-none"
+                                                        onchange="previewImage(this, 'register_overlay_preview')"
+                                                    >
+                                                    <!-- hidden delete flag -->
+                                                    <input
+                                                        type="checkbox"
+                                                        id="remove_register_background_image"
+                                                        name="remove_register_background_image"
+                                                        class="d-none"
+                                                    >
+
+                                                    <div class="upload-area" id="register_overlay_upload_area">
+                                                        {% if customization.register_background_image %}
+                                                            <img
+                                                                id="register_overlay_preview"
+                                                                src="{{ customization.register_background_image.url }}"
+                                                                class="preview-image"
+                                                                alt="Register Overlay Background"
+                                                            >
+                                                            <div class="image-overlay" id="register_overlay_controls">
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn btn-sm btn-light me-2"
+                                                                    onclick="event.stopPropagation(); document.getElementById('register_background_image').click()"
+                                                                >
+                                                                    <i class="fas fa-edit"></i> Change
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn btn-sm btn-danger"
+                                                                    onclick="event.stopPropagation(); removeImage('register_background_image', 'register_overlay_preview')"
+                                                                >
+                                                                    <i class="fas fa-trash"></i> Remove
+                                                                </button>
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="upload-placeholder">
+                                                                <i class="fas fa-cloud-upload-alt mb-2" style="font-size: 2rem; color: #6c757d;"></i>
+                                                                <p class="mb-1">Click to upload image</p>
+                                                                <small class="text-muted">Recommended: Transparent PNG</small>
+                                                            </div>
+
+                                                            <!-- Preview image (hidden until upload) -->
+                                                            <img
+                                                                id="register_overlay_preview"
+                                                                class="preview-image d-none"
+                                                                alt="Register Overlay Background"
+                                                            >
+
+                                                            <!-- Overlay controls (hidden until image shows) -->
+                                                            <div class="image-overlay d-none" id="register_overlay_controls">
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn btn-sm btn-light me-2"
+                                                                    onclick="event.stopPropagation(); document.getElementById('register_background_image').click()"
+                                                                >
+                                                                    <i class="fas fa-edit"></i> Change
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn btn-sm btn-danger"
+                                                                    onclick="event.stopPropagation(); removeImage('register_background_image', 'register_overlay_preview')"
+                                                                >
+                                                                    <i class="fas fa-trash"></i> Remove
+                                                                </button>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Navigation Tab -->
+                                    <div class="tab-pane fade" id="navigation" role="tabpanel" aria-labelledby="navigation-tab">
+                                        <div class="mt-3">
+                                            <!-- Text, Hover, Border Colors -->
+                                            <div class="row g-3">
+                                                <div class="col-12 col-xl-4 col-lg-12 col-md-12 col-sm-12">
+                                                    <label for="navigation_text_color" class="form-label">Text Color</label>
+                                                    <div class="input-group">
+                                                        <input type="color" id="navigation_text_color" name="navigation_text_color" value="{{ customization.navigation_text_color|default:'#000000' }}" class="form-control form-control-color" onchange="previewNavigationCustomization()">
+                                                        <span class="input-group-text">#</span>
+                                                        <input type="text" id="navigation_text_color_hex" name="navigation_text_color_hex" value="{{ customization.navigation_text_color_hex|default:'000000' }}" maxlength="6" class="form-control" onchange="syncHexToColor('navigation')">
+                                                    </div>
+                                                </div>
+                                                <div class="col-12 col-xl-4 col-lg-12 col-md-12 col-sm-12">
+                                                    <label for="navigation_hover_color" class="form-label">Hover Color</label>
+                                                    <div class="input-group">
+                                                        <input type="color" id="navigation_hover_color" name="navigation_hover_color" value="{{ customization.navigation_hover_color|default:'888888' }}" class="form-control form-control-color" onchange="previewNavigationCustomization()">
+                                                        <span class="input-group-text">#</span>
+                                                        <input type="text" id="navigation_hover_color_hex" name="navigation_hover_color_hex" value="{{ customization.navigation_hover_color_hex|default:'888888' }}" maxlength="6" class="form-control" onchange="syncHexToColor('navigation')">
+                                                    </div>
+                                                </div>
+                                                <div class="col-12 col-md-4">
+                                                    <label for="navigation_border_color" class="form-label">Border Color</label>
+                                                    <div class="input-group">
+                                                        <input type="color" id="navigation_border_color" name="navigation_border_color" value="{{ customization.navigation_border_color|default:'#cccccc' }}" class="form-control form-control-color" onchange="previewNavigationCustomization()">
+                                                        <span class="input-group-text">#</span>
+                                                        <input type="text" id="navigation_border_color_hex" name="navigation_border_color_hex" value="{{ customization.navigation_border_color_hex|default:'cccccc' }}" maxlength="6" class="form-control" onchange="previewNavigationCustomization()">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Background Type -->
+                                            <div class="mt-2">
+                                                <label for="navigation_background_type" class="form-label">Background Type</label>
+                                                <select id="navigation_background_type" name="navigation_background_type" class="form-select" onchange="toggleNavigationOptions()">
+                                                    <option value="solid" {% if customization.navigation_background_type == 'solid' %}selected{% endif %}>Solid Color</option>
+                                                    <option value="gradient" {% if customization.navigation_background_type == 'gradient' %}selected{% endif %}>Gradient</option>
+                                                </select>
+                                            </div>
+
+
+                                            <!-- Solid Color Option -->
+                                            <div id="navigation_solid_color_option" class="mt-2" style="display: {% if customization.navigation_background_type == 'solid' %}block{% else %}none{% endif %};">
+                                                <label for="navigation_color" class="form-label">Background Color</label>
+                                                <div class="input-group">
+                                                    <input type="color" id="navigation_solid_color" name="navigation_solid_color" value="{{ customization.navigation_solid_color|default:'#ffffff' }}" class="form-control form-control-color" onchange="previewNavigationCustomization()">
+                                                    <span class="input-group-text">#</span>
+                                                    <input type="text" id="navigation_color_hex" name="navigation_color_hex" value="{{ customization.navigation_solid_color|default:'ffffff' }}" maxlength="6" class="form-control" onchange="syncHexToColor('navigation')">
+                                                </div>
+                                            </div>
+
+                                            <!-- Gradient Background Options -->
+                                            <div id="navigation_gradient_option" class="mt-2">
+                                                <div class="row g-3">
+                                                    <!-- Direction or Position -->
+                                                    <div class="col-12 col-xl-12 col-lg-12 col-md-12 col-sm-12">
+                                                        <!-- Linear -->
+                                                        <div id="navigation_direction_wrapper">
+                                                            <label for="navigation_gradient_direction" class="form-label">Direction</label>
+                                                            <select id="navigation_gradient_direction" name="navigation_gradient_direction" class="form-select" onchange="previewNavigationCustomization()">
+                                                                <option value="to right" {% if customization.navigation_gradient_direction == 'to right' %}selected{% endif %}>Left to Right</option>
+                                                                <option value="to left" {% if customization.navigation_gradient_direction == 'to left' %}selected{% endif %}>Right to Left</option>
+                                                                <option value="to bottom" {% if customization.navigation_gradient_direction == 'to bottom' %}selected{% endif %}>Top to Bottom</option>
+                                                                <option value="to top" {% if customization.navigation_gradient_direction == 'to top' %}selected{% endif %}>Bottom to Top</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Gradient Colors -->
+                                                    <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                        <label for="navigation_gradient_color_1" class="form-label">Gradient Color 1</label>
+                                                        <div class="input-group">
+                                                            <input type="color" id="navigation_gradient_color_1" name="navigation_gradient_color_1" value="{{ customization.navigation_gradient_color_1|default:'#000000' }}" class="form-control form-control-color" onchange="previewNavigationCustomization()">
+                                                            <span class="input-group-text">#</span>
+                                                            <input type="text" id="navigation_gradient_color_1_hex" name="navigation_gradient_color_1_hex" value="{{ customization.navigation_gradient_color_1_hex|default:'000000' }}" maxlength="6" class="form-control" onchange="syncHexToColor('navigation')">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                        <label for="navigation_gradient_color_2" class="form-label">Gradient Color 2</label>
+                                                        <div class="input-group">
+                                                            <input type="color" id="navigation_gradient_color_2" name="navigation_gradient_color_2" value="{{ customization.navigation_gradient_color_2|default:'#ffffff' }}" class="form-control form-control-color" onchange="previewNavigationCustomization()">
+                                                            <span class="input-group-text">#</span>
+                                                            <input type="text" id="navigation_gradient_color_2_hex" name="navigation_gradient_color_2_hex" value="{{ customization.navigation_gradient_color_2_hex|default:'ffffff' }}" maxlength="6" class="form-control" onchange="syncHexToColor('navigation')">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Homepage Tab -->
+                                    <div class="tab-pane fade" id="homepage" role="tabpanel">
+                                        <div class="mt-3">
+
+                                            <div class="form-group">
+                                                <label for="dynamic_description" class="form-label">Business Tagline</label>
+                                                <textarea id="dynamic_description" name="dynamic_description" class="form-control" rows="3"
+                                                    placeholder="Enter dynamic description for the banner section"
+                                                    oninput="checkWordLimit(this, 40)">{{ customization.dynamic_description|default:"Shop with us today and find what you love!" }}</textarea>
+                                                <small id="description_help" class="text-muted">Custom tagline for the banner section (max 40 words)</small>
+                                            </div>
+
+                                            <h6 class="fw-bold mt-3">Homepage Images</h6>
+                                            <p class="text-muted small mb-4">Upload images - they will be automatically cropped to 1920x1080 resolution</p>
+
+                                            <!-- Image Upload Section with Integrated Previews -->
+                                            <div class="row g-3 mb-4">
+
+                                                <!-- Image 1 -->
+                                                <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                    <label class="form-label fw-semibold">Homepage Image 1</label>
+                                                    <div class="image-upload-container" onclick="document.getElementById('homepage_image_1').click()">
+                                                        <input type="file" id="homepage_image_1" name="homepage_image_1" accept="image/*" class="d-none" onchange="previewImage(this, 'preview_1')">
+                                                        <!-- hidden delete flag -->
+                                                        <input type="checkbox" id="remove_homepage_image_1" name="remove_homepage_image_1" class="d-none">
+                                                        <div class="upload-area" id="upload_area_1">
+                                                            {% if customization.homepage_image_1 %}
+                                                                <img id="preview_1" src="{{ customization.homepage_image_1.url }}" class="preview-image" alt="Homepage Image 1">
+                                                                <div class="image-overlay" id="overlay_1">
+                                                                    <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('homepage_image_1').click()">
+                                                                        <i class="fas fa-edit"></i> Change
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('homepage_image_1', 'preview_1')">
+                                                                        <i class="fas fa-trash"></i> Remove
+                                                                    </button>
+                                                                </div>
+                                                            {% else %}
+                                                                <div class="upload-placeholder">
+                                                                    <i class="fas fa-cloud-upload-alt mb-2" style="font-size: 2rem; color: #6c757d;"></i>
+                                                                    <p class="mb-1">Click to upload image</p>
+                                                                    <small class="text-muted">Recommended: 1200x600px</small>
+                                                                </div>
+                                                                <img id="preview_1" class="preview-image d-none" alt="Preview">
+                                                                <div class="image-overlay d-none" id="overlay_1">
+                                                                    <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('homepage_image_1').click()">
+                                                                        <i class="fas fa-edit"></i> Change
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('homepage_image_1', 'preview_1')">
+                                                                        <i class="fas fa-trash"></i> Remove
+                                                                    </button>
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Image 2 -->
+                                                <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                    <label class="form-label fw-semibold">Homepage Image 2</label>
+                                                    <div class="image-upload-container" onclick="document.getElementById('homepage_image_2').click()">
+                                                        <input type="file" id="homepage_image_2" name="homepage_image_2" accept="image/*" class="d-none" onchange="previewImage(this, 'preview_2')">
+                                                        <!-- hidden delete flag -->
+                                                        <input type="checkbox" id="remove_homepage_image_2" name="remove_homepage_image_2" class="d-none">
+                                                        <div class="upload-area" id="upload_area_2">
+                                                            {% if customization.homepage_image_2 %}
+                                                                <img id="preview_2" src="{{ customization.homepage_image_2.url }}" class="preview-image" alt="Homepage Image 2">
+                                                                <div class="image-overlay" id="overlay_2">
+                                                                    <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('homepage_image_2').click()">
+                                                                        <i class="fas fa-edit"></i> Change
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('homepage_image_2', 'preview_2')">
+                                                                        <i class="fas fa-trash"></i> Remove
+                                                                    </button>
+                                                                </div>
+                                                            {% else %}
+                                                                <div class="upload-placeholder">
+                                                                    <i class="fas fa-cloud-upload-alt mb-2" style="font-size: 2rem; color: #6c757d;"></i>
+                                                                    <p class="mb-1">Click to upload image</p>
+                                                                    <small class="text-muted">Recommended: 1200x600px</small>
+                                                                </div>
+                                                                <img id="preview_2" class="preview-image d-none" alt="Preview">
+                                                                <div class="image-overlay d-none" id="overlay_2">
+                                                                    <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('homepage_image_2').click()">
+                                                                        <i class="fas fa-edit"></i> Change
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('homepage_image_2', 'preview_2')">
+                                                                        <i class="fas fa-trash"></i> Remove
+                                                                    </button>
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Image 3 -->
+                                                <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                    <label class="form-label fw-semibold">Homepage Image 3</label>
+                                                    <div class="image-upload-container" onclick="document.getElementById('homepage_image_3').click()">
+                                                        <input type="file" id="homepage_image_3" name="homepage_image_3" accept="image/*" class="d-none" onchange="previewImage(this, 'preview_3')">
+                                                        <!-- hidden delete flag -->
+                                                        <input type="checkbox" id="remove_homepage_image_3" name="remove_homepage_image_3" class="d-none">
+                                                        <div class="upload-area" id="upload_area_3">
+                                                            {% if customization.homepage_image_3 %}
+                                                                <img id="preview_3" src="{{ customization.homepage_image_3.url }}" class="preview-image" alt="Homepage Image 3">
+                                                                <div class="image-overlay" id="overlay_3">
+                                                                    <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('homepage_image_3').click()">
+                                                                        <i class="fas fa-edit"></i> Change
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('homepage_image_3', 'preview_3')">
+                                                                        <i class="fas fa-trash"></i> Remove
+                                                                    </button>
+                                                                </div>
+                                                            {% else %}
+                                                                <div class="upload-placeholder">
+                                                                    <i class="fas fa-cloud-upload-alt mb-2" style="font-size: 2rem; color: #6c757d;"></i>
+                                                                    <p class="mb-1">Click to upload image</p>
+                                                                    <small class="text-muted">Recommended: 1200x600px</small>
+                                                                </div>
+                                                                <img id="preview_3" class="preview-image d-none" alt="Preview">
+                                                                <div class="image-overlay d-none" id="overlay_3">
+                                                                    <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('homepage_image_3').click()">
+                                                                        <i class="fas fa-edit"></i> Change
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('homepage_image_3', 'preview_3')">
+                                                                        <i class="fas fa-trash"></i> Remove
+                                                                    </button>
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Image 4 -->
+                                                <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                    <label class="form-label fw-semibold">Homepage Image 4</label>
+                                                    <div class="image-upload-container" onclick="document.getElementById('homepage_image_4').click()">
+                                                        <input type="file" id="homepage_image_4" name="homepage_image_4" accept="image/*" class="d-none" onchange="previewImage(this, 'preview_4')">
+                                                        <!-- hidden delete flag -->
+                                                        <input type="checkbox" id="remove_homepage_image_4" name="remove_homepage_image_4" class="d-none">
+                                                        <div class="upload-area" id="upload_area_4">
+                                                            {% if customization.homepage_image_4 %}
+                                                                <img id="preview_4" src="{{ customization.homepage_image_4.url }}" class="preview-image" alt="Homepage Image 4">
+                                                                <div class="image-overlay" id="overlay_4">
+                                                                    <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('homepage_image_4').click()">
+                                                                        <i class="fas fa-edit"></i> Change
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('homepage_image_4', 'preview_4')">
+                                                                        <i class="fas fa-trash"></i> Remove
+                                                                    </button>
+                                                                </div>
+                                                            {% else %}
+                                                                <div class="upload-placeholder">
+                                                                    <i class="fas fa-cloud-upload-alt mb-2" style="font-size: 2rem; color: #6c757d;"></i>
+                                                                    <p class="mb-1">Click to upload image</p>
+                                                                    <small class="text-muted">Recommended: 1200x600px</small>
+                                                                </div>
+                                                                <img id="preview_4" class="preview-image d-none" alt="Preview">
+                                                                <div class="image-overlay d-none" id="overlay_4">
+                                                                    <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('homepage_image_4').click()">
+                                                                        <i class="fas fa-edit"></i> Change
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('homepage_image_4', 'preview_4')">
+                                                                        <i class="fas fa-trash"></i> Remove
+                                                                    </button>
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Image 5 -->
+                                                <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                    <label class="form-label fw-semibold">Homepage Image 5</label>
+                                                    <div class="image-upload-container" onclick="document.getElementById('homepage_image_5').click()">
+                                                        <input type="file" id="homepage_image_5" name="homepage_image_5" accept="image/*" class="d-none" onchange="previewImage(this, 'preview_5')">
+                                                        <!-- hidden delete flag -->
+                                                        <input type="checkbox" id="remove_homepage_image_5" name="remove_homepage_image_5" class="d-none">
+                                                        <div class="upload-area" id="upload_area_5">
+                                                            {% if customization.homepage_image_5 %}
+                                                                <img id="preview_5" src="{{ customization.homepage_image_5.url }}" class="preview-image" alt="Homepage Image 5">
+                                                                <div class="image-overlay" id="overlay_5">
+                                                                    <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('homepage_image_5').click()">
+                                                                        <i class="fas fa-edit"></i> Change
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('homepage_image_5', 'preview_5')">
+                                                                        <i class="fas fa-trash"></i> Remove
+                                                                    </button>
+                                                                </div>
+                                                            {% else %}
+                                                                <div class="upload-placeholder">
+                                                                    <i class="fas fa-cloud-upload-alt mb-2" style="font-size: 2rem; color: #6c757d;"></i>
+                                                                    <p class="mb-1">Click to upload image</p>
+                                                                    <small class="text-muted">Recommended: 1200x600px</small>
+                                                                </div>
+                                                                <img id="preview_5" class="preview-image d-none" alt="Preview">
+                                                                <div class="image-overlay d-none" id="overlay_5">
+                                                                    <button type="button" class="btn btn-sm btn-light me-2" onclick="event.stopPropagation(); document.getElementById('homepage_image_5').click()">
+                                                                        <i class="fas fa-edit"></i> Change
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeImage('homepage_image_5', 'preview_5')">
+                                                                        <i class="fas fa-trash"></i> Remove
+                                                                    </button>
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                            
+
+                                            <!-- Best Sellers Section -->
+                                            <div class="border-top pt-4">
+                                                <h6 class="fw-bold mb-3">Best Sellers Section</h6>
+                                                <div class="row g-3">
+                                                    <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                        <div class="form-switch">
+                                                            <input class="form-check-input" type="checkbox" id="show_best_sellers" name="show_best_sellers" onchange="previewCustomization()" {% if customization.show_best_sellers %}checked{% endif %}>
+                                                            <label class="form-check-label" for="show_best_sellers">
+                                                                Show Best Sellers Section
+                                                            </label>
+                                                        </div>
+                                                        <small class="text-muted">Toggle to display/hide the best sellers section on homepage</small>
+                                                    </div>
+                                                    <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                        <label for="best_sellers_title" class="form-label">Section Title</label>
+                                                        <input type="text" id="best_sellers_title" name="best_sellers_title" class="form-control" value="{{ customization.best_sellers_title|default:'Best Sellers' }}" placeholder="Best Sellers">
+                                                        <small class="text-muted">Custom title for the best sellers section</small>
+                                                    </div>
+                                                    <!-- New Input for Description -->
+                                                    <div class="col-12 col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                                        <label for="best_sellers_description" class="form-label">Section Description</label>
+                                                        <textarea id="best_sellers_description" name="best_sellers_description" class="form-control" rows="3" placeholder="Enter a description for the Best Sellers section">{{ customization.best_sellers_description|default:"Our most popular products loved by customers" }}</textarea>
+                                                        <small class="text-muted">Custom description for the best sellers section</small>
+                                                    </div>
+                                                </div>    
+                                            </div>
+                                        </div>
+                                    </div>            
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Reset Confirmation Modal -->
+<div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="resetModalLabel">Confirm Reset</h5>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to reset the customizations to defaults? This action cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="save-button" data-bs-dismiss="modal">Cancel</button>
+        <button id="confirmResetBtn" type="button" class="save-button">Yes, Reset</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+function checkWordLimit(textarea, maxWords) {
+    let words = textarea.value.trim().split(/\s+/).filter(Boolean);
+    let counter = document.getElementById("description_help");
+
+    if (words.length > maxWords) {
+        counter.innerHTML = `<span style="color: red;">⚠ Exceeded word limit! (${words.length}/${maxWords})</span>`;
+        textarea.dataset.exceeded = "true";
+    } else {
+        counter.innerHTML = `Custom description for the banner section (${words.length}/${maxWords} words)`;
+        textarea.dataset.exceeded = "false";
+    }
+}
+
+// ✅ Prevent form submission if exceeded
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector("form");
+    const textarea = document.getElementById("dynamic_description");
+
+    form.addEventListener("submit", function (event) {
+        let words = textarea.value.trim().split(/\s+/).filter(Boolean);
+        if (words.length > 40) {
+            event.preventDefault();
+            event.stopPropagation();
+            showToast("Business Description cannot exceed 40 words.", "error");
+            textarea.focus();
+        }
+    });
+});
+
+
+
+function showFileName(input) {
+    if (input.files.length > 0) {
+        document.getElementById("general_background_filename").value = input.files[0].name;
+    } else {
+        document.getElementById("general_background_filename").value = "No file chosen";
+    }
+}
+
+function previewImage(input, previewId) {
+    const file = input.files[0];
+    const preview = document.getElementById(previewId);
+
+    // derive overlay id (supports _controls)
+    let base = previewId.replace("preview", "overlay");
+    const overlay =
+        document.getElementById(base) ||
+        document.getElementById(base + "_controls");
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            preview.src = e.target.result;
+            preview.classList.remove("d-none"); // show <img>
+
+            if (overlay) {
+                overlay.classList.remove("d-none");
+            }
+
+            // mark container so placeholder hides
+            const area = preview.closest(".upload-area");
+            if (area) {
+                area.classList.add("has-image");
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+
+
+function removeImage(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    const overlay = document.getElementById('overlay_' + previewId.split('_')[1]);
+    const uploadArea = document.getElementById('upload_area_' + previewId.split('_')[1]);
+
+    // Clear input
+    input.value = "";
+
+    // Hide preview
+    preview.src = "";
+    preview.classList.add("d-none");
+
+    // Hide overlay
+    if (overlay) overlay.classList.add("d-none");
+
+    // ✅ Show placeholder back
+    const placeholder = uploadArea.querySelector(".upload-placeholder");
+    if (placeholder) {
+        placeholder.style.display = "block";   // make it visible again
+    }
+
+    // ✅ Also mark for deletion if you added hidden checkboxes
+    const removeCheckbox = document.getElementById("remove_" + inputId);
+    if (removeCheckbox) removeCheckbox.checked = true;
+}
+
+// Show alert/toast when image background is selected
+function showImageRequiredAlert(prefix) {
+    const sectionNames = {
+        'general': 'General Background',
+        'login': 'Login Page Background',
+        'register': 'Register Page Background'
+    };
+
+    const sectionName = sectionNames[prefix] || 'Background';
+
+    const imageInput = document.getElementById(`${prefix}_background_image`);
+
+    // map prefix -> preview image id
+    const previewIds = {
+        general: 'general_preview',
+        login: 'login_preview',
+        register: 'register_overlay_preview'
+    };
+    const previewImg = document.getElementById(previewIds[prefix]);
+
+    const hasFile = imageInput && imageInput.files && imageInput.files.length > 0;
+    const hasExistingImage = previewImg && !previewImg.classList.contains("d-none") && previewImg.src;
+
+    if (hasFile || hasExistingImage) {
+        return; // ✅ Either new file uploaded OR existing image present
+    }
+
+    // 🚨 Otherwise, warn
+    showToast(`Image upload is required for ${sectionName}`, 'warning');
+}
+
+// Create and show toast notification
+function showToast(message, type = 'warning') {
+    // Remove existing toast if any
+    const existingToast = document.getElementById('background-image-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.id = 'background-image-toast';
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${getToastColor(type)};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        max-width: 350px;
+        cursor: pointer;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+    `;
+    
+    // Add icon
+    const icon = getToastIcon(type);
+    toast.innerHTML = `${icon} ${message}`;
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        removeToast(toast);
+    }, 5000);
+    
+    // Manual close on click
+    toast.addEventListener('click', () => {
+        removeToast(toast);
+    });
+}
+
+// Remove toast with animation
+function removeToast(toast) {
+    if (!toast || !toast.parentNode) return;
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 300);
+}
+
+// Get toast background color based on type
+function getToastColor(type) {
+    const colors = {
+        'warning': '#ff9800',
+        'error': '#f44336',
+        'success': '#4caf50',
+        'info': '#2196f3'
+    };
+    return colors[type] || colors.warning;
+}
+
+// Get toast icon based on type
+function getToastIcon(type) {
+    const icons = {
+        'warning': '⚠️',
+        'error': '❌',
+        'success': '✅',
+        'info': 'ℹ️'
+    };
+    return icons[type] || icons.warning;
+}
+
+// Modified toggleBackgroundOptions to include validation
+function toggleBackgroundOptions(prefix) {
+    const backgroundType = document.getElementById(`${prefix}_background_type`).value;
+    
+    // Hide all options first
+    const solidOption = document.getElementById(`${prefix}_solid_color_option`);
+    const gradientOption = document.getElementById(`${prefix}_gradient_option`);
+    const imageOption = document.getElementById(`${prefix}_image_option`);
+    
+    if (solidOption) solidOption.style.display = 'none';
+    if (gradientOption) gradientOption.style.display = 'none';
+    if (imageOption) imageOption.style.display = 'none';
+    
+    // Show the selected option
+    switch (backgroundType) {
+        case 'solid':
+            if (solidOption) solidOption.style.display = 'block';
+            break;
+        case 'gradient':
+            if (gradientOption) gradientOption.style.display = 'block';
+            break;
+        case 'image':
+            if (imageOption) imageOption.style.display = 'block';
+            // Show alert for image requirement
+            showImageRequiredAlert(prefix);
+            break;
+    }
+    
+    if (typeof previewCustomization === 'function') {
+        previewCustomization();
+    }
+}
+
+// Enhanced validation for save customization
+function validateBeforeSave() {
+    const sections = ['general', 'login', 'register'];
+    let hasErrors = false;
+
+    sections.forEach(section => {
+        const backgroundType = document.getElementById(`${section}_background_type`);
+        const imageInput = document.getElementById(`${section}_background_image`);
+
+        // map section -> preview image id
+        const previewIds = {
+            general: 'general_preview',
+            login: 'login_preview',
+            register: 'register_overlay_preview'
+        };
+        const previewImg = document.getElementById(previewIds[section]);
+
+        if (backgroundType && backgroundType.value === 'image') {
+            const hasFile = imageInput && imageInput.files && imageInput.files.length > 0;
+            const hasExistingImage = previewImg && !previewImg.classList.contains("d-none") && previewImg.src;
+
+            if (!hasFile && !hasExistingImage) {
+                const sectionNames = {
+                    general: 'General Background',
+                    login: 'Login Page Background',
+                    register: 'Register Page Background'
+                };
+                showToast(`No image uploaded for ${sectionNames[section]}`, 'error');
+                hasErrors = true;
+            }
+        }
+    });
+
+    return !hasErrors;
+}
+
+// Add form submission validation and save button validation
+document.addEventListener('DOMContentLoaded', function() {
+    // Form submission validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            if (!validateBeforeSave()) {
+                event.preventDefault();
+                event.stopPropagation();
+                showToast('Cannot save - please upload required images first', 'error');
+                return false;
+            }
+        });
+    }
+    
+    // Save customization button validation
+    const saveBtn = document.getElementById('save_changes');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function(event) {
+            if (!validateBeforeSave()) {
+                event.preventDefault();
+                event.stopPropagation();
+                showToast('Cannot save - please upload required images first', 'error');
+                return false;
+            }
+        });
+    }
+    
+    // Alternative: If you have a different save button ID, add it here
+    const customizeSubmitBtn = document.getElementById('customize_submit');
+    if (customizeSubmitBtn) {
+        customizeSubmitBtn.addEventListener('click', function(event) {
+            if (!validateBeforeSave()) {
+                event.preventDefault();
+                event.stopPropagation();
+                showToast('Cannot save - please upload required images first', 'error');
+                return false;
+            }
+        });
+    }
+});
+
+// Modified toggleBackgroundOptions to include validation
+function toggleBackgroundOptions(prefix) {
+    const backgroundType = document.getElementById(`${prefix}_background_type`).value;
+    
+    // Hide all options first
+    const solidOption = document.getElementById(`${prefix}_solid_color_option`);
+    const gradientOption = document.getElementById(`${prefix}_gradient_option`);
+    const imageOption = document.getElementById(`${prefix}_image_option`);
+    
+    if (solidOption) solidOption.style.display = 'none';
+    if (gradientOption) gradientOption.style.display = 'none';
+    if (imageOption) imageOption.style.display = 'none';
+    
+    // Show the selected option
+    switch (backgroundType) {
+        case 'solid':
+            if (solidOption) solidOption.style.display = 'block';
+            break;
+        case 'gradient':
+            if (gradientOption) gradientOption.style.display = 'block';
+            break;
+        case 'image':
+            if (imageOption) imageOption.style.display = 'block';
+            // Show alert for image requirement
+            showImageRequiredAlert(prefix);
+            break;
+    }
+    
+    if (typeof previewCustomization === 'function') {
+        previewCustomization();
+    }
+}
+
+// Add form submission validation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            if (!validateImageUploads()) {
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
+            }
+        });
+    }
+});
+
+
+// Navigation-specific toggle functions
+function toggleNavigationOptions() {
+    const navBackgroundType = document.getElementById('navigation_background_type').value;
+    const solidOption = document.getElementById('navigation_solid_color_option');
+    const gradientOption = document.getElementById('navigation_gradient_option');
+    
+    if (navBackgroundType === 'solid') {
+        solidOption.style.display = 'block';
+        gradientOption.style.display = 'none';
+    } else {
+        solidOption.style.display = 'none';
+        gradientOption.style.display = 'block';
+    }
+    
+    previewNavigationCustomization();
+}
+
+function toggleGradientTypeOptions(prefix) {
+    const gradientType = document.getElementById(`${prefix}_gradient_type`).value;
+    const directionWrapper = document.getElementById(`${prefix}_direction_wrapper`);
+
+    if (gradientType === "linear") {
+        if (directionWrapper) directionWrapper.style.display = "block";
+    } else {
+        if (directionWrapper) directionWrapper.style.display = "none";
+    }
+
+    // Trigger correct preview
+    if (prefix === "navigation") {
+        previewNavigationCustomization();
+    } else {
+        previewCustomization();
+    }
+}
+
+
+// Toggle third color visibility
+function toggleThirdColor(prefix) {
+    const checkbox = document.getElementById(`${prefix}_add_third_color`);
+    const thirdColorOption = document.getElementById(`${prefix}_third_color_option`);
+    
+    if (checkbox && thirdColorOption) {
+        if (checkbox.checked) {
+            thirdColorOption.style.display = 'block';
+        } else {
+            thirdColorOption.style.display = 'none';
+        }
+    }
+    
+    previewCustomization();
+}
+
+// Navigation-specific third color toggle
+function toggleThirdColorVisibility() {
+    const checkbox = document.getElementById('nav_add_third_color');
+    const colorContainer = document.getElementById('navigation_gradient_color_3_container');
+    
+    if (checkbox && colorContainer) {
+        if (checkbox.checked) {
+            colorContainer.style.display = 'block';
+        } else {
+            colorContainer.style.display = 'none';
+        }
+    }
+    
+    previewNavigationCustomization();
+}
+
+// Sync hex color input with color picker
+function syncHexToColor(prefix) {
+    // Handle different color inputs based on prefix
+    const colorMappings = {
+        'general': [
+            'solid_color',
+            'gradient_color_1',
+            'gradient_color_2',
+            'gradient_color_3'
+        ],
+        'login': [
+            'solid_color',
+            'gradient_color_1',
+            'gradient_color_2',
+            'gradient_color_3'
+        ],
+        'register': [
+            'solid_color',
+            'gradient_color_1',
+            'gradient_color_2',
+            'gradient_color_3'
+        ],
+        'navigation': [
+            'text_color',
+            'hover_color',
+            'border_color',
+            'solid_color',
+            'gradient_color_1',
+            'gradient_color_2',
+            'gradient_color_3'
+        ]
+    };
+    
+    if (colorMappings[prefix]) {
+        colorMappings[prefix].forEach(colorType => {
+            const hexInput = document.getElementById(`${prefix}_${colorType}_hex`);
+            const colorInput = document.getElementById(`${prefix}_${colorType}`);
+            
+            if (hexInput && colorInput) {
+                let hexValue = hexInput.value.replace('#', '');
+                if (hexValue.length === 6 && /^[0-9A-Fa-f]+$/.test(hexValue)) {
+                    colorInput.value = `#${hexValue}`;
+                }
+            }
+        });
+    }
+    
+    if (prefix === 'navigation') {
+        previewNavigationCustomization();
+    } else {
+        previewCustomization();
+    }
+}
+
+
+
+// Preview navigation customization changes
+function previewNavigationCustomization() {
+    console.log('Previewing navigation customization changes...');
+    updateNavigationPreview();
+}
+
+// Update preview styles based on current settings
+function updatePreviewStyles() {
+    // Get current tab
+    const activeTab = document.querySelector('.nav-link.active');
+    if (!activeTab) return;
+    
+    const tabId = activeTab.getAttribute('href').replace('#', '');
+    
+    // Update preview based on active tab
+    switch (tabId) {
+        case 'general-background':
+            updateGeneralBackgroundPreview();
+            break;
+        case 'login-background':
+            updateLoginBackgroundPreview();
+            break;
+        case 'register-background':
+            updateRegisterBackgroundPreview();
+            break;
+        case 'homepage':
+            updateHomepagePreview();
+            break;
+    }
+}
+
+// Update general background preview
+function updateGeneralBackgroundPreview() {
+    const backgroundType = document.getElementById('general_background_type').value;
+    const previewElement = document.getElementById('general_background_preview'); // Assuming preview element exists
+    
+    if (!previewElement) return;
+    
+    switch (backgroundType) {
+        case 'solid':
+            const solidColor = document.getElementById('general_solid_color').value;
+            previewElement.style.background = solidColor;
+            break;
+            
+        case 'gradient':
+            const gradientStyle = buildGradientStyle('general');
+            previewElement.style.background = gradientStyle;
+            break;
+            
+        case 'image':
+            const imageInput = document.getElementById('general_background_image');
+            if (imageInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewElement.style.backgroundImage = `url(${e.target.result})`;
+                    previewElement.style.backgroundSize = 'cover';
+                    previewElement.style.backgroundPosition = 'center';
+                };
+                reader.readAsDataURL(imageInput.files[0]);
+            }
+            break;
+    }
+}
+
+// Update login background preview
+function updateLoginBackgroundPreview() {
+    const backgroundType = document.getElementById('login_background_type').value;
+    const previewElement = document.getElementById('login_background_preview');
+    
+    if (!previewElement) return;
+    
+    switch (backgroundType) {
+        case 'solid':
+            const solidColor = document.getElementById('login_solid_color').value;
+            previewElement.style.background = solidColor;
+            break;
+            
+        case 'gradient':
+            const gradientStyle = buildGradientStyle('login');
+            previewElement.style.background = gradientStyle;
+            break;
+            
+        case 'image':
+            const imageInput = document.getElementById('login_background_image');
+            if (imageInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewElement.style.backgroundImage = `url(${e.target.result})`;
+                    previewElement.style.backgroundSize = 'cover';
+                    previewElement.style.backgroundPosition = 'center';
+                };
+                reader.readAsDataURL(imageInput.files[0]);
+            }
+            break;
+    }
+}
+
+// Update register background preview
+function updateRegisterBackgroundPreview() {
+    const backgroundType = document.getElementById('register_background_type').value;
+    const previewElement = document.getElementById('register_background_preview');
+    
+    if (!previewElement) return;
+    
+    switch (backgroundType) {
+        case 'solid':
+            const solidColor = document.getElementById('register_solid_color').value;
+            previewElement.style.background = solidColor;
+            break;
+            
+        case 'gradient':
+            const gradientStyle = buildGradientStyle('register');
+            previewElement.style.background = gradientStyle;
+            break;
+    }
+}
+
+// Update navigation preview
+function updateNavigationPreview() {
+    const previewElement = document.getElementById('navigation_preview');
+    if (!previewElement) return;
+    
+    const backgroundType = document.getElementById('navigation_background_type').value;
+    const textColor = document.getElementById('navigation_text_color').value;
+    const hoverColor = document.getElementById('navigation_hover_color').value;
+    const borderColor = document.getElementById('navigation_border_color').value;
+    
+    // Apply text and border colors
+    previewElement.style.color = textColor;
+    previewElement.style.borderColor = borderColor;
+    
+    // Apply background
+    if (backgroundType === 'solid') {
+        const solidColor = document.getElementById('navigation_solid_color').value;
+        previewElement.style.background = solidColor;
+    } else {
+        const gradientStyle = buildGradientStyle('navigation');
+        previewElement.style.background = gradientStyle;
+    }
+    
+    // Update hover color (this would typically be done via CSS)
+    const style = document.createElement('style');
+    style.textContent = `
+        #navigation_preview:hover {
+            color: ${hoverColor} !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Update homepage preview
+function updateHomepagePreview() {
+    const showBestSellers = document.getElementById('show_best_sellers').checked;
+    const bestSellersTitle = document.getElementById('best_sellers_title').value;
+    const bestSellersDescription = document.getElementById('best_sellers_description').value;
+    const dynamicDescription = document.getElementById('dynamic_description').value;
+    
+    // Update preview elements if they exist
+    const bestSellersSection = document.getElementById('best_sellers_preview');
+    if (bestSellersSection) {
+        bestSellersSection.style.display = showBestSellers ? 'block' : 'none';
+        
+        const titleElement = bestSellersSection.querySelector('.best-sellers-title');
+        const descriptionElement = bestSellersSection.querySelector('.best-sellers-description');
+        
+        if (titleElement) titleElement.textContent = bestSellersTitle;
+        if (descriptionElement) descriptionElement.textContent = bestSellersDescription;
+    }
+    
+    const dynamicDescElement = document.getElementById('dynamic_description_preview');
+    if (dynamicDescElement) {
+        dynamicDescElement.textContent = dynamicDescription;
+    }
+}
+
+function buildGradientStyle(prefix) {
+    const gradientType = document.getElementById(`${prefix}_gradient_type`)?.value;
+
+    // Collect colors
+    const color1 = document.getElementById(`${prefix}_gradient_color_1`)?.value || "#ffffff";
+    const color2 = document.getElementById(`${prefix}_gradient_color_2`)?.value || "#000000";
+    const color3El = document.getElementById(`${prefix}_gradient_color_3`);
+    const useThirdColor = color3El && !color3El.closest(".d-none");
+
+    let colors = [color1, color2];
+    if (useThirdColor) {
+        colors.push(color3El.value);
+    }
+    const colorString = colors.join(", ");
+
+    // ✅ Fix: properly read the direction from the dropdown
+    if (gradientType === "linear") {
+        const directionEl = document.getElementById(`${prefix}_gradient_direction`);
+        const direction = directionEl ? directionEl.value : "to right";
+        return `linear-gradient(${direction}, ${colorString})`;
+    } else {
+        const positionEl = document.getElementById(`${prefix}_radial_position`);
+        const position = positionEl ? positionEl.value : "center";
+        return `radial-gradient(circle at ${position}, ${colorString})`;
+    }
+}
+
+
+// Initialize form on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize background options based on current selections
+    const prefixes = ['general', 'login', 'register'];
+    
+    prefixes.forEach(prefix => {
+        const backgroundTypeSelect = document.getElementById(`${prefix}_background_type`);
+        if (backgroundTypeSelect) {
+            toggleBackgroundOptions(prefix);
+            
+            // Initialize gradient options
+            const gradientTypeSelect = document.getElementById(`${prefix}_gradient_type`);
+            if (gradientTypeSelect) {
+                toggleGradientOptions(prefix);
+            }
+            
+            // Initialize third color visibility
+            const thirdColorCheckbox = document.getElementById(`${prefix}_add_third_color`);
+            if (thirdColorCheckbox) {
+                toggleThirdColor(prefix);
+            }
+        }
+    });
+    
+    // Initialize navigation options
+    const navBackgroundType = document.getElementById('navigation_background_type');
+    if (navBackgroundType) {
+        toggleNavigationOptions();
+        
+        const navGradientType = document.getElementById('navigation_gradient_type');
+        if (navGradientType) {
+            toggleGradientTypeOptions();
+        }
+        
+        const navThirdColor = document.getElementById('nav_add_third_color');
+        if (navThirdColor) {
+            toggleThirdColorVisibility();
+        }
+    }
+    
+    // Sync all color inputs
+    syncAllColorInputs();
+    
+    // Initialize preview
+    previewCustomization();
+    previewNavigationCustomization();
+});
+
+// Sync all color inputs on initialization
+function syncAllColorInputs() {
+    const colorInputs = document.querySelectorAll('input[type="color"]');
+    
+    colorInputs.forEach(colorInput => {
+        const hexInput = document.getElementById(colorInput.id + '_hex');
+        if (hexInput) {
+            const colorValue = colorInput.value.replace('#', '');
+            hexInput.value = colorValue;
+            
+            // Add event listener for color picker changes
+            colorInput.addEventListener('change', function() {
+                hexInput.value = this.value.replace('#', '');
+            });
+            
+            // Add event listener for hex input changes
+            hexInput.addEventListener('input', function() {
+                let hexValue = this.value.replace('#', '');
+                if (hexValue.length === 6 && /^[0-9A-Fa-f]+$/.test(hexValue)) {
+                    colorInput.value = `#${hexValue}`;
+                }
+            });
+        }
+    });
+}
+
+// Form validation before submission
+function validateForm() {
+    let isValid = true;
+    const errors = [];
+    
+    // Validate required fields
+    const requiredFields = [
+        'general_background_type',
+        'login_background_type',
+        'register_background_type',
+        'navigation_background_type'
+    ];
+    
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field && !field.value) {
+            errors.push(`${fieldId.replace('_', ' ')} is required`);
+            isValid = false;
+        }
+    });
+    
+    // Validate hex color inputs
+    const hexInputs = document.querySelectorAll('input[id$="_hex"]');
+    hexInputs.forEach(hexInput => {
+        const hexValue = hexInput.value.replace('#', '');
+        if (hexValue && (hexValue.length !== 6 || !/^[0-9A-Fa-f]+$/.test(hexValue))) {
+            errors.push(`Invalid hex color: ${hexValue}`);
+            isValid = false;
+        }
+    });
+    
+    if (!isValid) {
+        console.error('Form validation errors:', errors);
+        // Display errors to user (implement as needed)
+    }
+    
+    return isValid;
+}
+
+        // Main initialization
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all components
+    initializeDragAndDrop();
+    initializeForm();
+    initializeColorHexSync();
+    initializeCustomizeButton();
+    restoreImagePreviews();
+    setupEventListeners();
+    
+    console.log('Application initialized successfully');
+});
+
+// Global window load handler
+window.addEventListener('load', function() {
+    toggleNavigationOptions();
+    toggleThirdColorVisibility();
+    if (typeof previewCustomization === 'function') {
+        previewCustomization();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all tabs
+    initializeTabs();
+    initializeTabContent();
+    setupTabListeners();
+});
+
+
+// Toggle visibility of third color input
+function toggleThirdColor(type) {
+    const thirdColorOption = document.getElementById(`${type}_third_color_option`);
+    thirdColorOption.style.display = thirdColorOption.style.display === 'none' ? 'block' : 'none';
+}
+
+// Sync HEX input and color picker
+function syncHexToColor(type) {
+    const colorInput = document.getElementById(`${type}_solid_color`);
+    const hexInput = document.getElementById(`${type}_solid_color_hex`);
+    colorInput.value = `#${hexInput.value}`;
+}
+
+// Preview customization changes (can be expanded based on specific needs)
+function previewCustomization() {
+    // Code to apply preview changes (this could include updating UI based on inputs)
+    console.log("Preview changes applied.");
+}
+
+
+// Drag and Drop Initialization
+function initializeDragAndDrop() {
+    const uploadContainers = document.querySelectorAll('.image-upload-container');
+    
+    uploadContainers.forEach(container => {
+        container.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        });
+        
+        container.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+        });
+        
+        container.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const input = this.querySelector('input[type="file"]');
+                if (input) {
+                    input.files = files;
+                    input.dispatchEvent(new Event('change'));
+                }
+            }
+        });
+    });
+}
+
+// Color and Hex Input Synchronization
+function initializeColorHexSync() {
+    function linkColorAndHex(colorId, hexId) {
+        const colorInput = document.getElementById(colorId);
+        const hexInput = document.getElementById(hexId);
+        
+        if (!colorInput || !hexInput) return;
+
+        // Color to Hex (when color picker changes)
+        colorInput.addEventListener('input', function() {
+            const hex = colorInput.value.replace('#', '').toUpperCase();
+            hexInput.value = hex;
+            hexInput.classList.remove('is-invalid');
+        });
+
+        // Hex to Color (when user types hex)
+        hexInput.addEventListener('input', function() {
+            const hex = hexInput.value.trim().toUpperCase();
+            hexInput.value = hex; // force uppercase
+
+            if (/^[0-9A-F]{6}$/.test(hex)) {
+                colorInput.value = '#' + hex;
+                hexInput.classList.remove('is-invalid');
+            } else {
+                hexInput.classList.add('is-invalid'); // red border
+            }
+        });
+    }
+
+    // Color-hex pairs to sync
+    const colorPairs = [
+        ['general_solid_color', 'general_solid_color_hex'],
+        ['general_gradient_color_1', 'general_gradient_color_1_hex'],
+        ['general_gradient_color_2', 'general_gradient_color_2_hex'],
+        ['general_gradient_color_3', 'general_gradient_color_3_hex'],
+        ['login_solid_color', 'login_solid_color_hex'],
+        ['login_gradient_color_1', 'login_gradient_color_1_hex'],
+        ['login_gradient_color_2', 'login_gradient_color_2_hex'],
+        ['login_gradient_color_3', 'login_gradient_color_3_hex'],
+        ['register_solid_color', 'register_solid_color_hex'],
+        ['register_gradient_color_1', 'register_gradient_color_1_hex'],
+        ['register_gradient_color_2', 'register_gradient_color_2_hex'],
+        ['register_gradient_color_3', 'register_gradient_color_3_hex'],
+        ['header_font_color', 'header_font_color_hex'],
+        ['body_font_color', 'body_font_color_hex'],
+        ['primary_color', 'primary_color_hex'],
+        ['secondary_color', 'secondary_color_hex'],
+        ['accent_color', 'accent_color_hex'],
+        ['navigation_text_color', 'navigation_text_color_hex'],
+        ['navigation_hover_color', 'navigation_hover_color_hex'],
+        ['navigation_border_color', 'navigation_border_color_hex'],
+        ['navigation_solid_color', 'navigation_color_hex'],
+        ['navigation_gradient_color_1', 'navigation_gradient_color_1_hex'],
+        ['navigation_gradient_color_2', 'navigation_gradient_color_2_hex'],
+        ['navigation_gradient_color_3', 'navigation_gradient_color_3_hex'],
+        ['button_text_color', 'button_text_color_hex']
+    ];
+
+    colorPairs.forEach(([colorId, hexId]) => {
+        linkColorAndHex(colorId, hexId);
+    });
+}
+
+function initializeCustomizeButton() {
+    const customizeBtn = document.getElementById('customize_button');
+    const saveBtn = document.getElementById('save_changes');
+    const customizeForm = document.querySelector('.customize-section');
+    
+    if (!customizeBtn || !saveBtn || !customizeForm) return;
+    
+    const formElements = customizeForm.querySelectorAll('input, select, textarea');
+
+    function setFormState(enabled) {
+        formElements.forEach(el => {
+            el.disabled = !enabled;
+
+            if (!enabled) {
+                el.style.backgroundColor = '#e9ecef';
+                el.style.color = '#6c757d';
+                el.style.pointerEvents = 'none';
+                el.style.opacity = '0.7';
+            } else {
+                el.style.backgroundColor = '';
+                el.style.color = '';
+                el.style.pointerEvents = 'auto';
+                el.style.opacity = '1';
+            }
+        });
+
+        saveBtn.disabled = !enabled;
+        saveBtn.style.display = enabled ? 'inline-block' : 'none';
+        customizeBtn.disabled = false;  // Ensure button is always enabled
+    }
+
+    // Disable all fields on page load
+    setFormState(false);
+
+    customizeBtn.addEventListener('click', function() {
+        if (customizeBtn.innerText.includes('Customize')) {
+            customizeBtn.innerHTML = '<i class="fas fa-undo"></i> Reset to Defaults';
+            setFormState(true);
+        } else {
+            // Show Bootstrap confirmation modal
+            const resetModal = new bootstrap.Modal(document.getElementById('resetModal'));
+            resetModal.show();
+
+            document.getElementById('confirmResetBtn').onclick = function() {
+                fetch('/reset_customization/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // ✅ Reset all form fields automatically
+                        if (data.defaults) {
+                            for (const [key, value] of Object.entries(data.defaults)) {
+                                let field = document.querySelector(`[name="${key}"]`);
+                                if (field) {
+                                    if (field.type === "checkbox" || field.type === "radio") {
+                                        field.checked = value;
+                                    } else {
+                                        field.value = value;
+                                    }
+                                }
+                            }
+                        }
+                
+                        setFormState(false);
+                        customizeBtn.innerHTML = '<i class="fas fa-edit"></i> Customize';
+                        showToast(data.message);
+                
+                        // 🔄 Refresh page to apply reset changes
+                        location.reload();
+                    } else {
+                        showToast(data.message);
+                    }
+                    resetModal.hide(); // Close modal after reset
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('An error occurred while resetting to defaults.');
+                    resetModal.hide();
+                });
+            };
+        }
+    });
+}
+
+
+function restoreImagePreviews() {
+    const imagePairs = [
+        ['general_background_image', 'general_background_preview'],
+        ['login_background_image', 'login_background_preview'],
+        ['register_background_image', 'register_background_preview']
+    ];
+    
+    imagePairs.forEach(([inputId, previewId]) => {
+        restoreImagePreview(inputId, previewId);
+    });
+}
+
+function restoreImagePreview(inputId, previewId) {
+    const saved = localStorage.getItem(`${inputId}_preview`);
+    if (saved) {
+        const preview = document.getElementById(previewId);
+        if (preview) {
+            preview.src = saved;
+            preview.style.display = 'block';
+        }
+    }
+}
+
+
+function toggleThirdColorVisibility() {
+    const checkbox = document.getElementById('nav_add_third_color');
+    const color3Container = document.getElementById('navigation_gradient_color_3_container');
+    
+    if (checkbox && color3Container) {
+        color3Container.style.display = checkbox.checked ? 'block' : 'none';
+    }
+}
+
+
+function setupEventListeners() {
+    // Tab management
+    const tabLinks = document.querySelectorAll('.nav-link');
+    tabLinks.forEach(tabLink => {
+        tabLink.addEventListener('click', function(event) {
+            event.preventDefault();
+            const targetTab = event.target.getAttribute('href')?.substring(1);
+            if (targetTab) {
+                setActiveTab(targetTab);
+            }
+        });
+    });
+    
+    // General form elements - ENHANCED TO INCLUDE ALL INPUTS
+    document.querySelectorAll('input, select, textarea').forEach(element => {
+        // Add change listener to ALL form elements, not just those in customize-section
+        element.addEventListener('change');
+        
+        // Also add input listener for real-time updates (especially for color inputs)
+        if (element.type === 'color' || element.type === 'text' || element.type === 'range') {
+            element.addEventListener('input');
+        }
+        
+        if (element.closest('.customize-section')) {            
+            // Special handling for background type selectors
+            if (element.id.endsWith('_background_type')) {
+                const section = element.id.replace('_background_type', '');
+                element.addEventListener('change', () => toggleBackgroundOptions(section));
+            }
+            
+            // Special handling for gradient type selectors
+            if (element.id.endsWith('_gradient_type')) {
+                const section = element.id.replace('_gradient_type', '');
+                element.addEventListener('change', () => toggleGradientOptions(section));
+            }
+            
+            // Special handling for third color checkboxes
+            if (element.id.endsWith('_add_third_color')) {
+                const section = element.id.replace('_add_third_color', '');
+                element.addEventListener('change', () => toggleThirdColor(section));
+            }
+        }
+    });
+    
+    // SPECIFICALLY bind navigation color inputs
+    const navColorInputs = [
+        'navigation_text_color',
+        'navigation_text_color_hex',
+        'navigation_hover_color', 
+        'navigation_hover_color_hex',
+        'navigation_border_color',
+        'navigation_border_color_hex',
+        'navigation_solid_color',
+        'navigation_color_hex',
+        'navigation_gradient_color_1',
+        'navigation_gradient_color_1_hex',
+        'navigation_gradient_color_2', 
+        'navigation_gradient_color_2_hex',
+        'navigation_gradient_color_3',
+        'navigation_gradient_color_3_hex'
+    ];
+    
+    navColorInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('change');
+            input.addEventListener('input');
+            console.log(`Bound save listener to ${inputId}`);
+        }
+    });
+    
+    // File inputs
+    document.querySelectorAll('input[type="file"]').forEach(fileInput => {
+        fileInput.addEventListener('change', () => {
+            setTimeout(100);
+        });
+    });
+}
+
+
+
+// Form Initialization and Management
+function initializeForm() {
+    const form = document.querySelector('form');
+    if (!form) return;
+    
+    // Prevent form submission if validation fails
+    form.addEventListener('submit', function(event) {
+        const invalidElements = form.querySelectorAll('.is-invalid');
+        if (invalidElements.length > 0) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Focus on first invalid element
+            invalidElements[0].focus();
+            alert('Please fix the highlighted errors before submitting.');
+            return false;
+        }
+        
+    });
+    
+    // Add real-time validation for hex inputs
+    document.querySelectorAll('input[id*="_hex"]').forEach(hexInput => {
+        hexInput.addEventListener('blur', function() {
+            validateHexInput(this);
+        });
+    });
+}
+
+
+function validateHexInput(input) {
+    const hex = input.value.trim().toUpperCase();
+    const hexPattern = /^[0-9A-F]{6}$/;
+    
+    if (hex && !hexPattern.test(hex)) {
+        input.classList.add('is-invalid');
+        input.setCustomValidity('Please enter a valid 6-digit hex color code');
+    } else {
+        input.classList.remove('is-invalid');
+        input.setCustomValidity('');
+    }
+}
+
+
+// Utility Functions
+function getElementValue(id) {
+    const element = document.getElementById(id);
+    if (!element) return null;
+    
+    if (element.type === 'checkbox') {
+        return element.checked;
+    } else if (element.type === 'radio') {
+        const checkedRadio = document.querySelector(`input[name="${element.name}"]:checked`);
+        return checkedRadio ? checkedRadio.value : null;
+    } else {
+        return element.value;
+    }
+}
+
+function setElementValue(id, value) {
+    const element = document.getElementById(id);
+    if (!element || value === null || value === undefined) return;
+    
+    if (element.type === 'checkbox') {
+        element.checked = value;
+    } else if (element.type === 'radio') {
+        const radioButton = document.querySelector(`input[name="${element.name}"][value="${value}"]`);
+        if (radioButton) {
+            radioButton.checked = true;
+        }
+    } else {
+        element.value = value;
+    }
+}
+
+function getRadioValue(name) {
+    const checkedRadio = document.querySelector(`input[name="${name}"]:checked`);
+    return checkedRadio ? checkedRadio.value : null;
+}
+
+function setRadioValue(name, value) {
+    const radioButton = document.querySelector(`input[name="${name}"][value="${value}"]`);
+    if (radioButton) {
+        radioButton.checked = true;
+    }
+}
+
+
+
+// Expose certain functions globally for HTML onclick handlers
+window.previewImage = previewImage;
+window.removeImage = removeImage;
+window.previewHomepageImage = previewHomepageImage;
+window.removeHomepageImage = removeHomepageImage;
+window.toggleBackgroundOptions = toggleBackgroundOptions;
+window.toggleGradientOptions = toggleGradientOptions;
+window.toggleThirdColor = toggleThirdColor;
+window.resetAllSettings = resetAllSettings;
+window.exportSettings = exportSettings;
+window.importSettings = importSettings;
+window.logCurrentSettings = logCurrentSettings;
+
+function previewImage(input, previewId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                const targetWidth = 900;
+                const targetHeight = 400;
+
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+
+                let scale = Math.max(targetWidth / img.width, targetHeight / img.height);
+                let x = (targetWidth / 2) - (img.width / 2) * scale;
+                let y = (targetHeight / 2) - (img.height / 2) * scale;
+
+                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+                // Homepage only
+                if (previewId.startsWith("preview_")) {
+                    document.getElementById(previewId).src = canvas.toDataURL("image/jpeg");
+                    document.getElementById(previewId).classList.remove("d-none");
+                } else {
+                    // ibang tabs, default lang
+                    document.getElementById(previewId).src = e.target.result;
+                    document.getElementById(previewId).classList.remove("d-none");
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+</script>

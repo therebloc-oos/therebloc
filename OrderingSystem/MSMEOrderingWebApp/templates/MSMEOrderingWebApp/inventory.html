@@ -1,0 +1,1991 @@
+{% extends 'MSMEOrderingWebApp/business_owner_base.html' %}
+
+{% block title %}Inventory Management{% endblock %}
+
+{% block content %}
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caudex:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Arapey:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Brawler:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: {{ customization.primary_color|default:'#FF5733' }};
+            --secondary-color: {{ customization.secondary_color|default:'#FF5733' }};
+            --accent-color: {{ customization.accent_color|default:'#FF5733' }};
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            --gradient-card: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;   
+        }
+
+        {% if customization.general_background_type == 'solid' %}
+        body {
+            background-color: {{ customization.general_solid_color|default:"#ffffff" }};
+        }
+        {% elif customization.general_background_type == 'gradient' %}
+        body {
+            background: linear-gradient(
+                {{ customization.general_gradient_direction|default:"to right" }},
+                {{ customization.general_gradient_color_1|default:"#ffffff" }},
+                {{ customization.general_gradient_color_2|default:"#000000" }}
+                {% if customization.general_gradient_color_3 %}
+                    , {{ customization.general_gradient_color_3 }}
+                {% endif %}
+            );
+        }
+        {% elif customization.general_background_type == 'image' %}
+        body {
+            background-image: url("{{ customization.general_background_image.url }}");
+        }
+        {% endif %}
+
+
+        .container-fluid {
+            padding: 0;
+        }
+
+        .container {
+            padding: 0;
+        }
+
+        .form-section {
+            padding: 5px;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-xl);
+            position: relative;
+        }
+
+        .form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 15px; /* Height of the decorative line */
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); /* Gradient background */
+            border-radius: 10px 10px 0 0; /* Rounded top corners */
+            z-index: -1; /* Ensure the line stays behind the content */
+        }
+
+        .section-title {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 30 %}{{ customization.header_font_size|default:20 }}{% else %}30{% endif %}px;
+        }
+
+        .section-title i {
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 30 %}{{ customization.header_font_size|default:20 }}{% else %}30{% endif %}px;
+        }
+
+        .section-title-2 {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 23 %}{{ customization.header_font_size|default:20 }}{% else %}23{% endif %}px;
+        }
+
+        .add-product-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 15px;
+            align-items: start;
+        }
+
+        @media (max-width: 992px) {
+            .add-product-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        .form-control, .form-select {
+            padding: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            font-weight: 500;
+            border-color: var(--primary-color);
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            border-width: {{ customization.input_border_width|default:1 }}px; 
+            border-style: {{ customization.input_border_style|default:'solid' }};
+            border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+            
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: none;
+            outline: none;
+        }
+
+        .form-label {
+            margin-bottom: 1px;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        }
+
+        .form-label i {
+            color: {{ customization.header_font_color|default:"#000000" }};
+        }
+
+        .btn {
+            padding: 15px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            font-size: 0.875rem;
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: {{ customization.button_text_color|default:'#ffffff' }}; 
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-close {
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .add-clr {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-family: {{ customization.body_font_family|default:"Montserrat" }};
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            margin-bottom: 15px;
+            padding: 0.875rem 1.75rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            font-size: 0.875rem;
+            cursor: pointer; /* Makes it look clickable */
+            background: transparent;
+        }
+
+        /* Hover Effect */
+        .add-clr:hover {
+            transform: scale(1.05); /* Slightly enlarges the button */
+            border: 2px solid var(--secondary-color);
+            color: var(--secondary-color);
+        }
+
+        .form-check {
+            margin: 1rem 0;
+        }
+
+        .form-check-input {
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-right: 0.5rem;
+            transition: all 0.3s ease; /* Smooth transition when checked */
+            appearance: none; /* Remove default checkbox appearance */
+            border: 2px solid #4a5568; /* Default border color */
+            border-radius: 4px; /* Optional: Rounded corners */
+            background-color: white; /* Default background */
+            position: relative;
+        }
+
+        /* Change color of checkbox when checked */
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* Change label color when checkbox is checked */
+        .form-check-label {
+            font-weight: 600;
+            font-family: "{{ customization.header_font_family|default:"Arial" }}";
+            color: {{ customization.header_font_color|default:"#000000" }};
+            transition: color 0.3s ease; /* Smooth transition for color change */
+        }
+
+        #image_canvas {
+            display: none;
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .variation-section {
+            background: #f7fafc;
+            border: 2px dashed #e2e8f0;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .d-none {
+            display: none !important;
+        }
+
+        /* Enhanced Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            display: none;
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to { 
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .edit-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            z-index: 1000;
+            display: none;
+            box-shadow: var(--shadow-xl);
+            min-width: 450px;
+            max-width: 90vw;
+            border: 1px solid var(--border-light);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* Enhanced Image Upload */
+        .add-product-container {
+            display: flex;
+            gap: 3rem;
+            align-items: flex-start;
+            flex-wrap: wrap; /* Just in case on smaller screens */
+        }
+
+
+        .image-upload-container {
+            flex: 1;
+            max-width: 280px;
+        }
+
+        .image-upload-box {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            border: 3px dashed var(--primary-color);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            overflow: hidden;
+        }
+
+        .image-upload-box:hover {
+            border-color: var(--secondary-color);
+            transform: scale(1.02);
+        }
+
+        .image-upload-box.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f5f5f5;
+            transform: none;
+        }
+
+        .image-upload-box.has-image {
+            border-style: solid;
+            border-color: var(--border-color);
+        }
+
+        #image_canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 1.25rem;
+            display: none;
+        }
+
+        .upload-placeholder {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .upload-placeholder i {
+            font-size: 55px;
+            margin-bottom: 3px;
+            color: var(--text-muted);
+        }
+
+        .upload-placeholder h4 {
+            font-size: 18px;
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .upload-placeholder p {
+            font-size: 15px;
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+        }
+
+        .form-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Checkbox Groups */
+        .sc-card {
+           background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            margin-bottom: 5px;
+            border-radius: 16px;
+            padding: 20px;
+            border-bottom: 3px solid var(--primary-color);
+            border-top: 3px solid var(--primary-color);
+            position: sticky; /* makes it stay in place while scrolling */
+            top: 72px; /* adjust distance from top */
+            z-index: 100; /* ensures it stays above other elements */
+            overflow: auto;
+
+        }
+        /* Enhanced Category Tabs */
+        .category-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 2rem;
+            padding: 0.5rem;
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            font-family: {{ customization.body_font_family|default:"Arial" }};
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 14 %}{{ customization.body_font_size|default:12 }}{% else %}14{% endif %}px;
+        }
+
+        .tab-btn:hover {
+            border: 2px solid;
+            border-color: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+
+        .tab-btn.active {
+            border-color: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            background:  linear-gradient(90deg, var(--primary-color), var(--secondary-color)); 
+            text-shadow: 2px 2px 4px rgba(14, 14, 14, 0.247); /* Apply text shadow */
+            box-shadow: var(--shadow-md);
+            color: {{ customization.button_text_color|default:'#ffffff' }}
+        }
+
+
+        /* Enhanced Form Switch */
+        .form-switch .form-check-input {
+            width: 3rem;
+            height: 1.5rem;
+            border-radius: 2rem;
+            background-color: var(--border-color);
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-switch .form-check-input:checked {
+            background-color: var(--primary-color);
+            box-shadow: 0 0 0 0.125rem rgba(16, 185, 129, 0.25);
+        }
+
+        .available-color{
+            color: var(--primary-color);
+            margin-left: 2px;
+
+        }
+
+        .form-switch .form-check-input:focus {
+            box-shadow: 0 0 0 0.125rem rgba(16, 185, 129, 0.25);
+            border: var(--primary-color);
+        }
+
+        .empty-state {
+            opacity: 0.6;
+        }
+        
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(50px);
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+        }
+
+
+        .empty-state i {
+            font-size: 60px;
+            margin-bottom: 5px;
+            color: {{ customization.header_font_color|default:"#000000" }};
+        }
+
+        .empty-state h4 {
+            margin-bottom: 2px;
+            font-weight: 800;
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-family: '{{ customization.header_font_family|default:"Arial" }}';
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 35 %}{{ customization.header_font_size|default:35 }}{% else %}35{% endif %}px;
+        }
+        .empty-state p {
+            font-weight: 600;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:10 }}{% else %}16{% endif %}px;
+            
+    }
+
+        /* Accessibility Improvements */
+        .btn:focus-visible, .form-control:focus-visible, .form-select:focus-visible {
+            outline: 2px solid var(--primary-color);
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @media (max-width: 768px) {
+            .add-product-container {
+                flex-direction: column;
+                gap: 2rem;
+            }
+            
+            .image-upload-container {
+                max-width: 100%;
+            }
+            
+            .category-tabs {
+                justify-content: center;
+            }
+
+            .tab-btn {
+                padding: 4px 10px;
+                gap: 3px;
+                font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 10 %}{{ customization.body_font_size|default:8 }}{% else %}10{% endif %}px;
+            }
+            
+            .product-actions {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+            
+            .product-actions .action-buttons {
+                justify-content: center;
+            }
+
+            @media (max-width: 768px) {
+                .image-upload-container,
+                .form-right {
+                    margin-bottom: 1rem;  /* Ensure space between sections on smaller screens */
+                }
+            }
+
+            @media (min-width: 992px) {
+                .image-upload-container {
+                    max-width: 100%;
+                }
+
+                .form-right {
+                    padding-left: 2rem;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .product-container .product-info {
+                    text-align: center;
+                    width: 100%;
+                }
+
+                .product-container .product-info h5,
+                .product-container .product-info p {
+                    justify-content: center;
+                }
+
+                .product-container .image-section,
+                .product-container .image-section img,
+                .product-container .image-section .fallback-box {
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+
+                .product-container .image-section {
+                    text-align: center;
+                    width: 100%;
+                }
+            }
+            @media (max-width: 768px) {
+                .image-upload-container {
+                    margin-left: auto;
+                    margin-right: auto;
+                    text-align: center;
+                }
+
+                .image-upload-box {
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+            }
+
+
+        }
+        
+        /* Modern Edit Product Modal Styles */
+
+    /* Modal backdrop with glassmorphism */
+    .modal {
+        padding: 20px;
+        backdrop-filter: blur(10px);
+        background: rgba(0, 0, 0, 0.4) !important;
+    }
+
+    /* Modal dialog container */
+    .modal-dialog {
+        
+        margin: 1.75rem auto;
+        max-width: 500px;
+        transform: scale(0.9);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal.show .modal-dialog {
+        transform: scale(1);
+    }
+
+    /* Modal content with modern styling */
+    .modal-content {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(20px);
+        overflow: hidden;
+        position: relative;
+    }
+
+
+    /* Modal header styling */
+    .modal-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        font-family:  {{ customization.header_font_family|default:"Montserrat" }};
+        border-bottom: 1px solid var(--accent-color);
+    }
+
+    .modal-title {
+        font-weight: 700;
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        text-shadow: var(--text-shadow);
+    }
+
+    .modal-title2 {
+        font-weight: 700;
+        color: var(--primary-color);
+        text-shadow: var(--text-shadow);
+        font-family:  {{ customization.header_font_family|default:"Montserrat" }};
+    }
+
+    /* Modal body styling */
+    .modal-body {
+        padding: 24px 32px;
+        font-family:  {{ customization.body_font_family|default:"Montserrat" }};
+        border-radius: 16px;
+        border: none;
+    }
+
+    /* Form groups styling */
+    .mb-3 {
+        margin-bottom: 15px;
+        position: relative;
+    }
+
+    /* Modal footer styling */
+    .modal-footer {
+        border-top: 1px solid var(--primary-color);
+        padding: 10px;
+        background: #fafbfc;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+
+    .form-control:focus-visible {
+        outline: none;
+    }
+
+    /* Animation for modal appearance */
+    .modal.fade .modal-dialog {
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transform: translateY(-50px) scale(0.9);
+    }
+
+    .modal.fade.show .modal-dialog {
+        transform: translateY(0) scale(1);
+    }
+
+
+    /* Product Table Styles */
+    .table-responsive {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        text-align: center;
+        border-right: 1px solid var(--primary-color);
+        border-top: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 1rem 0.75rem;
+        white-space: nowrap;
+        background-color: var(--accent-color);
+        font-family: '{{ customization.header_font_family|default:"Arial" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:10 }}{% else %}13{% endif %}px;
+    }
+
+    .table tbody td {
+        text-align: center;
+        padding: 0.80rem;
+        vertical-align: middle;
+        font-weight: 600;
+        border-bottom: 1px solid var(--accent-color);
+        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:10 }}{% else %}13{% endif %}px;
+        color: {{ customization.body_font_color|default:"#000000" }};
+    }
+
+    
+    .table img {
+        transition: transform 0.2s ease;
+    }
+
+    .table img:hover {
+        transform: scale(1.05);
+    }
+
+    .product-name {
+        font-weight: 600;
+    }
+
+    /* Availability switch styling */
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .form-check-input:focus {
+        border-color: var(--primary-color);
+        outline: 0;
+        box-shadow: none;
+    }
+
+    .available-color {
+        color: var(--primary-color);
+        font-weight: 700;
+    }
+
+    /* Button group styling */
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        border-radius: 0.25rem;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #0052aa;
+        border-color: #0052aa;
+        color: #fff;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #a80011;
+        border-color: #a80011;
+        color: #fff;
+    }
+
+    /* Action buttons container */
+    .btn-group {
+        gap: 0.25rem;
+    }
+
+    /* Date/time styling */
+    .table small {
+        color: #6c757d;
+    }
+
+
+    /* Category data attribute styling (optional for filtering) */
+    tr[data-category] {
+        transition: opacity 0.3s ease;
+    }
+
+    tr[data-category].filtered-out {
+        opacity: 0.3;
+        pointer-events: none;
+    }
+
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .table thead th {
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:10 }}{% else %}13{% endif %}px;
+        }
+        
+        .table tbody td {
+            padding: 0.5rem 0.4rem;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 11 %}{{ customization.body_font_size|default:10 }}{% else %}11{% endif %}px;
+
+        }
+        
+        .table img, .table div[style*="width: 60px"] {
+            width: 40px !important;
+            height: 40px !important;
+        }
+        
+        .btn-group-sm .btn {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.7rem;
+        }
+        
+        .table small {
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 11 %}{{ customization.body_font_size|default:10 }}{% else %}11{% endif %}px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .table thead th {
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 11 %}{{ customization.body_font_size|default:10 }}{% else %}11{% endif %}px;
+        }
+        
+        .table tbody td {
+            padding: 0.4rem 0.3rem;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 11 %}{{ customization.body_font_size|default:10 }}{% else %}11{% endif %}px;
+        }
+        
+        .table img, .table div[style*="width: 60px"] {
+            width: 35px !important;
+            height: 35px !important;
+        }
+    }
+
+
+    /* Loading state (optional) */
+    .table-loading {
+        opacity: 0.6;
+        pointer-events: none;
+        position: relative;
+    }
+
+    .table-loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 2rem;
+        height: 2rem;
+        border: 0.25em solid #f3f3f3;
+        border-top: 0.25em solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* Print styles */
+    @media print {
+        .table tbody tr:hover {
+            background-color: transparent;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-group {
+            display: none;
+        }
+        
+        .form-check {
+            display: none;
+        }
+    }
+    
+    
+    </style>
+<div>
+    <div class="container-fluid">
+        <div class="container">
+            <!-- Add Product Form -->
+            <div class="form-section fade-in">
+                <h3 class="section-title">
+                    <i class="fas fa-plus-circle"></i>
+                    ADD NEW PRODUCT
+                </h3>
+                
+                <form method="post" enctype="multipart/form-data" id="addProductForm">
+                    {% csrf_token %}
+                    <!-- Add Product Layout -->
+                    <div class="add-product-container">  
+                        <!-- Left Side: Image Upload -->
+                        <div class="row">
+                        <div class="col-12 col-md-12 offset-md-0 col-sm-12 offset-sm-2 col-lg-12 offset-lg-0">
+                            <div class="image-upload-container text-center">
+                            <label for="product_image" class="image-upload-box" id="imageUploadBox">
+                                <div class="upload-placeholder" id="uploadPlaceholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <h4>Upload Image</h4>
+                                <p>Drag & drop or click to browse</p>
+                                </div>
+                                <canvas id="image_canvas" width="200" height="200"></canvas>
+                            </label>
+                            <input type="file" id="product_image" name="product_image" accept=".jpg,.jpeg,.png,.webp"
+                                    class="form-control mt-2 d-none" onchange="previewImage(event)">
+                            <small class="text-muted d-block mt-2 text-center">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Upload product image (optional)
+                            </small>
+
+                            <!-- Disable Image Upload -->
+                            <div class="form-check g-2">
+                                <input type="checkbox" id="disable_image" name="disable_image"
+                                    onclick="toggleImageUpload()" class="form-check-input"
+                                    {% if form_data.disable_image %}checked{% endif %}>
+                                <label class="form-check-label" for="disable_image">
+                                    Skip image upload
+                                </label>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+
+
+                        <!-- Right Side: Product Details -->
+                        <div class="form-right">
+                            <!-- ✅ Toggle Stock Tracking -->
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="toggleStocks"
+                                    {% if form_data.enable_stocks != 'off' %}checked{% endif %}
+                                    onchange="toggleStocksInputs()">
+                                <label class="form-check-label" for="toggleStocks">
+                                    Enable stock tracking
+                                </label>
+                            </div>
+                                <input type="hidden" id="enable_stocks_hidden" name="enable_stocks"
+                                    value="{{ form_data.enable_stocks|default:'on' }}">
+
+                            <!-- Product Name, Category, and Price -->
+                            <div class="row g-3">
+                                <div class="col-12 col-md-12 col-lg-6">
+                                    <label for="product_name" class="form-label">
+                                        <i class="fas fa-box"></i> Product Name
+                                    </label>
+                                    <input type="text" id="product_name" name="product_name" class="form-control" 
+                                        placeholder="Enter product name" 
+                                        value="{{ form_data.product_name|default:'' }}" required>
+                                </div>
+
+                                <div class="col-12 col-md-12 col-lg-6">
+                                    <label for="product_category" class="form-label">
+                                        <i class="fas fa-tags"></i> Product Category
+                                    </label>
+                                    <select id="product_category" name="product_category" class="form-select" 
+                                            required onchange="checkAddNewCategory()">
+                                        <option value="">-- Select Category --</option>
+                                        {% for category in categories %}
+                                            <option value="{{ category.id }}"
+                                                {% if form_data.product_category == category.id|stringformat:"s" %}selected{% endif %}>
+                                                {{ category.name }}
+                                            </option>
+                                        {% endfor %}
+                                        <option value="add_new"
+                                            {% if form_data.product_category == 'add_new' %}selected{% endif %}>
+                                            ➕ Add New Category
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12 col-md-12 col-lg-6" id="default_stocks_section">
+                                    <label for="product_stocks" class="form-label">
+                                        <i class="fas fa-boxes"></i> Stocks
+                                    </label>
+                                    <input type="number" id="product_stocks" name="product_stocks" class="form-control" 
+                                        min="0" placeholder="Enter stocks" 
+                                        value="{{ form_data.product_stocks|default:'' }}">
+                                </div>
+
+                                <div class="col-12 col-md-12 col-lg-6" id="default_price_section">
+                                    <label for="default_price" class="form-label">
+                                        <i class="fas fa-peso-sign"></i> Price (₱)
+                                    </label>
+                                    <input type="number" id="default_price" name="default_price" class="form-control" 
+                                        step="0.01" min="0" placeholder="0.00" 
+                                        value="{{ form_data.default_price|default:'' }}">
+                                </div>
+
+                                <div class="col-12">
+                                    <label for="product_description" class="form-label">
+                                        <i class="fas fa-align-left"></i> Product Description
+                                    </label>
+                                    <textarea id="product_description" name="product_description" class="form-control" 
+                                              placeholder="Enter product description" rows="3">{{ form_data.product_description|default:'' }}</textarea>
+                                </div>
+
+                            </div>
+
+                            <!-- Add Variation Section -->
+                            <div id="variations_section" style="display: none;">
+                                <h5 class="mt-3 mb-3 section-title-2">
+                                    <i class="fas fa-layer-group me-1"></i>
+                                    PRODUCT VARIATIONS
+                                </h5>
+                            </div>
+
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" onclick="addVariation()" class="add-clr">
+                                    <i class="fas fa-plus me-2"></i>Add Variation
+                                </button>
+                                <button type="button" onclick="clearVariations()" class="add-clr" 
+                                        id="clearVariationsBtn" style="display: none;">
+                                    <i class="fas fa-trash me-2"></i>Clear All
+                                </button>
+                            </div>
+
+                            <!-- Add Product Button -->
+                            <div class="text-center mt-3">
+                                <button type="submit" name="add_product" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-plus me-2"></i>
+                                    {{ settings.button_text_2|default:"Add Product" }}
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+
+            </form>
+            </div>
+
+            <!-- Card Containing Search Functionality and Category Tabs -->
+            <div class="sc-card">
+                <!-- Search Bar -->
+                <div class="mb-2">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search products..." onkeyup="searchProducts()">
+                </div>
+
+                <!-- Category Tabs -->
+                <div class="category-tabs fade-in mb-0">
+                    <button class="tab-btn active" onclick="filterProductsByCategory('all', this)">
+                        <i class="fas fa-th-large me-2"></i>ALL
+                    </button>
+                    {% for category in categories %}
+                        <button class="tab-btn" onclick="filterProductsByCategory('{{ category.id }}', this)">
+                            <i class="fas fa-tag me-2"></i>{{ category.name|upper }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+
+            <!-- Products Display -->
+            <div id="product_container">
+                {% regroup products|dictsort:"name" by name as grouped_products %}
+                {% if grouped_products %}
+                    <div class="table-responsive" style="overflow-x:auto;">
+                        <table class="table table-sm">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col">Image</th>
+                                    <th scope="col">Product Name</th>
+                                    <th scope="col">Category</th>
+                                    <th scope="col">Variation</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Stocks</th>
+                                    <th scope="col">Available</th>
+                                    <th scope="col">Added</th>
+                                    <th scope="col">Last Modified</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for group in grouped_products %}
+                                    {% with group.list as items %}
+                                        {% if items|length > 1 %}
+                                            <!-- GROUPED PRODUCTS with variations -->
+                                            {% for product in items %}
+                                                <tr class="product-row" data-category="{{ items.0.category.id }}" data-group="group-{{ forloop.parentloop.counter }}">
+                                                    {% if forloop.first %}
+                                                        <!-- Show image and product info only for first variation -->
+                                                        <td rowspan="{{ items|length }}" class="align-middle text-center" style="background-color: #f0f0f0ff;">
+                                                            <div style="width: 60px; height: 60px; border-radius: 8px; border: 1px solid #ccc; 
+                                                                        background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; margin: auto;">
+                                                                {% if items.0.image %}
+                                                                    <img src="{{ items.0.image.url }}" alt="{{ items.0.name }}" 
+                                                                        style="max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 8px;">
+                                                                {% else %}
+                                                                    <div style="
+                                                                        display: flex;
+                                                                        align-items: center;
+                                                                        justify-content: center;
+                                                                        width: 100%;
+                                                                        height: 100%;
+                                                                        border-radius: 8px;
+                                                                        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+                                                                    ">
+                                                                        <span style="font-size: 1.5rem; font-weight: 700; color: #fff;">
+                                                                            {{ product.name|first|upper }}
+                                                                        </span>
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        </td>
+
+                                                        <td rowspan="{{ items|length }}" class="align-middle" style="background-color: #f0f0f0de;">{{ group.grouper|title }}</td>
+                                                        <td rowspan="{{ items|length }}" class="align-middle" style="background-color: #f0f0f0de;">{{ items.0.category.name|title }}</td>
+                                                    {% endif %}
+                                                    <td class="align-middle" style="background-color: #f0f0f0ff;">{{ product.variation_name|title }}</td>
+                                                    <td class="align-middle product-price" style="background-color: #f0f0f0ff;">₱{{ product.price|floatformat:2 }}</td>
+                                                    <td class="align-middle" style="background-color: #f0f0f0ff;">
+                                                        {% if product.track_stocks %}
+                                                            {{ product.stocks }}
+                                                        {% else %}
+                                                            <span>Not tracked</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="align-middle text-center" style="background-color: #f0f0f0ff;">
+                                                        <form method="post" action="{% url 'toggle_availability' product.id %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <div class="form-check form-switch d-flex justify-content-center">
+                                                                <input class="form-check-input" type="checkbox" onchange="this.form.submit()" {% if product.available %}checked{% endif %}>
+                                                                <label class="form-check-label">
+                                                                    {% if product.available %}
+                                                                        <span class="available-color">Available</span>
+                                                                    {% else %}
+                                                                        <span class="text-muted">Unavailable</span>
+                                                                    {% endif %}
+                                                                </label>
+                                                            </div>
+                                                        </form>
+                                                    </td>
+
+
+                                                    <td class="align-middle" style="background-color: #f0f0f0ff;"><small>{{ product.created_at|date:"m/d/y • h:i A" }}</small></td>
+                                                    <td class="align-middle" style="background-color: #f0f0f0ff;"><small>{{ product.last_updated|date:"m/d/y • h:i A" }}</small></td>
+                                                    <td class="align-middle" style="background-color: #f0f0f0de;">
+                                                        <div class="btn-group btn-group-sm" role="group">
+                                                            <a onclick="openEditModal(
+                                                                    '{{ product.id }}',
+                                                                    '{{ product.price }}',
+                                                                    '{{ product.variation_name }}',
+                                                                    '{{ product.name|escapejs }}',
+                                                                    'product',
+                                                                    '{{ product.stocks }}',
+                                                                    '{{ product.track_stocks }}',
+                                                                    `{{ product.description|default_if_none:''|escapejs }}`
+                                                                )" 
+                                                               class="btn btn-outline-primary btn-sm">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <a href="#"
+                                                               class="btn btn-outline-danger btn-sm"
+                                                               data-bs-toggle="modal"
+                                                               data-bs-target="#deleteModal"
+                                                               data-url="{% url 'delete_product' product.id %}"
+                                                               data-name="{{ product.name }}">
+                                                                <i class="fas fa-trash"></i>
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <!-- SINGLE PRODUCT (Default only) -->
+                                            {% with product=items.0 %}
+                                                <tr class="product-row" data-category="{{ items.0.category.id }}" data-group="single-{{ product.id }}">
+                                                    <td class="align-middle text-center">
+                                                        <div style="width: 60px; height: 60px; border-radius: 8px; border: 1px solid #ccc; 
+                                                                    background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; margin: auto; overflow: hidden;">
+                                                            {% if product.image %}
+                                                                <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                                                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                                                            {% else %}
+                                                                <div style="
+                                                                    display: flex;
+                                                                    align-items: center;
+                                                                    justify-content: center;
+                                                                    width: 100%;
+                                                                    height: 100%;
+                                                                    border-radius: 8px;
+                                                                    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+                                                                ">
+                                                                    <span style="font-size: 1.5rem; font-weight: 700; color: #fff;">
+                                                                        {{ product.name|first|upper }}
+                                                                    </span>
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </td>
+                                                    <td class="align-middle">{{ product.name|title }}</td>
+                                                    <td class="align-middle">{{ items.0.category.name }}</td>
+                                                    <td class="align-middle"><span>None</span></td>
+                                                    <td class="align-middle">₱{{ product.price|floatformat:2 }}</td>
+                                                    <td class="align-middle">
+                                                        {% if product.track_stocks %}
+                                                            {{ product.stocks }}
+                                                        {% else %}
+                                                            <span>Not tracked</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="align-middle text-center">
+                                                        <form method="post" action="{% url 'toggle_availability' product.id %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <div class="form-check form-switch d-flex justify-content-center">
+                                                                <input class="form-check-input" type="checkbox" onchange="this.form.submit()" {% if product.available %}checked{% endif %}>
+                                                                <label class="form-check-label">
+                                                                    {% if product.available %}
+                                                                        <span class="available-color">Available</span>
+                                                                    {% else %}
+                                                                        <span class="text-muted">Unavailable</span>
+                                                                    {% endif %}
+                                                                </label>
+                                                            </div>
+                                                        </form>
+                                                    </td>
+
+
+                                                    <td class="align-middle"><small>{{ product.created_at|date:"m/d/y • h:i A" }}</small></td>
+                                                    <td class="align-middle"><small>{{ product.last_updated|date:"m/d/y • h:i A" }}</small></td>
+                                                    <td class="align-middle">
+                                                        <div class="btn-group btn-group-sm" role="group">
+                                                            <a onclick="openEditModal(
+                                                                    '{{ product.id }}',
+                                                                    '{{ product.price }}',
+                                                                    '{{ product.variation_name }}',
+                                                                    '{{ product.name|escapejs }}',
+                                                                    'product',
+                                                                    '{{ product.stocks }}',
+                                                                    '{{ product.track_stocks }}',
+                                                                    `{{ product.description|default_if_none:''|escapejs }}`
+                                                                )" 
+                                                               class="btn btn-outline-primary btn-sm">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <a href="#"
+                                                            class="btn btn-outline-danger btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteModal"
+                                                            data-url="{% url 'delete_product' product.id %}"
+                                                            data-name="{{ product.name }}">
+                                                                <i class="fas fa-trash"></i>
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endwith %}
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Modal Overlay -->
+            <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
+
+            <!-- Add Category Modal -->
+            <div id="addCategoryModal" class="edit-modal">
+                <h3 class="modal-title2 mb-4">
+                    <i class="fas fa-tag me-2 text-primary"></i>Add New Category
+                </h3>
+                <form method="post" action="{% url 'inventory' %}" id="addCategoryForm">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="new_category_name" class="form-label">
+                            <i class="fas fa-layer-group me-2"></i>Category Name
+                        </label>
+                        <input type="text" id="new_category_name" name="new_category" class="form-control" placeholder="Enter new category name" required>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary" onclick="closeCategoryModal()">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </button>
+                        <button type="submit" name="add_category" class="btn btn-success">
+                            <i class="fas fa-save me-2"></i>Save Category
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Edit Product Modal -->
+            <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <form method="post" action="{% url 'edit_product_price' %}">
+                        {% csrf_token %}
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editModalLabel">
+                                    <i class="fas fa-edit me-2"></i> Edit Product
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+            
+                            <div class="modal-body">
+                                <!-- Hidden Inputs -->
+                                <input type="hidden" name="product_id" id="editProductId">
+                                <input type="hidden" name="edit_type" id="editType">
+            
+                                <!-- Product Name -->
+                                <div class="mb-3">
+                                    <label for="editProductName" class="form-label">Product Name</label>
+                                    <input type="text" class="form-control" name="new_name" id="editProductName" required>
+                                </div>
+            
+                                <!-- Variation -->
+                                <div class="mb-3">
+                                    <label for="editVariationName" class="form-label">Variation</label>
+                                    <input type="text" class="form-control" id="editVariationName" disabled>
+                                </div>
+            
+                                <!-- Price -->
+                                <div class="mb-3">
+                                    <label for="editProductPrice" class="form-label">Price (₱)</label>
+                                    <input type="number" class="form-control" name="new_price" id="editProductPrice" required>
+                                </div>
+            
+                                <!-- Stocks -->
+                                <div class="mb-3" id="editProductStocksGroup">
+                                    <label for="editProductStocks" class="form-label">Stocks</label>
+                                    <input type="number" class="form-control" name="new_stocks" id="editProductStocks" min="0" required>
+                                </div>
+            
+                                <!-- ✅ Description -->
+                                <div class="mb-3">
+                                    <label for="editProductDescription" class="form-label">Description</label>
+                                    <textarea class="form-control" name="new_description" id="editProductDescription" rows="3"></textarea>
+                                </div>
+                            </div>
+            
+                            <!-- Modal Footer -->
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteModalLabel">
+          <i class="fas fa-exclamation-triangle me-2"></i> Confirm Delete
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete <strong id="productNameToDelete"></strong>? This action cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Delete</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const productNameInput = document.getElementById('product_name');
+
+        // Block typing '-'
+        productNameInput.addEventListener('keydown', function (e) {
+            if (e.key === '-') e.preventDefault();
+        });
+
+        // Remove any pasted '-'
+        productNameInput.addEventListener('input', function () {
+            this.value = this.value.replace(/-/g, '');
+        });
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteModal = document.getElementById('deleteModal');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const productNameToDelete = document.getElementById('productNameToDelete');
+
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget; // Button that triggered modal
+            const url = button.getAttribute('data-url');
+            const name = button.getAttribute('data-name');
+
+            // Update modal content
+            confirmDeleteBtn.setAttribute('href', url);
+            productNameToDelete.textContent = name;
+        });
+    });
+
+    let currentCategoryId = 'all';  // Default
+
+    function filterProductsByCategory(categoryId, buttonElement) {
+        currentCategoryId = categoryId; // store selected category globally
+
+        // Toggle active class
+        const allTabButtons = document.querySelectorAll('.tab-btn');
+        allTabButtons.forEach(btn => btn.classList.remove('active'));
+        buttonElement.classList.add('active');
+
+        // Re-run search so category + search are applied together
+        searchProducts();
+    }
+
+    function searchProducts() {
+        const searchInput = document.getElementById('searchInput');
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('.product-row');
+        const groups = {};
+
+        rows.forEach(row => {
+            const groupId = row.getAttribute('data-group');
+            if (!groups[groupId]) {
+                groups[groupId] = [];
+            }
+            groups[groupId].push(row);
+        });
+
+        let visibleGroups = 0;
+        Object.keys(groups).forEach(groupId => {
+            const groupRows = groups[groupId];
+            // Get product name from the second cell of the first row in the group
+            let productName = "";
+            const cells = groupRows[0].querySelectorAll('td');
+            if (cells.length >= 2) {
+                productName = cells[1].textContent.toLowerCase();
+            }
+            const matchesSearch = searchTerm === "" || productName.includes(searchTerm);
+
+            // Still checking category filter if needed
+            const groupCategory = groupRows[0].getAttribute('data-category');
+            const belongsToCategory = currentCategoryId === 'all' || groupCategory === currentCategoryId;
+
+            if (belongsToCategory && matchesSearch) {
+                groupRows.forEach(row => row.style.display = '');
+                visibleGroups++;
+            } else {
+                groupRows.forEach(row => row.style.display = 'none');
+            }
+        });
+
+        if (visibleGroups === 0) {
+            showNoResultsMessage();
+        } else {
+            hideNoResultsMessage();
+        }
+    }
+
+
+    
+    // Helper function to show no results message
+    function showNoResultsMessage() {
+        let noResultsDiv = document.getElementById('no-results-message');
+        if (!noResultsDiv) {
+            noResultsDiv = document.createElement('div');
+            noResultsDiv.id = 'no-results-message';
+            noResultsDiv.className = 'empty-state text-center';
+            // Place the message below the table container
+            const productContainer = document.getElementById('product_container');
+            productContainer.parentNode.insertBefore(noResultsDiv, productContainer.nextSibling);
+        }
+        
+        const searchInput = document.getElementById('searchInput');
+        const searchTerm = searchInput ? searchInput.value.trim() : '';
+        const activeTab = document.querySelector('.tab-btn.active');
+        const categoryName = activeTab ? activeTab.textContent.trim().replace(/\s+/g, ' ') : 'ALL';
+        
+        if (searchTerm) {
+            noResultsDiv.className = 'empty-state text-center';
+            noResultsDiv.innerHTML = `
+                <i class="fas fa-search fa-3x text-muted"></i>
+                <h4>No Products Found</h4>
+                <p class="text-muted">No products named "${searchTerm}" found in ${categoryName} category.</p>
+            `;
+        } else {
+            noResultsDiv.className = 'empty-state text-center';
+            noResultsDiv.innerHTML = `
+                <i class="fas fa-box-open fa-3x"></i>
+                <h4>No Products in Category</h4>
+                <p class="text-muted">No products found in ${categoryName} category.</p>
+            `;
+        }
+        noResultsDiv.style.display = 'block';
+    }
+    
+    // Helper function to hide no results message
+    function hideNoResultsMessage() {
+        const noResultsDiv = document.getElementById('no-results-message');
+        if (noResultsDiv) {
+            noResultsDiv.style.display = 'none';
+        }
+    }
+    // Enhanced search with Enter key support
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        
+        if (searchInput) {
+            // Add Enter key support
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchProducts();
+                }
+            });
+            
+            // Add clear search functionality with Escape key
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    searchProducts();
+                    searchInput.blur();
+                }
+            });
+            
+            // Real-time search as user types (debounced)
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(searchProducts, 300); // 300ms delay
+            });
+        }
+        
+        // Initialize - show all products in the default active category
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (activeTab) {
+            searchProducts();
+        }
+    });
+
+
+
+    // Add Product Variation Function
+    function addVariation() {
+        const variationSection = document.getElementById("variations_section");
+
+        const variationDiv = document.createElement("div");
+        variationDiv.classList.add("row", "g-3", "mb-2");
+
+        variationDiv.innerHTML = `
+            <div class=" col-md-12 col-lg-12 col-xl-3">
+                <label class="form-label">Variation Name</label>
+                <input type="text" name="variation_name[]" class="form-control" placeholder="e.g. Small, Large" required>
+            </div>
+            <div class=" col-md-12 col-lg-12 col-xl-3">
+                <label class="form-label">Stocks</label>
+                <input type="number" name="variation_stocks[]" class="form-control" min="0" placeholder="Enter stocks" value="" required>
+            </div>
+            <div class=" col-md-12 col-lg-12 col-xl-3">
+                <label class="form-label">Variation Price (₱)</label>
+                <input type="number" name="variation_price[]" class="form-control" step="0.01" min="0" placeholder="0.00" required>
+            </div>
+            <div class="col-md-12 col-lg-12 col-xl-3 d-flex align-items-end">
+                <button type="button" onclick="removeVariation(this)" class="btn btn-danger w-100">
+                    <i class="fas fa-trash me-2"></i>Remove
+                </button>
+            </div>
+        `;
+
+        variationSection.appendChild(variationDiv);
+
+        variationSection.style.display = "block";
+        document.getElementById("clearVariationsBtn").style.display = "inline-block";
+
+        // Disable and hide default price/stocks when variations are added
+        const defaultPriceInput = document.getElementById("default_price");
+        const defaultStocksInput = document.getElementById("product_stocks");
+        const defaultPriceSection = document.getElementById("default_price_section");
+        const defaultStocksSection = document.getElementById("default_stocks_section");
+
+        if (defaultPriceInput && defaultPriceSection) {
+            defaultPriceInput.disabled = true;
+            defaultPriceSection.style.display = "none";
+        }
+
+        if (defaultStocksInput && defaultStocksSection) {
+            defaultStocksInput.disabled = true;
+            defaultStocksSection.style.display = "none";
+        }
+
+        // ✅ Re-run the toggle check
+        toggleStocksInputs();
+    }
+
+    // Remove Variation Function
+    function removeVariation(button) {
+        const variationDiv = button.closest(".row");
+        variationDiv.remove();
+
+        // If no variations are left, hide the variations section and clear button
+        const variations = document.querySelectorAll("#variations_section .row");
+        if (variations.length === 0) {
+            document.getElementById("variations_section").style.display = "none";
+            document.getElementById("clearVariationsBtn").style.display = "none";
+
+            // Enable and show the default price and stocks sections
+            const defaultPriceInput = document.getElementById("default_price");
+            const defaultStocksInput = document.getElementById("product_stocks");
+            const defaultPriceSection = document.getElementById("default_price_section");
+            const defaultStocksSection = document.getElementById("default_stocks_section");
+
+            if (defaultPriceInput && defaultPriceSection) {
+                defaultPriceInput.disabled = false;
+                defaultPriceSection.style.display = "block";
+            }
+
+            if (defaultStocksInput && defaultStocksSection) {
+                defaultStocksInput.disabled = false;
+                defaultStocksSection.style.display = "block";
+            }
+        }
+    }
+
+    // Clear All Variations
+    function clearVariations() {
+        const variationSection = document.getElementById("variations_section");
+        variationSection.innerHTML = ''; // Clear all variation fields
+
+        document.getElementById("variations_section").style.display = "none";
+        document.getElementById("clearVariationsBtn").style.display = "none";
+
+        // Enable and show the default price and stocks sections
+        const defaultPriceInput = document.getElementById("default_price");
+        const defaultStocksInput = document.getElementById("product_stocks");
+        const defaultPriceSection = document.getElementById("default_price_section");
+        const defaultStocksSection = document.getElementById("default_stocks_section");
+
+        if (defaultPriceInput && defaultPriceSection) {
+            defaultPriceInput.disabled = false;
+            defaultPriceSection.style.display = "block";
+        }
+
+        if (defaultStocksInput && defaultStocksSection) {
+            defaultStocksInput.disabled = false;
+            defaultStocksSection.style.display = "block";
+        }
+    }
+
+    function dataURLtoFile(dataurl, filename) {
+        let arr = dataurl.split(',');
+        let mime = arr[0].match(/:(.*?);/)[1];
+        let bstr = atob(arr[1]);
+        let n = bstr.length;
+        let u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, { type: mime });
+    }
+
+    function compressImage(file, maxSizeBytes, callback) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            const img = new Image();
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                let quality = 0.9;
+                let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                while (dataURLtoFile(compressedDataUrl, file.name).size > maxSizeBytes && quality > 0.1) {
+                    quality -= 0.1;
+                    compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                }
+                console.log("Final quality:", quality);
+                console.log("Final file size:", dataURLtoFile(compressedDataUrl, file.name).size);
+                callback(dataURLtoFile(compressedDataUrl, file.name));
+            };
+            img.onerror = function (err) {
+                console.error("Image load error:", err);
+            };
+            img.src = event.target.result;
+        };
+        reader.onerror = function (err) {
+            console.error("FileReader error:", err);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function processPreview(file) {
+        const canvas = document.getElementById('image_canvas');
+        if (!canvas) {
+            console.error("Canvas element with id 'image_canvas' not found");
+            return;
+        }
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.onload = function () {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const side = Math.min(img.width, img.height);
+            const sx = (img.width - side) / 2;
+            const sy = (img.height - side) / 2;
+            ctx.drawImage(img, sx, sy, side, side, 0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'block';
+            const placeholder = document.getElementById('uploadPlaceholder');
+            if (placeholder) {
+                placeholder.style.display = 'none';
+            }
+        };
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function previewImage(event) {
+        const fileInput = event.target;
+        const file = fileInput.files[0];
+        if (!file) return;
+        // Set maximum file size to 500KB
+        const maxFileSize = 500 * 1024; // 500 KB in bytes
+        if (file.size > maxFileSize) {
+            console.log("File size exceeds 500KB, compressing...");
+            compressImage(file, maxFileSize, function(compressedFile) {
+                console.log("Using compressed file for preview and saving.");
+                processPreview(compressedFile);
+                // Update file input's FileList with the compressed file
+                const dt = new DataTransfer();
+                dt.items.add(compressedFile);
+                fileInput.files = dt.files;
+            });
+        } else {
+            processPreview(file);
+        }
+    }
+
+    // Toggle Image Upload
+    function toggleImageUpload() {
+        const imageInput = document.getElementById('product_image');
+        const imageBox = document.querySelector('.image-upload-box');
+        const isDisabled = document.getElementById('disable_image').checked;
+
+        imageInput.disabled = isDisabled;
+        imageBox.classList.toggle('disabled', isDisabled);
+
+        if (isDisabled) {
+            imageInput.value = ''; // Reset the image input
+            // Reset canvas to placeholder
+            window.dispatchEvent(new Event('load'));
+        }
+    }
+
+    // Category Modal Functions
+    function checkAddNewCategory() {
+        const categorySelect = document.getElementById('product_category');
+        if (categorySelect.value === 'add_new') {
+            document.getElementById('addCategoryModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+
+            // Reset select to empty
+            categorySelect.value = '';
+        }
+    }
+
+    function closeCategoryModal() {
+        document.getElementById('addCategoryModal').style.display = 'none';
+        document.getElementById('modalOverlay').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    function closeAllModals() {
+        closeCategoryModal();
+        closeEditModal();
+    }
+
+    // Open Product Edit Modal
+    function openEditModal(productId, price, variation, name, type, stocks, trackStocks, description) {
+        document.getElementById("editProductId").value = productId;
+        document.getElementById("editType").value = type;
+        document.getElementById("editProductName").value = name;
+        document.getElementById("editVariationName").value = variation;
+        document.getElementById("editProductPrice").value = price;
+        document.getElementById("editProductStocks").value = stocks;
+    
+        // ✅ Populate description field
+        document.getElementById("editProductDescription").value = description || "";
+    
+        const stockGroup = document.getElementById("editProductStocksGroup");
+        const stockInput = document.getElementById("editProductStocks");
+    
+        let ts = String(trackStocks).trim().toLowerCase();
+        const isTrackingEnabled = (ts === "true" || ts === "1" || ts === "yes" || ts === "on" || ts === "checked");
+    
+        if (!isTrackingEnabled) {
+            stockGroup.style.display = "none";
+            stockInput.required = false;
+        } else {
+            stockGroup.style.display = "block";
+            stockInput.required = true;
+        }
+    
+        const modal = new bootstrap.Modal(document.getElementById("editModal"));
+        modal.show();
+    }
+    
+    // Close Edit Modal
+    function closeEditModal() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById("editModal"));
+        if (modal) {
+            modal.hide();
+        }
+    }
+    
+    // Form validation
+    document.addEventListener('DOMContentLoaded', function () {
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function (e) {
+                const requiredFields = form.querySelectorAll('[required]');
+                let isValid = true;
+    
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        field.classList.remove('is-invalid');
+                    }
+                });
+    
+                if (!isValid) {
+                    e.preventDefault();
+                    alert('Please fill in all required fields.');
+                }
+            });
+        });
+    });
+
+    function toggleStocksInputs() {
+        const isTrackingEnabled = document.getElementById('toggleStocks').checked;
+        document.getElementById('enable_stocks_hidden').value = isTrackingEnabled ? 'on' : 'off';
+    
+        const hasVariations = document.querySelectorAll("#variations_section .row").length > 0;
+        const defaultStocksDiv = document.getElementById('default_stocks_section');
+        const defaultStocksInput = document.getElementById('product_stocks');
+    
+        if (defaultStocksDiv && defaultStocksInput) {
+            if (isTrackingEnabled && !hasVariations) {
+                defaultStocksDiv.style.display = 'block';
+                defaultStocksInput.disabled = false;
+                defaultStocksInput.required = true;
+            } else {
+                defaultStocksDiv.style.display = 'none';
+                defaultStocksInput.disabled = true;
+                defaultStocksInput.required = false;
+                defaultStocksInput.value = "";
+            }
+        }
+    
+        // Variation Stock Fields
+        const variationStockInputs = document.querySelectorAll('input[name="variation_stocks[]"]');
+        variationStockInputs.forEach(input => {
+            // Use the immediate parent container (the column div) instead of closest('.col-md-3')
+            input.parentElement.style.display = isTrackingEnabled ? 'block' : 'none';
+            input.disabled = !isTrackingEnabled;
+            input.required = isTrackingEnabled;
+            if (!isTrackingEnabled) {
+                input.value = "";
+            }
+        });
+    }
+
+    {% if messages %}
+    document.addEventListener("DOMContentLoaded", function() {
+        {% for message in messages %}
+            toastr["{{ message.tags }}"]("{{ message|escapejs }}");
+        {% endfor %}
+    });
+    {% endif %}
+    
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+
+<script>
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "timeOut": "4000"
+    }
+</script>
+
+{% endblock %}

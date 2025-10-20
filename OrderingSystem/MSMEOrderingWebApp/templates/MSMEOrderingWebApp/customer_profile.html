@@ -1,0 +1,1191 @@
+{% extends 'MSMEOrderingWebApp/customer_base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caudex:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Clash+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Aleo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Arapey:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Brawler:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+
+<style>
+    :root {
+        --primary-color: {{ customization.primary_color|default:'#3b82f6' }};
+        --secondary-color: {{ customization.secondary_color|default:'#1d4ed8' }};
+        --accent-color: {{ customization.accent_color|default:'#059669' }};
+        --success-color: #089442;
+        --bg-light: #f8f9fa;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    body {
+        min-height: 100vh;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    {% if customization.general_background_type == 'solid' %}
+    body {
+        background-color: {{ customization.general_solid_color|default:"#ffffff" }};
+    }
+    {% elif customization.general_background_type == 'gradient' %}
+    body {
+        background: linear-gradient(
+            {{ customization.general_gradient_direction|default:"to right" }},
+            {{ customization.general_gradient_color_1|default:"#ffffff" }},
+            {{ customization.general_gradient_color_2|default:"#000000" }}
+            {% if customization.general_gradient_color_3 %}
+                , {{ customization.general_gradient_color_3 }}
+            {% endif %}
+        );
+    }
+    {% elif customization.general_background_type == 'image' %}
+    body {
+        background-image: url("{{ customization.general_background_image.url }}");
+    }
+    {% endif %}
+
+
+    .container {
+        padding: 3px;
+    }
+    .profile-container {
+        background: transparent;
+        padding: 2px;
+    }
+
+    .profile-card {
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        overflow: hidden;
+        animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .profile-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    .profile-title {
+        margin-bottom: 2px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        position: relative;
+        z-index: 1;
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 50 %}{{ customization.header_font_size|default:30 }}{% else %}50{% endif %}px;
+        font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+    }
+
+    .profile-subtitle {
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+    }
+
+    .image-upload-container {
+        position: relative;
+        margin: 2rem auto;
+        width: 200px;
+        height: 200px;
+    }
+
+    .profile-image-wrapper {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 4px solid white;
+        overflow: hidden;
+        position: relative;
+        background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+        transition: all 0.3s ease;
+    }
+
+    .profile-image-wrapper:hover {
+        transform: scale(1.05);
+    }
+
+    .profile-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all 0.3s ease;
+    }
+
+    .image-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        font-size: 4rem;
+        color: #ccc;
+        background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    }
+
+    .upload-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        cursor: pointer;
+        border-radius: 50%;
+    }
+
+    .upload-overlay:hover {
+        opacity: 1;
+    }
+
+    .upload-overlay i {
+        color: white;
+        font-size: 2rem;
+    }
+
+    .info-section {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-card {
+        backdrop-filter: blur(5px);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: none;
+        box-shadow: var(--shadow);
+        transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .section-title {
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        text-align: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 30 %}{{ customization.header_font_size|default:20 }}{% else %}30{% endif %}px;
+        font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+        font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        font-weight: 600;
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        color: {{ customization.body_font_color|default:"#000000" }};
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-control {
+        padding: 0.75rem 1rem;        
+        transition: all 0.3s ease;
+        background: white;
+        font-weight: 600;
+        border-color: var(--primary-color);
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        border-width: {{ customization.input_border_width|default:1 }}px; 
+        border-style: {{ customization.input_border_style|default:'solid' }};
+        border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+    }
+
+    .form-control:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
+        transform: translateY(-1px);
+    }
+
+    .form-control:disabled {
+        background-color: #f8f9fa;
+        border-color: gray;
+        color: #525252;
+    }
+
+    .btn-save {
+        padding: 10px 15px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        border: none;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+    }
+
+    .btn-custom {
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+    }
+
+    .btn-primary-custom {
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+    }
+
+    .btn-primary-custom:hover {
+        background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        transform: translateY(-2px);
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-success-custom {
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+    }
+
+    .btn-success-custom:hover {
+        background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        transform: translateY(-2px);
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-accent-custom {
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+    }
+
+    .btn-accent-custom:hover {
+        background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        transform: translateY(-2px);
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+       
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    
+
+    .purchase-history {
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: blur(20px);
+        border-radius: 15px;
+        padding: 2rem;
+        border-top: 4px solid var(--primary-color);
+        border-bottom: 4px solid var(--primary-color);
+        margin-top: 2rem;
+        box-shadow: var(--shadow);
+    }
+
+    .edit-mode .form-control:not(:disabled) {
+        border-color: var(--success-color);
+        background-color: #f8fff8;
+    }
+
+
+    /* Base modal style */
+    .modal-content {
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Modal header */
+    .modal-header {
+        border-bottom: 1px solid #dee2e6;
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+    }
+
+    /* Modal title */
+    .modal-title {
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        font-weight: 800;
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+
+    }
+
+    .modal-footer {
+        border-top: 1px solid #dee2e6;
+        padding: 10px 15px;
+        background-color: #f8f9fa;
+    }
+
+    .modal-body {
+        padding: 15px 20px;
+    }
+    
+    .form-text {
+        display: block;
+        margin-top: 10px;
+        letter-spacing: 0.3px;
+        transition: color 0.3s ease;
+        font-weight: 600;
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 11 %}{{ customization.body_font_size|default:10 }}{% else %}12{% endif %}px;
+        background-color: #91919148;
+        border-radius: 5px;
+        border-left: 4px solid var(--primary-color);
+        padding: 5px 10px;
+    }
+
+
+    .pass-form-label {
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        font-weight: 600;
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        color: {{ customization.body_font_color|default:"#000000" }};
+        margin-bottom: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Input group spacing */
+    .input-group {
+        padding: 5px 0;
+        position: relative;
+    }
+
+    .input-group .form-control {
+        padding-right: 45px; /* space for eye icon */
+        border-radius: 10px 0 0 10px;
+    }
+
+    .input-group-text {
+        border-radius: 0 10px 10px 0;
+        background-color: #ffffff;
+        border-left: none;
+        transition: background-color 0.2s;
+        border-color: var(--primary-color);
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        border-width: {{ customization.input_border_width|default:1 }}px; 
+        border-style: {{ customization.input_border_style|default:'solid' }};
+        border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+    }
+
+    /* Eye icon styling */
+    .toggle-password {
+        color: var(--primary-color);
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+    }
+
+    .toggle-password:hover {
+        color: var(--secondary-color);
+    }
+
+    /* Form labels */
+    .form-label {
+        font-weight: 600;
+    }
+
+    /* Alert messages */
+    .alert {
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+
+
+    .table-responsive {
+        border-radius: 10px;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        margin-top: 15px;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+        backdrop-filter: blur(20px);
+    }
+
+    .table th,
+    .table td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+
+
+    .table th {
+        text-align: center;
+        border-right: 1px solid var(--accent-color);
+        border-top: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 1rem 0.75rem;
+        white-space: nowrap;
+        background-color: var(--accent-color);
+        color: {{ customization.button_text_color|default:"#ffffff" }} !important;
+        font-family: '{{ customization.header_font_family|default:"Arial" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:10 }}{% else %}13{% endif %}px;
+    }
+
+    .table td {
+        text-align: center;
+        padding: 0.65rem;
+        vertical-align: middle;
+        font-weight: 700;
+        border-right: 0.5px solid var(--accent-color);
+        border-bottom: 0.5px solid var(--accent-color);
+        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:10 }}{% else %}13{% endif %}px;
+        color: {{ customization.body_font_color|default:"#000000" }};
+    }    
+
+    table th:last-child,
+    table td:last-child {
+        border-right: none;
+    }   
+
+    table td:last-child {
+        font-weight: 800;
+        color: var(--primary-color);
+        text-transform: uppercase;
+    }
+
+    .table-hover tbody tr:hover {
+        transition: background-color 0.2s ease;
+    }
+    
+
+
+    @media (max-width: 768px) {
+        body {
+            padding: 0;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .purchase-history {
+            padding: 15px;
+        }
+        
+        .info-section {
+            padding: 15px;
+        }
+        .info-card {
+            padding: 20px;
+        }
+        
+        .profile-title {
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 25 %}{{ customization.header_font_size|default:20 }}{% else %}25{% endif %}px;
+        }
+        
+        .image-upload-container {
+            width: 150px;
+            height: 150px;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn-custom {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .section-title {
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 20 %}{{ customization.header_font_size|default:15 }}{% else %}20{% endif %}px;
+            margin-top: 10px;
+            text-align: center;
+            align-self: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .table-responsive {
+            margin-top: 0;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+
+        .table {
+            min-width: 700px;
+        }
+
+        .table th,
+        .table td {
+            padding: 10px;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 10 %}{{ customization.body_font_size|default:9 }}{% else %}10{% endif %}px;
+        }
+
+        table td:first-child {
+            width: 120px;
+        }
+    }
+
+
+</style>
+
+
+<div class="profile-container">
+    <div class="container">
+        <div class="profile-card">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <h1 class="profile-title">
+                    <i class="fas fa-user-circle"></i>
+                    My Profile
+                </h1>
+                <p class="profile-subtitle">Manage your personal information</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" id="profileForm">
+                {% csrf_token %}
+                
+                <!-- Main Content Layout -->
+                <div class="info-section">
+                    <div class="row">
+                        <!-- Image Upload Section - Left Side -->
+                        <div class="col-lg-4 col-md-12">
+                            <div class="info-card text-center">
+                                <h3 class="section-title justify-content-center">
+                                    <i class="fas fa-camera"></i>
+                                    Profile Picture
+                                </h3>
+                                
+                                <div class="image-upload-container">
+                                    <div class="profile-image-wrapper">
+                                        {% if user_data.image %}
+                                            <img id="profilePreview" src="{{ user_data.image.url }}" alt="Profile Image" class="profile-image">
+                                        {% else %}
+                                            <div class="image-placeholder">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="upload-overlay" onclick="document.getElementById('profile_image').click()">
+                                            <i class="fas fa-camera"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="file" id="profile_image" name="profile_image" accept="image/*" class="d-none" onchange="previewProfileImage(event)" disabled>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i>
+                                    Click on the image to upload a new profile picture
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Personal Information Section - Right Side -->
+                        <div class="col-lg-8 col-md-12">
+                            <div class="info-card">
+                                <h3 class="section-title">
+                                    <i class="fas fa-user-edit"></i>
+                                    Personal Information
+                                    <span id="editStatus" class="status-badge" style="display: none;">Edit Mode</span>
+                                </h3>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="fas fa-user"></i>
+                                                First Name
+                                            </label>
+                                            <input type="text" name="first_name" id="first_name" class="form-control" value="{{ user_data.first_name }}" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="fas fa-user"></i>
+                                                Last Name
+                                            </label>
+                                            <input type="text" name="last_name" id="last_name" class="form-control" value="{{ user_data.last_name }}" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Email Address & Contact Number -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="fas fa-envelope"></i>
+                                                Email Address
+                                            </label>
+                                            <input type="email" class="form-control" value="{{ user_data.email }}" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="fas fa-phone"></i>
+                                                Contact Number
+                                            </label>
+                                            <input type="text" name="contact_number" id="contact_number" class="form-control" value="{{ user_data.contact_number }}" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Address & City -->
+                                <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-map-marker-alt"></i>Address</label>
+                                    <input type="text" name="address" id="address" class="form-control" value="{{ user_data.address }}" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-city"></i>City/Municipality</label>
+                                    <input type="text" name="city" id="city" class="form-control" value="{{ user_data.city }}" disabled>
+                                    </div>
+                                </div>
+                                </div>
+
+                                <!-- Municipality & Zip Code -->
+                                <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-building"></i>Province</label>
+                                    <input type="text" name="province" id="province" class="form-control" value="{{ user_data.province }}" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-map-pin"></i>Zip Code</label>
+                                    <input type="text" name="zipcode" id="zipcode" class="form-control" value="{{ user_data.zipcode }}" disabled>
+                                    </div>
+                                </div>
+                                </div>
+
+                                <!-- Display full address as literal text (non-editable) -->
+                                <div class="form-group">
+                                    <label class="form-label"> <i class="fas fa-map-marker-alt"></i>
+                                        Full Address: {{ user_data.address }}, {{ user_data.city }}, {{ user_data.province }}, {{ user_data.zipcode }}
+                                    </label>
+                                </div>
+
+
+                                <!-- Action Buttons -->
+                                <div class="action-buttons">
+                                    <button type="button" class="btn btn-custom btn-primary-custom" onclick="enableEdit()" id="editBtn">
+                                        <i class="fas fa-edit"></i>
+                                        Edit Details
+                                    </button>
+                                    <button type="submit" class="btn btn-custom btn-success-custom" id="saveBtn" style="display: none;">
+                                        <i class="fas fa-save"></i>
+                                        Save Changes
+                                    </button>
+                                    <button type="button" class="btn btn-custom btn-secondary" onclick="cancelEdit()" id="cancelBtn" style="display: none;">
+                                        <i class="fas fa-times"></i>
+                                        Cancel
+                                    </button>
+                                    <button type="button" class="btn btn-custom btn-accent-custom" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                        <i class="fas fa-key"></i> Change Password
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Purchase History Section -->
+        <div class="purchase-history">
+            <h3 class="section-title">
+                <i class="fas fa-shopping-bag"></i>
+                Purchase History
+            </h3>
+
+            {% if grouped_orders %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th class="date-ordered">Date Ordered</th>
+                            <th class="order-id">Order ID</th>
+                            <th>Ordered Items</th>
+                            <th class="total">Total (₱)</th>
+                            <th class="payment-method">Mode of<br>Payment</th>
+                            <th class="status">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order_code, items in grouped_orders %}
+                        {% with first_item=items.0 %}
+                        <tr>
+                            <td class="date-ordered">{{ first_item.created_at|date:"F d, Y - h:i A" }}</td>
+                            <td class="order-id">{{ order_code|default:"N/A" }}</td>
+                            <td>
+                                <ul class="mb-0 ps-3">
+                                    {% for item in items %}
+                                    {{ item.product_name }} (x{{ item.quantity }})<br>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td class="total">₱{{ first_item.sub_total|floatformat:2 }}</td>
+                            <td class="payment-method">{{ first_item.payment_method|capfirst }}</td>
+                            <td class="status-order">{{ first_item.status|capfirst }}</td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-clock" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <p class="text-muted">Your purchase history will appear here once you start making orders.</p>
+                <a href="{% url 'customer_home' %}" class="btn btn-custom btn-primary-custom">
+                    <i class="fas fa-shopping-cart"></i>
+                    Start Shopping
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <form method="post" action="{% url 'customer_changepassword' %}">
+        {% csrf_token %}
+
+        <div class="modal-header text-white">
+          <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+            <!-- Current Password -->
+            <div>
+            <label for="current_password" class="pass-form-label">Current Password</label>
+            <div class="input-group">
+                <input type="password" id="current_password" name="current_password" class="form-control" required>
+                <span class="input-group-text bg-white" style="cursor: pointer;">
+                <i class="fas fa-eye toggle-password" data-target="current_password"></i>
+                </span>
+            </div>
+            </div>
+
+            <!-- New Password -->
+            <div class="mb-2">
+            <label for="new_password" class="pass-form-label">New Password</label>
+            <div class="input-group">
+                <input type="password" id="new_password" name="new_password" class="form-control" required>
+                <span class="input-group-text bg-white" style="cursor: pointer;">
+                <i class="fas fa-eye toggle-password" data-target="new_password"></i>
+                </span>
+            </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="mb-2">
+            <label for="confirm_password" class="pass-form-label">Confirm New Password</label>
+            <div class="input-group">
+                <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+                <span class="input-group-text bg-white" style="cursor: pointer;">
+                <i class="fas fa-eye toggle-password" data-target="confirm_password"></i>
+                </span>
+            </div>
+            <small class="form-text">
+                Password must be at least 8 characters long, and include letters, numbers, and special character.
+            </small>
+            </div>
+        </div>
+
+    
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-save btn-success-custom">Update Password</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector("#changePasswordModal form");
+
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: "POST",
+                body: formData,
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showToast(data.message, data.status === "success" ? "success" : "danger");
+
+                if (data.status === "success") {
+                    // Close modal after success
+                    const modal = bootstrap.Modal.getInstance(document.getElementById("changePasswordModal"));
+                    modal.hide();
+                    form.reset();
+                }
+            })
+            .catch(() => {
+                showToast("Something went wrong. Please try again.", "danger");
+            });
+        });
+
+        // Toast function
+        function showToast(message, type = 'info') {
+            let toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} alert-dismissible fade show`;
+            toast.style.cssText = `margin-bottom: 10px; min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);`;
+            toast.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+            }, 5000);
+        }
+    });
+
+    // Toggle password visibility
+    document.querySelectorAll('.toggle-password').forEach(function (icon) {
+        icon.addEventListener('click', function () {
+            const targetId = this.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    });
+
+    /*
+    function previewProfileImage(event) {
+        const input = event.target;
+        const preview = document.getElementById('profilePreview');
+        const placeholder = document.querySelector('.image-placeholder');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (preview) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                } else {
+                    // Create image element if it doesn't exist
+                    const img = document.createElement('img');
+                    img.id = 'profilePreview';
+                    img.src = e.target.result;
+                    img.className = 'profile-image';
+                    img.alt = 'Profile Image';
+
+                    // Replace placeholder with image
+                    const wrapper = document.querySelector('.profile-image-wrapper');
+                    if (placeholder) {
+                        wrapper.removeChild(placeholder);
+                    }
+                    wrapper.appendChild(img);
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    */
+    
+    function previewProfileImage(event) {
+        const input = event.target;
+        const preview = document.getElementById('profilePreview');
+        const placeholder = document.querySelector('.image-placeholder');
+
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+
+            const img = new Image();
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                img.src = e.target.result;
+
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxWidth = img.width;
+                    const maxHeight = img.height;
+                    canvas.width = maxWidth;
+                    canvas.height = maxHeight;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
+
+                    // Compress image to 500kb
+                    let quality = 0.9; // start high
+                    let compressedDataUrl;
+
+                    do {
+                        compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                        quality -= 0.05;
+                    } while (compressedDataUrl.length / 1024 > 500 && quality > 0);
+
+                    // Show preview
+                    if (preview) {
+                        preview.src = compressedDataUrl;
+                        preview.style.display = 'block';
+                    } else {
+                        const imgElement = document.createElement('img');
+                        imgElement.id = 'profilePreview';
+                        imgElement.src = compressedDataUrl;
+                        imgElement.className = 'profile-image';
+                        imgElement.alt = 'Profile Image';
+
+                        const wrapper = document.querySelector('.profile-image-wrapper');
+                        if (placeholder) {
+                            wrapper.removeChild(placeholder);
+                        }
+                        wrapper.appendChild(imgElement);
+                    }
+
+                    // Replace the original file with compressed version for upload
+                    fetch(compressedDataUrl)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            const fileInput = document.getElementById('profile_image');
+                            const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(compressedFile);
+                            fileInput.files = dataTransfer.files;
+                        });
+                }
+            };
+
+            reader.readAsDataURL(file);
+        }
+    }
+
+
+    let originalValues = {};
+    let isEditMode = false;
+    let isSubmitting = false;  // NEW FLAG
+
+    // Store original values when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        storeOriginalValues();
+    });
+
+    function storeOriginalValues() {
+        originalValues = {
+            first_name: document.getElementById('first_name').value,
+            last_name: document.getElementById('last_name').value,
+            contact_number: document.getElementById('contact_number').value,
+            address: document.getElementById('address').value
+        };
+    }
+
+    function enableEdit() {
+        isEditMode = true;
+
+        // Enable form fields
+        document.getElementById('first_name').disabled = false;
+        document.getElementById('last_name').disabled = false;
+        document.getElementById('contact_number').disabled = false;
+        document.getElementById('address').disabled = false;
+        document.getElementById('city').disabled = false;         // Enable City field
+        document.getElementById('province').disabled = false;     // Enable Municipality field
+        document.getElementById('zipcode').disabled = false;      // Enable Zip Code field
+        document.getElementById('profile_image').disabled = false;
+
+        // Toggle buttons
+        document.getElementById('editBtn').style.display = 'none';
+        document.getElementById('saveBtn').style.display = 'inline-block';
+        document.getElementById('cancelBtn').style.display = 'inline-block';
+
+        // Show edit status
+        document.getElementById('editStatus').style.display = 'inline-block';
+
+        // Add edit mode class to form
+        document.getElementById('profileForm').classList.add('edit-mode');
+
+        // Focus on first name field
+        document.getElementById('first_name').focus();
+
+        // Add visual feedback
+        showNotification('Edit mode enabled. Make your changes and click Save.', 'info');
+    }
+
+    function cancelEdit() {
+        isEditMode = false;
+
+        // Restore original values
+        document.getElementById('first_name').disabled = false;
+        document.getElementById('last_name').disabled = false;
+        document.getElementById('contact_number').disabled = false;
+        document.getElementById('address').disabled = false;
+        document.getElementById('city').disabled = false;         // Enable City field
+        document.getElementById('province').disabled = false;     // Enable Municipality field
+        document.getElementById('zipcode').disabled = false;      // Enable Zip Code field
+        document.getElementById('profile_image').disabled = false;
+
+        // Disable form fields
+        document.getElementById('first_name').disabled = true;
+        document.getElementById('last_name').disabled = true;
+        document.getElementById('contact_number').disabled = true;
+        document.getElementById('address').disabled = true;
+        document.getElementById('profile_image').disabled = true;
+
+        // Toggle buttons
+        document.getElementById('editBtn').style.display = 'inline-block';
+        document.getElementById('saveBtn').style.display = 'none';
+        document.getElementById('cancelBtn').style.display = 'none';
+
+        // Hide edit status
+        document.getElementById('editStatus').style.display = 'none';
+
+        // Remove edit mode class
+        document.getElementById('profileForm').classList.remove('edit-mode');
+
+        showNotification('Changes cancelled.', 'warning');
+    }
+
+    function showNotification(message, type = 'success') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
+    }
+
+    // Form submission handler
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        if (isEditMode) {
+            isSubmitting = true; // <-- SET SUBMITTING FLAG
+            showNotification('Saving changes...', 'info');
+            // Let the form submit normally (no e.preventDefault)
+            // The page will reload after successful POST, so no need to reset UI here
+        }
+    });
+
+    // Prevent accidental page leave during edit unless submitting
+    window.addEventListener('beforeunload', function(e) {
+        if (isEditMode && !isSubmitting) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+</script>
+
+{% endblock %}

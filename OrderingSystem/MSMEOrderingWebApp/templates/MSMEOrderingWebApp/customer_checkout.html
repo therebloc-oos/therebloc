@@ -1,0 +1,1417 @@
+{% extends 'MSMEOrderingWebApp/customer_base.html' %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caudex:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Arapey:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Brawler:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+    /* Base Styles */
+        :root {
+            --primary-color: {{ customization.primary_color|default:'#3b82f6' }};
+            --secondary-color: {{ customization.secondary_color|default:'#1d4ed8' }};
+            --accent-color: {{ customization.accent_color|default:'#059669' }};
+        }
+    
+        * {
+            box-sizing: border-box;
+        }
+
+        {% if customization.general_background_type == 'solid' %}
+        body {
+            background-color: {{ customization.general_solid_color|default:"#ffffff" }};
+        }
+        {% elif customization.general_background_type == 'gradient' %}
+        body {
+            background: linear-gradient(
+                {{ customization.general_gradient_direction|default:"to right" }},
+                {{ customization.general_gradient_color_1|default:"#ffffff" }},
+                {{ customization.general_gradient_color_2|default:"#000000" }}
+                {% if customization.general_gradient_color_3 %}
+                    , {{ customization.general_gradient_color_3 }}
+                {% endif %}
+            );
+        }
+        {% elif customization.general_background_type == 'image' %}
+        body {
+            background-image: url("{{ customization.general_background_image.url }}");
+        }
+        {% endif %}
+
+    
+        .checkout-container {
+            margin: 0 auto;
+            padding: 0;
+            min-height: 100vh;
+        }
+    
+        .checkout-header {
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            border: 3px solid var(--primary-color);
+        }
+    
+        .checkout-title {
+            display: flex;
+            align-items: left;
+            justify-content: left;
+            gap: 1rem;
+            margin: 0;
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 35 %}{{ customization.header_font_size|default:20 }}{% else %}35{% endif %}px;
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+        }
+    
+        .checkout-subtitle {
+            display: flex;
+            align-items: left;
+            justify-content: left;
+            gap: 1rem;
+            font-weight: 600;
+            font-family: {{ customization.body_font_family|default:"Montserrat" }};
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        }
+    
+    
+        .checkout-icon {
+            font-size: 1.8rem;
+            color: {{ customization.header_font_color|default:"#000000" }};
+        }
+    
+        /* Grid Layout */
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            align-items: start;
+        }
+    
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            order: -1;
+        }
+    
+        .right-column {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+    
+        .sticky-section {
+            position: sticky;
+            top: 2rem;
+        }
+    
+        /* Form Sections */
+        .form-section {
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border-top: 3px solid var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.233);
+            backdrop-filter: blur(10px);
+        }
+    
+        .section-header {
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            color: {{ customization.header_font_color|default:"#000000" }};
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+    
+        .section-header h3 {
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            color: {{ customization.header_font_color|default:"#000000" }};
+            margin: 0;
+            font-weight: 700;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 18 %}{{ customization.body_font_size|default:12 }}{% else %}18{% endif %}px;
+    
+    
+        }
+    
+        .section-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: {{ customization.header_font_color|default:"#000000" }};
+        }
+    
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+    
+        .info-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-family: {{ customization.body_font_family|default:"Arial" }};
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 14 %}{{ customization.body_font_size|default:12 }}{% else %}14{% endif %}px;
+    
+        }
+    
+        /* Container for recipient/contact/address */
+        .info-grid .row {
+            margin-bottom: 1rem;
+        }
+    
+        .info-grid span.fw-bold {
+            color: #333;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+    
+        .info-grid span[id^="recipient"],
+        .info-grid span[id^="contact"],
+        .info-grid span[id^="address"] {
+            font-family: {{ customization.body_font_family|default:"Montserrat" }};
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-weight: 700;
+            word-break: break-word;
+            max-width: calc(100% - 100px);
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+    
+        }
+    
+        .address-container {
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            word-break: normal;
+        }
+    
+    
+    
+        /* Responsive handling */
+        @media (max-width: 576px) {
+            .info-grid span[id^="recipient"],
+            .info-grid span[id^="contact"],
+            .info-grid span[id^="address"] {
+                display: block;
+                max-width: 100%;
+            }
+    
+            .info-grid .btn {
+                margin-top: 2px;
+            }
+    
+            .address-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    
+        /* Option Grid */
+        .option-grid {
+            display: flex;
+            gap: 12px;  /* Ensure there’s space between buttons */
+            flex-wrap: wrap;  /* Allow the buttons to wrap */ 
+        }
+    
+        .option-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+    
+        .radio-option {
+            flex-grow: 1; /* By default, options will not grow */
+            cursor: pointer;
+        }
+    
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+    
+        .radio-card {
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            color: {{ customization.header_font_color|default:"#000000" }};
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.25rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+            position: relative;
+            text-align: center;
+            height: 100%;
+        }
+    
+        .radio-card:hover {
+            border-color:var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.527);
+        }
+    
+        .radio-option input[type="radio"]:checked + .radio-card {
+            border: 2px solid;
+            border-color:var(--secondary-color);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+    
+        .radio-option input[type="radio"]:checked + .radio-card::after {
+            content: '✓';
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+    
+        /* Disabled radio buttons */
+        .radio-option input[type="radio"]:disabled + .radio-card {
+            background-color: #f0f0f0; /* Lighter background */
+            border-color: #d1d1d1; /* Lighter border */
+            opacity: 0.5; /* Reduce opacity to give a disabled effect */
+            cursor: not-allowed; /* Change the cursor to show it's not clickable */
+        }
+    
+        .radio-option input[type="radio"]:disabled + .radio-card .option-title,
+        .radio-option input[type="radio"]:disabled + .radio-card .option-desc {
+            color: #b0b0b0; /* Change the text color to gray */
+        }
+    
+        .radio-option input[type="radio"]:disabled + .radio-card:hover {
+            box-shadow: none; /* Remove hover effect when disabled */
+            transform: none; /* Disable transform effect on hover */
+        }
+    
+        .option-title {
+            display: block;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-weight: 700;
+            margin-bottom: 2px;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        }
+    
+        .option-desc {
+            display: block;
+            font-size: 0.875rem;
+            color: #666666;
+        }
+    
+        /* Payment Actions */
+        .payment-actions {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+    
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: #fcfcfc;
+            text-decoration: none;
+            font-weight: 700;
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            border-width: {{ customization.input_border_width|default:1 }}px; 
+            border-style: solid;
+            border-color: var(--primary-color);
+            transition: all 0.3s ease;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        }
+    
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    
+        .btn-secondary svg {
+            width: 1rem;
+            height: 1rem;
+        }
+    
+        /* Proof Section */
+        .proof-section {
+            margin-top: 1rem;
+            display: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+    
+        .proof-section.show {
+            display: block;
+            animation: fadeInUp 0.3s ease forwards;
+        }
+    
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    
+        .upload-area {
+            border: 2px dashed var(--primary-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+    
+        .upload-area:hover {
+            border-color:var(--secondary-color);
+            background: #edf2f7;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.527);
+        }
+    
+        .upload-icon {
+            width: 3rem;
+            height: 3rem;
+            color: #a0aec0;
+            margin-bottom: 1rem;
+        }
+    
+        .upload-label {
+            cursor: pointer;
+            display: block;
+        }
+    
+        .upload-title {
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            display: block;
+            font-weight: 600;
+            color: #383838;
+            margin-bottom: 2px;
+        }
+    
+        .upload-desc {
+            display: block;
+            font-size: 0.875rem;
+            color: #718096;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+    
+        }
+    
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+    
+        /* Notes */
+        .notes-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: #ffffff;
+            border-color: var(--primary-color);
+            border-width: {{ customization.input_border_width|default:1 }}px; 
+            border-style: {{ customization.input_border_style|default:'solid' }};
+            border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+            font-family: {{ customization.body_font_family|default:"Montserrat" }};
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+    
+        }
+    
+        .notes-textarea:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+    
+        /* Order Items */
+        .order-items {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+    
+        .order-items::-webkit-scrollbar {
+            width: 4px;
+        }
+    
+        .order-items::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 2px;
+        }
+    
+        .order-items::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 2px;
+        }
+    
+        .order-items::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+    
+        .order-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            margin-top: 2px;
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 1px solid var(--primary-color);
+        }
+    
+        .order-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.527);
+            transform: translateY(-2px);
+        }
+    
+        .item-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    
+        .no-image {
+            color: #a0aec0;
+        }
+    
+        .no-image svg {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+    
+        .item-details {
+            flex: 1;
+            min-width: 0;
+        }
+    
+        .item-name {
+            font-family: {{ customization.body_font_family|default:"Montserrat" }};
+            color: {{ customization.body_font_color|default:"#000000" }};
+            margin: 0 0 2px 0;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 14 %}{{ customization.body_font_size|default:12 }}{% else %}14{% endif %}px;
+    
+        }
+    
+        .item-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    
+        .item-quantity {
+            color: #979797;
+            font-weight: 500;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:10 }}{% else %}13{% endif %}px;
+            font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        }
+    
+        .item-price {
+            font-weight: 700;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 15 %}{{ customization.body_font_size|default:12 }}{% else %}15{% endif %}px;
+            font-family: {{ customization.body_font_family|default:"Montserrat" }};
+            color: {{ customization.body_font_color|default:"#000000" }};
+    
+    
+        }
+    
+        /* Order Total */
+        .order-total {
+            border-top: 1px solid var(--primary-color);
+            padding-top: 1rem;
+            margin-bottom: 0;
+        }
+    
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+    
+        .total-row:last-child {
+            margin-bottom: 0;
+        }
+    
+        .total-row.final-total {
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--primary-color);
+            margin-top: 0.75rem;
+        }
+    
+        .total-label {
+            font-weight: 600;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 15 %}{{ customization.body_font_size|default:12 }}{% else %}15{% endif %}px;
+            font-family: {{ customization.body_font_family|default:"Montserrat" }};
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+    
+        .total-amount {
+           font-weight: 700;
+           font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 15 %}{{ customization.body_font_size|default:12 }}{% else %}15{% endif %}px;
+           font-family: {{ customization.body_font_family|default:"Montserrat" }};
+           color: {{ customization.body_font_color|default:"#000000" }};
+        }
+    
+        .final-total .total-label,
+        .final-total .total-amount {
+            font-weight: 800;
+            color: var(--primary-color);
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 25 %}{{ customization.header_font_size|default:20 }}{% else %}25{% endif %}px;
+        }
+    
+        /* Action Buttons */
+        .form-actions {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+    
+        .btn-back, .btn-submit {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+    
+        }
+    
+        .btn-back {
+            color: var(--primary-color);
+            background: white;
+            border: 2px solid var(--primary-color);
+        }
+    
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+    
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: 2px solid linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            color: {{ customization.button_text_color|default:'#ffffff' }}
+    
+        }
+    
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+    
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .sticky-section {
+                position: static;
+            }
+            
+            .right-column {
+                order: -1;
+            }
+        }
+    
+        @media (max-width: 768px) {
+            .checkout-container {
+                padding: 1rem;
+            }
+            
+            .checkout-title {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .checkout-icon {
+                width: 2rem;
+                height: 2rem;
+            }
+            
+            .form-section {
+                padding: 1rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .option-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    
+        @media (max-width: 480px) {
+            .checkout-container {
+                padding: 0.5rem;
+            }
+            
+            .checkout-title {
+                font-size: 1.75rem;
+            }
+            
+            .order-items {
+                max-height: 300px;
+            }
+            
+            .order-item {
+                padding: 0.75rem;
+            }
+            
+            .item-image {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    
+        .disabled-btn {
+            background-color: #ffffff; /* Light background */
+            color: #e6e6e6; /* Grey text */
+            border: 2px solid #d1d1d1; /* Lighter border */
+            cursor: not-allowed; /* Make it clear it's not clickable */
+            opacity: 0.6; /* Reduce opacity to give a disabled effect */
+        }
+    
+        .disabled-btn:hover {
+            transform: none; /* Remove hover effect */
+            box-shadow: none; /* No shadow on hover */
+        }
+    
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 300px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+    
+        .toast.show {
+            opacity: 1;
+        }
+    
+        /* Toast Header Style */
+        .toast-header {
+            background-color: #f44336;
+            color: white;
+            border-radius: 4px 4px 0 0;
+            padding: 10px;
+        }
+    
+        /* Toast Body Style */
+        .toast-body {
+            background-color: #ffcccc;
+            padding: 10px;
+            color: #333;
+            font-size: 1rem;
+        }
+    
+        /* Close button style */
+        .toast .btn-close {
+            background-color: transparent;
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            opacity: 1;
+        }
+    
+
+    .disabled-option {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .disabled-option .radio-card {
+        pointer-events: none; /* Prevent clicking on the card */
+    }
+
+</style>
+
+
+<div class="checkout-container">
+    <div class="checkout-header">
+        <h1 class="checkout-title">
+            <i class="fa-solid fa-link"></i>
+            Checkout
+        </h1>
+        <p class="checkout-subtitle">Review your order and complete your purchase</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="checkout-form" onsubmit="return validateForm()">
+        {% csrf_token %}
+        <input type="hidden" name="order_type" id="order_type_input" value="">
+        <input type="hidden" name="delivery_fee" id="delivery_fee_input" value="{{ delivery_fee|default:'0' }}">
+        <input type="hidden" name="scheduled_date" value="{{ scheduled_date_str|default:'' }}">
+
+        <div class="checkout-grid">
+            <!-- Left Column -->
+            <div class="left-column">
+                <!-- Shipping Information -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-user"></i>
+                        <h3>Shipping Information</h3>
+                    </div>
+                    <div class="info-grid">
+                        <!-- Recipient -->
+                        <div class="row mb-3">
+                            <div class="col-12 d-flex align-items-center">
+                                <span class="me-2 fw-bold">Recipient:</span>
+                                <span id="recipient" class="me-2">{{ user.first_name }} {{ user.last_name }}</span>
+                            </div>
+                        </div>
+                        <!-- Contact Number -->
+                        <div class="row mb-3">
+                            <div class="col-12 d-flex align-items-center">
+                                <span class="me-2 fw-bold">Contact Number:</span>
+                                <span id="contact" class="me-2">{{ user.contact_number }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div> 
+                        <!-- Address -->
+                        <div class="mb-3">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div>
+                                        <span class="fw-bold me-2">Address:</span>
+                                        <span id="address" class="me-2">{{ user.address }}, {{ user.city }}, {{ user.province }}, {{ user.zipcode }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="form-section sticky-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <h3>Order Summary</h3>
+                    </div>
+
+                    <div class="order-items">
+                        {% for item in cart_items %}
+                        <div class="order-item">
+                            <div class="item-image">
+                                {% if item.image %}
+                                    <img src="{{ item.image.url }}" alt="{{ item.product_name }}">
+                                {% else %}
+                                    <div style="
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        width: 100%;
+                                        height: 100%;
+                                        border-radius: 8px;
+                                        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+                                        color: #fff;
+                                        font-weight: 700;
+                                        font-size: 1.5rem;
+                                        text-transform: uppercase;
+                                    ">
+                                        {{ item.product_name|first }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="item-details">
+                                <h4 class="item-name">{{ item.product_name }}</h4>
+                                <div class="item-meta">
+                                    <span class="item-quantity">×{{ item.quantity }}</span>
+                                    <span class="item-price">₱{{ item.price }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="order-total">
+                        <div class="total-row">
+                            <span class="total-label">Subtotal</span>
+                            <span class="total-amount">₱{{ subtotal }}</span>
+                        </div>
+                        <div class="total-row">
+                            <span class="total-label">Additional Fee</span>
+                            <span class="total-amount">₱{{ delivery_fee }}</span>
+                        </div>
+                        <div class="total-row final-total">
+                            <span class="total-label">Total</span>
+                            <span class="total-amount">₱{{ total_with_fee }}</span>
+                        </div>
+                    </div>                    
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="right-column">
+                <!-- Additional Notes -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-note-sticky"></i>
+                        <h3>Additional Notes</h3>
+                    </div>
+                    <textarea name="notes" placeholder="Any special instructions or requests..." class="notes-textarea"></textarea>
+                </div>
+
+                <!-- Payment Method -->
+                <!-- Payment Method -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-credit-card"></i>
+                        <h3>Payment Method</h3>
+                    </div>
+                    <div class="option-grid">
+                        <label class="radio-option {% if 'Cash' not in business.payment_methods %}disabled-option{% endif %}">
+                            <input type="radio" name="payment_method" value="cash" id="cash"
+                                {% if 'Cash' not in business.payment_methods %}disabled{% endif %} required>
+                            <div class="radio-card">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                                <div class="option-content">
+                                    <span class="option-title">Cash Payment</span>
+                                    <span class="option-desc">Pay upon receive</span>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="radio-option {% if 'Online Payment' not in business.payment_methods %}disabled-option{% endif %}">
+                            <input type="radio" name="payment_method" value="online" id="online"
+                                {% if 'Online Payment' not in business.payment_methods %}disabled{% endif %}>
+                            <div class="radio-card">
+                                <i class="fa-regular fa-clock"></i>
+                                <div class="option-content">
+                                    <span class="option-title">Online Payment</span>
+                                    <span class="option-desc">Pay securely online</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <span id="payment_method_error" class="text-danger" style="display:none;">This field is required.</span>
+
+                    <!-- View Online Payment Details and Proof Upload inside the Payment Method Section -->
+                    <div id="proofSection" class="proof-section">
+                        <div class="payment-actions">
+                            {% if 'Online Payment' in business.payment_methods %}
+                                <a href="{% url 'customer_viewonlinepayment' %}" class="btn-secondary">
+                                    <i class="fa-regular fa-clock"></i>
+                                    View Online Payment Details
+                                </a>
+                            {% else %}
+                                <button class="btn-secondary disabled-btn" disabled>
+                                    <i class="fa-regular fa-clock"></i>
+                                    View Online Payment Details
+                                </button>
+                            {% endif %}
+                        </div>
+
+                        <!-- Add space between the two sections -->
+                        <div class="upload-area" style="margin-top: 1rem;">
+                            <i class="fa-solid fa-upload"></i>
+                            <label for="proof" class="upload-label">
+                                <span class="upload-title">Upload Payment Proof</span>
+                                <span class="upload-desc">Choose image file (JPG, PNG)</span>
+                            </label>
+                            <input type="file" name="proof" id="proof" accept="image/*" class="file-input">
+                            
+                            <!-- Image Preview Inside the Upload Section -->
+                            <div id="imagePreview" style="margin-top: 1rem; display:none;">
+                                <img id="previewImage" src="" alt="Payment Proof Preview" style="max-width: 100%; height: auto; border-radius: 8px;">
+                            </div>
+                        </div>
+
+                        <!-- Notice / Error -->
+                        <div id="proofNotice" class="mt-2">
+                            <span class="d-flex align-items-center text-danger fw-bold">
+                                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                                Payment proof is required when selecting Online Payment method.
+                            </span>
+                        </div>
+
+                        <span id="proof_error" class="text-danger fw-semibold" style="display:none;">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                            Payment proof is required for online payment.
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="form-actions">
+                    <button type="button" onclick="history.back()" class="btn-back">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        Back
+                    </button>
+                    <button type="submit" class="btn-submit disabled-btn" id="checkoutBtn" disabled>
+                        <i class="fa-solid fa-check"></i>
+                        Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+
+<!-- Toast Container (Top Right) -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
+  <div id="toastContainer"></div>
+</div>
+
+<script>
+    {% if messages %}
+        {% for message in messages %}
+            showToast("{{ message|escapejs }}", "{% if 'success' in message.tags %}success{% elif 'error' in message.tags %}error{% else %}info{% endif %}");
+        {% endfor %}
+    {% endif %}
+
+    function validateForm() {
+        let isValid = true;
+
+        const orderTypeValue = document.getElementById('order_type_input')?.value || '';
+        const orderTypeError = document.getElementById('order_type_error');
+
+        if (!orderTypeValue) {
+            orderTypeError.style.display = 'block';
+            isValid = false;
+        } else {
+            orderTypeError.style.display = 'none';
+        }
+
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
+        const paymentMethodError = document.getElementById('payment_method_error');
+        if (!paymentMethod) {
+            paymentMethodError.style.display = 'block';
+            isValid = false;
+        } else {
+            paymentMethodError.style.display = 'none';
+        }
+
+        const onlinePaymentSelected = document.querySelector('input[name="payment_method"][value="online"]:checked');
+        const paymentProof = document.getElementById('proof');
+        const proofError = document.getElementById('proof_error');
+        if (onlinePaymentSelected && !paymentProof.files.length) {
+            proofError.style.display = 'block';
+            showToast("Uploading payment proof is required for online payment", "error");
+            isValid = false;
+        } else {
+            proofError.style.display = 'none';
+        }
+
+        if (!isValid) {
+            showToast("Fill in all required details");
+        }
+
+        return isValid;
+    }
+
+    function showToast(message, type = "info") {
+        const toastId = "toast-" + Date.now();
+        const headerClasses = {
+            success: "bg-success text-white",
+            error: "bg-danger text-white",
+            info: "bg-primary text-white"
+        }[type] || "bg-secondary text-white";
+
+        const icon = {
+            success: '<i class="fas fa-check-circle me-2"></i>',
+            error: '<i class="fas fa-exclamation-circle me-2"></i>',
+            info: '<i class="fas fa-info-circle me-2"></i>'
+        }[type] || "";
+
+        const toastHtml = `
+        <div id="${toastId}" class="toast show shadow rounded-3 mb-3" role="alert" aria-live="assertive" aria-atomic="true" style="min-width: 300px;">
+            <div class="toast-header ${headerClasses}">
+            ${icon}
+            <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+            <button type="button" class="btn-close btn-close-white ms-2 mb-1" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body text-start">
+            ${message}
+            </div>
+        </div>
+        `;
+
+        const container = document.getElementById("toastContainer");
+        container.insertAdjacentHTML("beforeend", toastHtml);
+
+        const toastEl = document.getElementById(toastId);
+        const bsToast = new bootstrap.Toast(toastEl, { delay: 4000 });
+        bsToast.show();
+
+        toastEl.addEventListener("hidden.bs.toast", () => toastEl.remove());
+    }
+
+    document.getElementById("proof").addEventListener("change", async function (event) {
+        const file = event.target.files[0];
+        const previewSection = document.getElementById("imagePreview");
+        const previewImage = document.getElementById("previewImage");
+
+        if (!file) return;
+
+        // === AUTO COMPRESS IMAGE TO MAX 500 KB ===
+        if (file.size > 500 * 1024) {
+            const compressedFile = await compressImage(file, 0.8);
+            if (compressedFile.size > 500 * 1024) {
+                const furtherCompressed = await compressImage(file, 0.6);
+                event.target.files = createFileList(furtherCompressed);
+            } else {
+                event.target.files = createFileList(compressedFile);
+            }
+        }
+
+        // === PREVIEW IMAGE ===
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            previewImage.src = e.target.result;
+            previewSection.style.display = "block";
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    });
+
+    // Helper: compress image using canvas
+    function compressImage(file, quality = 0.8) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+                    const maxWidth = 1024;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = Math.min(img.width, maxWidth);
+                    canvas.height = img.height * scaleSize;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(
+                        (blob) => {
+                            resolve(new File([blob], file.name, { type: "image/jpeg" }));
+                        },
+                        "image/jpeg",
+                        quality
+                    );
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Helper: create a new FileList to assign to input
+    function createFileList(file) {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        return dataTransfer.files;
+    }
+    
+    function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId).textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Copied: " + text);
+        }).catch(err => {
+            alert("Failed to copy");
+            console.error(err);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const savedOrderType = localStorage.getItem('order_type');
+        if (savedOrderType) {
+            const orderTypeInput = document.getElementById('order_type_input');
+            if (orderTypeInput) {
+                orderTypeInput.value = savedOrderType;
+            }
+        }
+
+        const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
+        const proofSection = document.getElementById('proofSection');
+        const fileInput = document.getElementById('proof');
+        const uploadLabel = document.querySelector('.upload-label');
+
+        paymentMethods.forEach(method => {
+            method.addEventListener('change', function () {
+                if (this.value === 'online') {
+                    proofSection.classList.add('show');
+                } else {
+                    proofSection.classList.remove('show');
+                    fileInput.value = '';
+                }
+            });
+        });
+
+        fileInput.addEventListener('change', function () {
+            const fileName = this.files.length ? this.files[0].name : 'Choose image file (JPG, PNG)';
+            uploadLabel.querySelector('.upload-desc').textContent = fileName;
+        });
+
+        const form = document.querySelector('.checkout-form');
+        if (form && form.querySelector('.errorlist')) {
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Disable unavailable services and payments
+        const paymentButtons = document.querySelectorAll('input[name="payment_method"]');
+        paymentButtons.forEach(button => {
+            const paymentType = button.value;
+            if (!enabledPaymentMethods.includes(paymentType)) {
+                button.disabled = true;
+            }
+        });
+
+        // === SHOW/HIDE STORE ADDRESS WHEN PICKUP IS SELECTED ===
+        const pickupRadio = document.getElementById('pickup');
+        const deliveryRadio = document.getElementById('delivery');
+        const storeAddress = document.getElementById('store-address');
+
+        function toggleStoreAddress() {
+            if (pickupRadio && deliveryRadio && storeAddress) {
+                if (pickupRadio.checked) {
+                    storeAddress.style.display = 'block';
+                } else {
+                    storeAddress.style.display = 'none';
+                }
+            }
+        }
+
+        if (pickupRadio && deliveryRadio) {
+            pickupRadio.addEventListener('change', toggleStoreAddress);
+            deliveryRadio.addEventListener('change', toggleStoreAddress);
+            toggleStoreAddress();
+        }
+    });
+</script>
+
+{% if business %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const openingTime = "{{ business.opening_time|time:'H:i:s' }}";
+    const closingTime = "{{ business.closing_time|time:'H:i:s' }}";
+    const startDay = "{{ business.start_day }}";
+    const endDay = "{{ business.end_day }}";
+    let forceClosed = {{ business.force_closed|yesno:"true,false" }};
+
+    const weekdays = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+    function parseTimeToToday(t) {
+        const [h, m, s] = t.split(":").map(Number);
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, s, 0);
+    }
+
+    function isWithinOperatingDays() {
+        const now = new Date();
+        const todayIndex = now.getDay(); 
+        const startIndex = weekdays.indexOf(startDay);
+        const endIndex = weekdays.indexOf(endDay);
+
+        if (startIndex <= endIndex) {
+            return todayIndex >= startIndex && todayIndex <= endIndex;
+        } else {
+            return todayIndex >= startIndex || todayIndex <= endIndex;
+        }
+    }
+
+    function isWithinOperatingHours() {
+        const now = new Date();
+        let open = parseTimeToToday(openingTime);
+        let close = parseTimeToToday(closingTime);
+    
+        // Handle special case: closing exactly at midnight (00:00:00)
+        if (closingTime === "00:00:00") {
+            close = new Date(open);
+            close.setHours(23, 59, 59, 999);
+            const closeWithBuffer = new Date(close.getTime() - (5 * 60 * 1000));
+            return now >= open && now <= closeWithBuffer;
+        }
+        
+        // Check if this is an overnight operation (closing time is "earlier" than opening)
+        const isOvernight = close <= open;
+        
+        // Subtract 5 minutes from closing time for checkout cutoff
+        const closeWithBuffer = new Date(close.getTime() - (5 * 60 * 1000));
+        
+        if (isOvernight) {
+            return now >= open || now <= closeWithBuffer;
+        } else {
+            return now >= open && now <= closeWithBuffer;
+        }
+    }
+
+    function isShopClosed() {
+        if (forceClosed === true) return true;
+        return !(isWithinOperatingDays() && isWithinOperatingHours());
+    }
+
+    // UNIFIED CHECKOUT BUTTON VALIDATION
+    function validateCheckoutButton() {
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        if (!checkoutBtn) return;
+
+        // PRIORITY 1: Shop must be open
+        if (isShopClosed()) {
+            checkoutBtn.disabled = true;
+            checkoutBtn.classList.add('disabled-btn');
+            checkoutBtn.title = "Shop is currently closed";
+            return;
+        }
+
+        // PRIORITY 2: Payment method must be selected
+        const paymentSelected = document.querySelector('input[name="payment_method"]:checked');
+        if (!paymentSelected) {
+            checkoutBtn.disabled = true;
+            checkoutBtn.classList.add('disabled-btn');
+            checkoutBtn.title = "Please select a payment method";
+            return;
+        }
+
+        // PRIORITY 3: If online payment, proof must be uploaded
+        if (paymentSelected.value === 'online') {
+            const proofInput = document.getElementById('proof');
+            if (!proofInput || proofInput.files.length === 0) {
+                checkoutBtn.disabled = true;
+                checkoutBtn.classList.add('disabled-btn');
+                checkoutBtn.title = "Please upload payment proof";
+                return;
+            }
+        }
+
+        // All validations passed
+        checkoutBtn.disabled = false;
+        checkoutBtn.classList.remove('disabled-btn');
+        checkoutBtn.title = "";
+    }
+
+    // Clear localStorage when checkout is clicked
+    function clearCheckoutData() {
+        localStorage.removeItem("order_type");
+        localStorage.removeItem("delivery_fee");
+        localStorage.removeItem("delivery_fee_received");
+        localStorage.removeItem("delivery_fee_timer_expiry");
+        console.log("[Checkout] Cleared localStorage for order data");
+    }
+
+    // Initial validation
+    setTimeout(validateCheckoutButton, 200);
+
+    // Listen for payment method changes
+    const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
+    paymentMethods.forEach(method => {
+        method.addEventListener('change', validateCheckoutButton);
+    });
+
+    // Listen for proof upload
+    const proofInput = document.getElementById('proof');
+    if (proofInput) {
+        proofInput.addEventListener('change', validateCheckoutButton);
+    }
+
+    // Clear localStorage on checkout
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', clearCheckoutData);
+    }
+
+    // Recheck every second for time-based changes
+    setInterval(validateCheckoutButton, 1000);
+
+    // Poll backend every 3s to refresh forceClosed flag
+    setInterval(() => {
+        fetch("{% url 'toggle_shop_status' %}", { method: "GET" })
+        .then(res => res.json())
+        .then(data => {
+            const newForceClosed = data.force_closed;
+            if (forceClosed !== newForceClosed) {
+                forceClosed = newForceClosed;
+                validateCheckoutButton();
+            }
+        })
+        .catch(() => {});
+    }, 3000);
+});
+</script>
+{% endif %}
+
+{% endblock %}

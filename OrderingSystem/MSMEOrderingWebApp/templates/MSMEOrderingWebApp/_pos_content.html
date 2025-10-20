@@ -1,0 +1,1234 @@
+{% block title %}{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caudex:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Clash+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Aleo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Arapey:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Brawler:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+
+
+<style>
+    :root {
+        --primary-color: {{ customization.primary_color|default:'#FF5733' }};
+        --secondary-color: {{ customization.secondary_color|default:'#FF5733' }};
+        --accent-color: {{ customization.accent_color|default:'#FF5733' }};
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --light-bg: #f8f9fa;
+        --dark-bg: #34495e;
+        --card-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        --hover-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+     body {
+        min-height: 100vh;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    {% if customization.general_background_type == 'solid' %}
+    body {
+        background-color: {{ customization.general_solid_color|default:"#ffffff" }};
+    }
+    {% elif customization.general_background_type == 'gradient' %}
+    body {
+        background: linear-gradient(
+            {{ customization.general_gradient_direction|default:"to right" }},
+            {{ customization.general_gradient_color_1|default:"#ffffff" }},
+            {{ customization.general_gradient_color_2|default:"#000000" }}
+            {% if customization.general_gradient_color_3 %}
+                , {{ customization.general_gradient_color_3 }}
+            {% endif %}
+        );
+    }
+    {% elif customization.general_background_type == 'image' %}
+    body {
+        background-image: url("{{ customization.general_background_image.url }}");
+    }
+    {% endif %}
+
+
+    .container-fluid {
+        padding: 0;
+    }
+
+    .pos-toolbar-container {
+        position: sticky;
+        top: 72px;
+        z-index: 1000;
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 25px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        padding: 25px;
+        border-bottom: 3px solid var(--primary-color);
+        border-top: 3px solid var(--primary-color);
+        margin-bottom: 2rem;
+    }
+
+
+    /* View Cart Button */
+    .cart-button {
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        padding: 10px 16px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: var(--card-shadow, 0 4px 10px rgba(0, 0, 0, 0.1));
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+    }
+
+    .cart-button:hover {
+        transform: translateY(-2px);
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        box-shadow: var(--hover-shadow, 0 6px 14px rgba(0, 0, 0, 0.15));
+    }
+
+    .search-input-group {
+        position: relative;
+        margin-bottom: 2px;
+    }
+
+    .search-input {
+        padding: 0.75rem 1rem 0.75rem 3rem;
+        transition: all 0.3s ease;
+        border-color: var(--primary-color);
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        border-width: {{ customization.input_border_width|default:1 }}px; 
+        border-style: {{ customization.input_border_style|default:'solid' }};
+        border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+    }
+
+    .search-input:focus {
+        border-width: +2px;
+        border-color: var(--secondary-color);
+        box-shadow: none;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--primary-color);
+        z-index: 5;
+    }
+
+    #categoryButtons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 5px;
+    }
+
+    #categoryButtons .btn {
+        background: transparent;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+        font-family: {{ customization.body_font_family|default:"Arial" }};
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 14 %}{{ customization.body_font_size|default:10 }}{% else %}14{% endif %}px;
+    }
+
+    #categoryButtons .btn:hover {
+        border: 2px solid var(--secondary-color);
+        color: var(--secondary-color);
+        transform: translateY(-1px);
+    }
+
+    #categoryButtons .btn.active {
+        border-color: none; 
+        background:  linear-gradient(90deg, var(--primary-color), var(--secondary-color)); 
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Apply text shadow */
+        box-shadow: var(--shadow-md);
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+    }
+
+    .product-stocks {
+        font-weight: 700;
+        color: var(--accent-color);
+        display: block;
+        font-family: {{ customization.body_font_family|default:"Arial" }};
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 14 %}{{ customization.body_font_size|default:12 }}{% else %}14{% endif %}px;
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 20px;
+        box-shadow: var(--hover-shadow);
+    }
+
+    .modal-header {
+        border-radius: 20px 20px 0 0;
+        padding: 1.5rem;
+        text-transform: uppercase;
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        font-family: {{ customization.header_font_family|default:"Arial" }};
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+    }
+
+    .modal-title {
+        font-weight: 700;
+        font-family: {{ customization.header_font_family|default:"Arial" }};
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 20 %}{{ customization.body_font_size|default:15 }}{% else %}20{% endif %}px;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+        font-weight: 600;
+        max-height: 70vh;
+        overflow-y: auto;
+        font-family: {{ customization.body_font_family|default:"Arial" }};
+        color: {{ customization.body_font_color|default:"#1f2937" }};
+    }
+
+    .modal-footer {
+        padding: 10px;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+        border-radius: 0 0 20px 20px;
+    }
+
+    /* Enhanced Variation Selection */
+    .variation-item {
+        background: white;
+        border: 2px solid var(--primary-color);
+        border-radius: 15px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .variation-item:hover {
+        border-color: var(--secondary-color);
+        box-shadow: none;
+    }
+
+    .variation-item.selected {
+        border-color: var(--secondary-color);
+        background: rgba(52, 152, 219, 0.05);
+    }
+
+    .variation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .variation-name {
+        font-weight: 700;
+        text-transform: capitalize;
+        color: var(--primary-color);
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 18 %}{{ customization.body_font_size|default:12 }}{% else %}18{% endif %}px;
+
+    }
+
+    .variation-price {
+        font-weight: 700;
+        color: var(--primary-color);
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 18 %}{{ customization.body_font_size|default:12 }}{% else %}18{% endif %}px;
+    }
+
+    .quantity-selector {
+        display: grid; /* Use grid instead of flex */
+        align-items: center;
+        grid-template-columns: repeat(4, 1fr); /* 3 items per row */
+    }
+
+    @media (max-width: 1199px) { /* Large to medium screens */
+        .quantity-selector {
+            grid-template-columns: repeat(1, 1fr); /* 2 items per row */
+        }
+    }
+
+    @media (max-width: 764px) { /* Large to medium screens */
+        .quantity-selector {
+            grid-template-columns: repeat(4, 1fr); /* 2 items per row */
+        }
+
+        #categoryButtons .btn {
+            padding: 4px 10px;
+            gap: 3px;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 10 %}{{ customization.body_font_size|default:8 }}{% else %}10{% endif %}px;
+        }
+
+        .cart-button {
+            width: auto;
+            padding: 8px 12px;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:8 }}{% else %}13{% endif %}px;
+        }
+
+
+        
+    }
+
+    @media (min-width: 1200px) { /* Extra-large screens */
+        .quantity-selector {
+            grid-template-columns: repeat(4, 1fr); /* 3 items per row */
+        }
+    }
+
+    @media (min-width: 1900px) { /* Ultra-large screens */
+        .quantity-selector {
+            grid-template-columns: repeat(4, 1fr); /* 4 items per row */
+        }
+    }
+
+
+    .quantity-label {
+        color: var(--secondary-color);
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 15 %}{{ customization.body_font_size|default:12 }}{% else %}15{% endif %}px;
+
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+    }
+
+    .quantity-btn {
+        background: var(--secondary-color);
+        border: none;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+    }
+
+    .quantity-btn:hover {
+        background: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+    .quantity-btn:disabled {
+        background: #bdc3c7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .quantity-input {
+        border: 2px solid var(--secondary-color);
+        border-radius: 8px;
+        padding: 0.5rem;
+        width: 60px;
+        text-align: center;
+        font-weight: 600;
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+    }
+
+    .quantity-input:focus {
+        border-color: var(--secondary-color);
+        outline: none;
+    }
+
+    .variation-total {
+        text-align: left;
+        margin-top: 10px;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: var(--primary-color);
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 20 %}{{ customization.header_font_size|default:15 }}{% else %}20{% endif %}px;
+
+    }
+
+    .order-summary {
+        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-top: 1rem;
+        border: 2px solid #dee2e6;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .summary-label {
+        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .summary-value {
+        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        color: '{{ customization.body_font_color|default:"#000000" }}';
+        font-weight: 600;
+    }
+
+    .summary-total {
+        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        margin-top: 1rem;
+        border-top: 2px solid #dee2e6;
+    }
+
+    .total-label {
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        font-weight: 800;
+        color: var(--accent-color);
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 25 %}{{ customization.header_font_size|default:20 }}{% else %}25{% endif %}px;
+    }    
+
+    .total-value {
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        font-weight: 800;
+        color: var(--accent-color);
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 25 %}{{ customization.header_font_size|default:20 }}{% else %}25{% endif %}px;
+    }
+
+    .confirm-btn {
+        border: none;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .confirm-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .confirm-btn:disabled {
+        background: #bdc3c7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .modal-section-title {
+        font-family: '{{ customization.header_font_family|default:"Montserrat" }}';
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: {{ customization.body_font_size|default:12 }}px;
+    }
+
+    .variation-item {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    @media (min-width: 576px) {
+        .add-to-cart-btn {
+            font-size: 0.95rem;
+            padding: 0.55rem 1.2rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+
+        .add-to-cart-btn {
+            font-size: 1rem;
+            padding: 0.6rem 1.4rem;
+            width: auto;
+        }
+        .page-title {
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 32 %}{{ customization.header_font_size|default:20 }}{% else %}32{% endif %}px;
+        }
+        
+        .control-bar {
+            padding: 3px;
+        }
+        
+        .search-filters {
+            padding: 1rem;
+        }
+        
+        .order-type-selector {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .quantity-controls {
+            gap: 0.3rem;
+        }
+        
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        }
+        
+        .quantity-input {
+            width: 50px;
+        }
+        
+        .total-value {
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 25 %}{{ customization.header_font_size|default:20 }}{% else %}25{% endif %}px;
+        }
+        
+        .select-all-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .bulk-quantity-input {
+            width: 100%;
+        }
+    }
+
+    /* Base styles */
+    .product-card .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+
+    .product-card .card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 12px rgba(0,0,0,0.15);
+    }
+
+    /* Title, Price, and Button Scaling */
+    .product-card .card {
+        padding: 15px;
+    }
+
+    .product-card .btn {
+        padding: 0.5rem 1rem;
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}px{% else %}16px{% endif %};
+    }
+
+    /* Image Placeholder Scaling */
+    .card-img-container {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+    }
+
+    /* Responsive Queries */
+    @media (max-width: 1200px) {
+        .product-card .product-name {
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 18 %}{{ customization.body_font_size|default:12 }}{% else %}18{% endif %}px;
+            margin-top: 5px;
+        }
+
+        .product-card .product-stocks{
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        }
+
+        .product-card .product-price {
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 17 %}{{ customization.body_font_size|default:12 }}{% else %}17{% endif %}px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .product-card .card {
+            padding: 20px;
+        }
+        .product-card .product-name {
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 17 %}{{ customization.body_font_size|default:12 }}{% else %}17{% endif %}px;
+            margin-top: 7px;
+        }
+        .product-card .btn {
+            font-size: 0.85rem;
+            padding: 0.45rem 0.9rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .product-card .card {
+            padding: 15px;
+        }
+
+        .product-card .product-name {
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 17 %}{{ customization.body_font_size|default:12 }}{% else %}17{% endif %}px;
+            margin-top: 5px;
+        }
+
+        .product-card .product-stocks{
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 14 %}{{ customization.body_font_size|default:12 }}{% else %}14{% endif %}px;
+        }
+
+        .product-card .product-price {
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 12 %}{{ customization.body_font_size|default:10 }}{% else %}12{% endif %}px;
+        }
+        .product-card .btn {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .product-card .card {
+            padding: 12px;
+        }
+
+        .product-card .product-name {
+            margin-top: 3px;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 15 %}{{ customization.body_font_size|default:12 }}{% else %}15{% endif %}px;
+        }
+        .product-card .product-stocks{
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:12 }}{% else %}13{% endif %}px;
+        }
+        .product-card .btn {
+            font-size: 0.75rem;
+            padding: 0.35rem 0.7rem;
+        }
+    }
+
+    /* Product Cards */
+    .product-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 10px;
+    }
+
+    .product-card:hover {
+        transform: translateY(-10px);
+    }
+
+    .product-card .card {
+        padding: 15px;
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+        transition: all 0.3s ease;
+    }
+
+    .product-card:hover .card {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-img-container img {   
+        transition: transform 0.2s ease;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+    .card-img-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #adb5bd;
+        font-size: 3rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .product-name {
+        font-weight: 700;
+        line-height: 1.4;
+        text-transform: capitalize;
+        text-align: left;
+        margin: 5px 0 4px 0;
+        font-family: "{{ customization.header_font_family|default:'Arial' }}";
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 20 %}20{% else %}{{ customization.header_font_size|default:14 }}{% endif %}px;
+        color: {{ customization.header_font_color|default:"#000000" }};
+    }
+
+    .product-price {
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-weight: 600;
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15
+        {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        display: inline-block;
+    }
+
+    .btn-add-to-cart {
+        background: linear-gradient(90deg, var(--primary-color, #3498db), var(--secondary-color, #e74c3c)); /* Gradient background */
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        border: none;
+        padding: 12px 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+    }
+
+    .btn-add-to-cart:hover {
+        background: linear-gradient(90deg, var(--secondary-color), var(--primary-color)); /* Gradient background */
+        transform: translateY(-2px);
+    }
+
+    .btn-add-to-cart:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: var(--accent-color);
+        transition: left 0.5s;
+    }
+   
+    /* ✅ Center category tabs when screen is narrow */
+    @media (max-width: 992px) {
+        #categoryButtons {
+            justify-content: center !important;
+            text-align: center;
+            gap: 6px;
+        }
+
+        #categoryButtons .btn {
+            flex: 0 1 auto;
+            text-align: center;
+        }
+    }
+
+    /* ✅ Make "View Cart" button responsive */
+    @media (max-width: 768px) {
+        .cart-button {
+            width: 100%;
+            justify-content: center;
+            font-size: 14px;
+            padding: 10px;
+        }
+    }
+
+    .empty-state{
+        opacity:0.6;
+    }
+    
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px 20px;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(50px);
+        font-family: {{ customization.header_font_family|default:"Arial" }};
+    }
+
+
+    .empty-icon {
+        font-size: 60px;
+        margin-bottom: 5px;
+        color: {{ customization.header_font_color|default:"#000000" }};
+    }
+
+    .empty-state h3 {
+        margin-bottom: 2px;
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-family: '{{ customization.header_font_family|default:"Arial" }}';
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 35 %}{{ customization.header_font_size|default:35 }}{% else %}35{% endif %}px;
+        font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+        font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+    }
+    .empty-state p {
+        font-weight: 600;
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:10 }}{% else %}16{% endif %}px;
+        
+    }
+
+</style>
+
+
+
+<div class="container-fluid">
+    <div class="pos-toolbar-container">
+        <!-- Top Bar: Search Input + Cart Button -->
+        <div class="control-bar mb-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <!-- Search Input -->
+                <div class="flex-grow-1 me-3">
+                    <div class="search-input-group position-relative">
+                        <i class="fas fa-search search-icon position-absolute top-50 start-0 translate-middle-y ms-3"></i>
+                        <input type="text" class="form-control ps-5 search-input" id="searchInput" 
+                            placeholder="Search products..." oninput="filterProducts()">
+                    </div>
+                </div>
+
+                <!-- View Cart Button -->
+                <a href="{% url cart_url %}" class="btn cart-button d-flex align-items-center gap-2">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>View Cart (<span id="cartCount">{{ cart_count }}</span>)</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Category Filter Buttons -->
+        <!-- Replace the Category Filter Buttons section with the following: -->
+        <div id="categoryButtons" class="d-flex flex-wrap gap-2">
+            <button class="btn btn-outline-secondary active" data-category="" onclick="filterProductsByCategory('', this)">
+                <i class="fas fa-th-large me-1"></i> All
+            </button>
+            {% for cat in categories %}
+                <button class="btn btn-outline-secondary" data-category="{{ cat.name }}" onclick="filterProductsByCategory('{{ cat.name }}', this)">
+                    <i class="fas fa-tag me-1"></i> {{ cat.name }}
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row g-2" id="productGrid">
+        {% for product in products %}
+        <div class="col-6 col-md-4 col-xl-3 product-card" data-name="{{ product.name }}" data-category="{{ product.category }}">
+            <div class="card product-layout">
+            <!-- Image Section -->
+            <div class="card-img-container">
+                {% if product.image %}
+                <div class="ratio ratio-1x1">
+                <img src="{{ product.image.url }}" class="w-100 h-100" alt="{{ product.name }}" style="object-fit: cover;">
+                </div>
+                {% else %}
+                <div class="no-image-placeholder d-flex align-items-center justify-content-center"
+                    style="
+                        width: 100%; 
+                        height: 100%; 
+                        border-radius: 10px;
+                        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+                    ">
+                    <span style="font-size: 5rem; font-weight: 800; color: #ffffff;">
+                        {{ product.name|first|upper }}
+                    </span>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- Info Section -->
+            <div class="product-info d-flex flex-column justify-content-center">
+                <div class="product-name mb-0">
+                {{ product.name|title }}
+                {% if product.show_stocks %}
+                <span class="product-stocks">(Stocks: {{ product.stocks }})</span>
+                {% endif %}
+                </div>
+                <div class="product-price mb-2">{{ product.price_range }}</div>
+                <button class="btn btn-add-to-cart mt-auto w-100">
+                <i class="fas fa-plus me-1"></i> Add to Cart
+                </button>
+            </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+
+
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <i class="fas fa-search"></i>
+        <h3>No products found</h3>
+        <p>Try adjusting your search or filter criteria</p>
+    </div>
+</div>
+
+<!-- Enhanced Quick Selection Modal -->
+<div class="modal fade" id="addToCartModal" tabindex="-1" aria-labelledby="addToCartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <!-- Modal Header -->
+            <div class="modal-header text-white"
+                 style="background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+                <h5 class="modal-title d-flex align-items-center" id="addToCartModalLabel">
+                    <i class="fas fa-cart-plus me-2"></i>
+                    <span id="modalProductName">Product Name</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <div class="modal-section-title mb-3">
+                    <i class="fas fa-list me-2"></i>
+                    Select Variations & Quantities
+                </div>
+
+                <!-- Variations Container -->
+                <div class="row g-3" id="variationContainer">
+                    <!-- Populated dynamically by JS -->
+                </div>
+
+                <!-- Order Summary -->
+                <div class="order-summary p-4 rounded border">
+                    <div class="summary-row d-flex justify-content-between mb-2">
+                        <span class="summary-label">Total Items:</span>
+                        <span class="summary-value" id="totalItems">0</span>
+                    </div>
+                    <div class="summary-row d-flex justify-content-between mb-2">
+                        <span class="summary-label">Selected Variations:</span>
+                        <span class="summary-value" id="selectedVariations">0</span>
+                    </div>
+                    <div class="summary-total d-flex justify-content-between pt-3 mt-3 border-top">
+                        <span class="total-label fw-bold">Total Amount:</span>
+                        <span class="total-value text-success fw-bold fs-4">₱<span id="modalTotal">0.00</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer d-flex justify-content-between flex-wrap gap-2"
+                 style="border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;">
+                <button type="button" class="btn btn-dark btn-lg confirm-btn w-100 w-md-auto"
+                        onclick="addToCartConfirmed()" id="confirmBtn" disabled>
+                    <i class="fas fa-check me-2"></i>
+                    Add to Cart
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Embed JSON data -->
+{{ all_products|json_script:"product-variations-data" }}
+
+<script>
+    // Called when clicking a category button to update the active state and trigger filtering.
+    function filterProductsByCategory(category, el) {
+        // Clear any existing search input
+        document.getElementById('searchInput').value = '';
+
+        // Remove active class from all category buttons
+        document.querySelectorAll('#categoryButtons .btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        // Set the clicked button as active
+        el.classList.add('active');
+
+        // Perform filtering using the updated active state
+        filterProducts();
+    }
+
+    // Consolidated filtering function used by both search input and filterProductsByCategory()
+    function filterProducts() {
+        const searchValue = document.getElementById('searchInput').value.toLowerCase();
+        // Get the active category from its data attribute
+        const activeCategoryBtn = document.querySelector('#categoryButtons .btn.active');
+        const categoryValue = activeCategoryBtn ? activeCategoryBtn.getAttribute('data-category') : '';
+
+        const cards = document.querySelectorAll('.product-card');
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const name = card.dataset.name.toLowerCase();
+            const category = card.dataset.category;
+            const matchesSearch = name.includes(searchValue);
+            const matchesCategory = categoryValue === '' || category === categoryValue;
+
+            if (matchesSearch && matchesCategory) {
+                card.style.display = "block";
+                visibleCount++;
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        document.getElementById('emptyState').style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    function selectOrderType(element, type) {
+        document.querySelectorAll('.order-type-option').forEach(opt => opt.classList.remove('active'));
+        element.classList.add('active');
+
+        const radio = element.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+
+        // Optional: store or handle order type here
+        console.log("Selected order type:", type);
+    }
+
+
+    let selectedProduct = null;
+    let cartItems = [];
+
+    // Parse JSON and group by product name
+    const rawData = JSON.parse(document.getElementById('product-variations-data').textContent);
+    const productVariations = {};
+    rawData.forEach(item => {
+        if (!productVariations[item.name]) {
+            productVariations[item.name] = [];
+        }
+        productVariations[item.name].push({
+            name: item.variation_name,
+            price: item.price,
+            stocks: item.stocks,
+            track_stocks: item.track_stocks
+        });
+    });
+    // Add event listeners to all product cards
+    document.querySelectorAll('.product-card .card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            const productCard = card.closest('.product-card');
+            const name = productCard.dataset.name;
+            openProductModal(name);
+        });
+    });
+
+    function openProductModal(productName) {
+        selectedProduct = productName;
+        const variations = productVariations[productName] || [];
+
+        document.getElementById('modalProductName').textContent = productName;
+
+        // Create variation items with quantity selectors
+        const variationContainer = document.getElementById('variationContainer');
+        variationContainer.innerHTML = "";
+
+        variations.forEach((variation, index) => {
+            const col = document.createElement('div');
+            col.className = 'col-12 col-md-6 col-lg-4'; // 3 per row on large, 2 on md, 1 on small
+
+            const variationItem = document.createElement('div');
+            variationItem.className = 'variation-item';
+            variationItem.dataset.price = variation.price;
+            variationItem.dataset.name = variation.name;
+            variationItem.dataset.index = index;
+
+            variationItem.innerHTML = `
+                <div class="variation-header">
+                    <div class="variation-name">${variation.name}</div>
+                    <div class="variation-price">₱${parseFloat(variation.price).toFixed(2)}</div>
+                </div>
+                <div class="mb-2">
+                    ${variation.track_stocks ? `<span class="product-stocks">Stocks: ${variation.stocks}</span>` : ''}
+                </div>
+                <div class="quantity-selector row g-2 mb-1">
+                    <!-- Quantity label -->
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="quantity-label d-flex align-items-center h-100 mb-md-0">
+                            Quantity:
+                        </div>
+                    </div>
+                    <!-- Quantity controls -->
+                    <div class="col-12 col-md-6 col-lg-9">
+                        <div class="d-flex align-items-center justify-content-start">
+                            <button class="quantity-btn btn btn-outline-primary rounded-circle me-2" onclick="updateVariationQuantity(${index}, -1)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input 
+                                type="number" 
+                                class="quantity-input form-control text-center mx-2" 
+                                value="0" 
+                                min="0" 
+                                max="${variation.stocks}" 
+                                onchange="setVariationQuantity(${index}, this.value)"
+                                id="quantity-${index}">
+                            <button class="quantity-btn btn btn-outline-primary rounded-circle ms-2" onclick="updateVariationQuantity(${index}, 1)">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="variation-total">
+                    Subtotal: ₱<span id="subtotal-${index}">0.00</span>
+                </div>
+            `;
+
+            col.appendChild(variationItem);
+            variationContainer.appendChild(col);
+        });
+
+        updateModalSummary();
+        const modal = new bootstrap.Modal(document.getElementById('addToCartModal'));
+        modal.show();
+    }
+
+
+    function updateVariationQuantity(index, change) {
+        const quantityInput = document.getElementById(`quantity-${index}`);
+        const currentQuantity = parseInt(quantityInput.value) || 0;
+        const newQuantity = Math.max(0, currentQuantity + change);
+        setVariationQuantity(index, newQuantity);
+    }
+
+    function setVariationQuantity(index, quantity) {
+        const quantityInput = document.getElementById(`quantity-${index}`);
+        const subtotalElement = document.getElementById(`subtotal-${index}`);
+        const variationItem = document.querySelector(`[data-index="${index}"]`);
+        
+        quantity = Math.max(0, parseInt(quantity) || 0);
+        quantityInput.value = quantity;
+        
+        const price = parseFloat(variationItem.dataset.price);
+        const subtotal = price * quantity;
+        subtotalElement.textContent = subtotal.toFixed(2);
+        
+        // Update visual state
+        if (quantity > 0) {
+            variationItem.classList.add('selected');
+        } else {
+            variationItem.classList.remove('selected');
+        }
+        
+        updateModalSummary();
+    }
+
+    function applyBulkQuantity() {
+        const bulkQuantity = parseInt(document.getElementById('bulkQuantity').value) || 0;
+        const variations = document.querySelectorAll('.variation-item');
+        
+        variations.forEach((variation, index) => {
+            setVariationQuantity(index, bulkQuantity);
+        });
+    }
+
+    function clearAllQuantities() {
+        const variations = document.querySelectorAll('.variation-item');
+        variations.forEach((variation, index) => {
+            setVariationQuantity(index, 0);
+        });
+    }
+
+    function updateModalSummary() {
+        let totalItems = 0;
+        let selectedVariations = 0;
+        let totalAmount = 0;
+        
+                document.querySelectorAll('.variation-item').forEach((item, index) => {
+            const quantity = parseInt(document.getElementById(`quantity-${index}`).value) || 0;
+            const price = parseFloat(item.dataset.price);
+
+            if (quantity > 0) {
+                totalItems += quantity;
+                selectedVariations += 1;
+                totalAmount += quantity * price;
+            }
+        });
+
+        document.getElementById('totalItems').textContent = totalItems;
+        document.getElementById('selectedVariations').textContent = selectedVariations;
+        document.getElementById('modalTotal').textContent = totalAmount.toFixed(2);
+
+        document.getElementById('confirmBtn').disabled = totalItems === 0;
+    }
+
+    function addToCartConfirmed() {
+        const selected = [];
+
+        document.querySelectorAll('.variation-item').forEach((item, index) => {
+            const quantity = parseInt(document.getElementById(`quantity-${index}`).value) || 0;
+            if (quantity > 0) {
+                selected.push({
+                    product_name: `${selectedProduct} - ${item.dataset.name}`,
+                    quantity: quantity,
+                    price: parseFloat(item.dataset.price) * quantity
+                });
+            }
+        });
+
+        if (selected.length > 0) {
+            // Loop through selected items and send them to Django via fetch
+            const csrfToken = getCookie("csrftoken");
+
+            let allPromises = selected.map(item => {
+                return fetch("{% url 'pos_add_to_cart' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken
+                    },
+                    body: JSON.stringify(item)
+                }).then(response => response.json());
+            });
+
+            Promise.all(allPromises).then(results => {
+                const allSuccess = results.every(r => r.success);
+
+                if (allSuccess) {
+                    // Update cart UI count
+                    const totalCartItems = selected.reduce((sum, item) => sum + item.quantity, 0);
+                    document.getElementById('cartCount').textContent =
+                        parseInt(document.getElementById('cartCount').textContent) + totalCartItems;
+
+                    // Hide modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addToCartModal'));
+                    modal.hide();
+
+                    // ✅ Removed the alert line
+                    // alert(`${totalCartItems} item(s) added to cart.`);
+                } else {
+                    alert("Some items failed to be added to the cart.");
+                }
+            });
+        }
+    }
+
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+</script>
+
+{% endblock %}

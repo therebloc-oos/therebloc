@@ -1,0 +1,632 @@
+    {% load static %}
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caudex:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Arapey:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Brawler:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+    <style>
+        :root {
+            --primary-color: {{ customization.primary_color|default:'#FF5733' }};
+            --secondary-color: {{ customization.secondary_color|default:'#FF5733' }};
+            --accent-color: {{ customization.accent_color|default:'#FF5733' }};
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #06b6d4;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.267);
+        }
+
+        body {
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        {% if customization.general_background_type == 'solid' %}
+        body {
+            background-color: {{ customization.general_solid_color|default:"#ffffff" }};
+        }
+        {% elif customization.general_background_type == 'gradient' %}
+        body {
+            background: linear-gradient(
+                {{ customization.general_gradient_direction|default:"to right" }},
+                {{ customization.general_gradient_color_1|default:"#ffffff" }},
+                {{ customization.general_gradient_color_2|default:"#000000" }}
+                {% if customization.general_gradient_color_3 %}
+                    , {{ customization.general_gradient_color_3 }}
+                {% endif %}
+            );
+        }
+        {% elif customization.general_background_type == 'image' %}
+        body {
+            background-image: url("{{ customization.general_background_image.url }}");
+        }
+        {% endif %}
+
+        
+
+        .notification-card {
+            background: white;
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .notification-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--secondary-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            padding: 1.25rem 1.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status-text {
+            background: white;  /* White background */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.15rem 0.5rem;  /* Optional: Add padding for better readability */
+            border-radius: 8px; /* Optional: Round the corners */
+            font-family: "{{ customization.header_font_family|default:"Arial" }}";
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 20 %}20{% else %}{{ customization.header_font_size|default:24 }}{% endif %}px;
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+        }
+
+        .status-pending .status-text { color: #f59e0b; } /* Yellow */
+        .status-confirmed .status-text { color: #ffffff; } /* White */
+        .status-preparing .status-text { color: #8b5cf6; } /* Purple */
+        .status-out-for-delivery .status-text { color: #003d8d; } /* Pink */
+        .status-completed .status-text { color: #005a0f; } /* Green */
+        .status-rejected .status-text { color: #a00000; } /* Red */
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .timestamp {
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-weight: 600;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .left-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .right-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .order-meta {
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--primary-color);
+        }
+
+        .order-id {
+            display: flex;
+            flex-direction: column;
+            gap: 0.10rem;
+            margin-bottom: 0;
+        }
+
+        .order-id-label {
+            text-transform: uppercase;
+            font-weight: 700;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+
+        .order-id-value {
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-family: "{{ customization.header_font_family|default:"Arial" }}";
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 35 %}35{% else %}{{ customization.header_font_size|default:24 }}{% endif %}px;
+            color: var(--primary-color);
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+        }
+
+        .items-section {
+            padding: 20px;  
+            border-radius: 8px;
+            border: 1px solid var(--primary-color);
+        }
+
+        .items-title {
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+
+        .items-grid {
+            display: grid;
+            margin-bottom: 3px;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+
+        .item-qty {
+            font-weight: 500;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+
+        .rejection-section {
+            padding: 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+        }
+
+        .total-title {
+            margin-bottom: 0;
+            font-weight: 700;
+            font-family: "{{ customization.header_font_family|default:"Arial" }}";
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 20 %}20
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        }
+
+        .btn-primary  {
+            width: 100%; 
+            margin-top: 5px;
+            padding: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 17px;
+            transition: all 0.3s ease;
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            background: linear-gradient(90deg, {{ customization.primary_color|default:'#000000' }}, {{ customization.secondary_color|default:'#808080' }}); /* Gradient background */
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+        }
+
+        .rejection-title {
+            color: #8a0202;
+            margin-bottom: 0;
+            font-weight: 600;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        }
+
+        .rejection-text {
+            color: #a73333;
+            font-weight: 500;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 12 %}12    
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        }
+
+        .delivery-section {
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #10b981;
+            border-radius: 8px;
+        }
+
+        .delivery-method {
+            color: #00661f;
+            margin-bottom: 3px;
+            font-weight: 600;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        }
+
+        .delivery-label {
+            color: #005716;
+            display: block;
+            font-weight: 600;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        }
+
+        .delivery-value {
+            color: #2a703c;
+            text-transform: capitalize;
+            font-weight: 600;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        }
+
+        .tracking-section {
+            margin-top: 1rem;
+        }
+
+        .tracking-label {
+            color: #005716;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        }
+
+        .tracking-link {
+            color: #2a703c;
+            text-decoration: none;
+            background: rgba(16, 185, 129, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            display: inline-block;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        }
+
+        .tracking-link:hover {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
+        
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 25 %}{{ customization.header_font_size|default:20 }}{% else %}25{% endif %}px;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .card-body {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .text-orange {
+            color: orange !important;
+        }
+
+        .empty-state{
+            opacity:0.6;
+        }
+        
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(50px);
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+        }
+
+
+        .empty-icon {
+            font-size: 60px;
+            margin-bottom: 5px;
+            color: {{ customization.header_font_color|default:"#000000" }};
+        }
+
+        .empty-state h3 {
+            margin-bottom: 2px;
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-family: '{{ customization.header_font_family|default:"Arial" }}';
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 35 %}{{ customization.header_font_size|default:35 }}{% else %}35{% endif %}px;
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}700{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+        }
+        .empty-state p {
+            font-weight: 600;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:10 }}{% else %}16{% endif %}px;
+            
+        }
+
+        /* Responsive padding & alignment */
+        @media (max-width: 480px) {
+            .empty-state {
+                padding: 2.5rem 1rem;
+                border-width: 1px;
+            }
+
+            .empty-illustration {
+                font-size: 2.5rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .empty-title {
+                font-size: clamp(1.2rem, 6vw, 1.8rem);
+            }
+
+            .empty-subtitle {
+                font-size: clamp(0.75rem, 4vw, 0.9rem);
+            }
+        }
+
+    </style>
+    
+
+<body>
+    <div class="notifications-container">
+        {% if notifications %}
+            {% for group in notifications %}
+                <div class="notification-card {% if group.status == 'pending' %}status-pending{% elif group.status == 'confirmed' %}status-confirmed{% elif group.status == 'preparing' %}status-preparing{% elif group.status == 'Out for Delivery' %}status-out-for-delivery{% elif group.status == 'completed' %}status-completed{% elif group.status == 'rejected' %}status-rejected{% endif %}">
+                    <div class="card-header">
+                        <div class="status-info">
+                            <span class="status-text
+                                {% if group.status == 'accepted' %}text-success
+                                {% elif group.status == 'rejected' %}text-danger
+                                {% elif group.status == 'Preparing' %}text-warning
+                                {% elif group.status == 'Packed' %}text-orange
+                                {% elif group.status == 'Ready for Pickup' %}text-primary
+                                {% elif group.status == 'Out for Delivery' %}text-primary
+                                {% elif group.status == 'Completed' %}text-success
+                                {% elif group.status == 'delivered' %}text-success
+                                {% endif %}
+                            ">
+                                {% if group.status == 'accepted' %}
+                                    <i class="fas fa-check-circle me-1"></i>
+                                {% elif group.status == 'rejected' %}
+                                    <i class="fas fa-times-circle me-1"></i>
+                                {% elif group.status == 'Preparing' %}
+                                    <i class="fas fa-spinner me-1"></i>
+                                {% elif group.status == 'Packed' %}
+                                    <i class="fas fa-box me-1"></i>
+                                {% elif group.status == 'Ready for Pickup' %}
+                                    <i class="fas fa-store me-1"></i>
+                                {% elif group.status == 'Out for Delivery' %}
+                                    <i class="fas fa-truck me-1"></i>
+                                {% elif group.status == 'Completed' %}
+                                    <i class="fas fa-check-double me-1"></i>
+                                {% elif group.status == 'delivered' %}
+                                    <i class="fas fa-box-open me-1"></i>
+                                {% elif group.status == 'Void' %}
+                                    <i class="fas fa-ban me-1"></i>
+                                {% endif %}
+                                ORDER {{ group.status|upper }}
+                            </span>
+                        </div>
+                        <div class="timestamp">{{ group.created_at|date:"M d, Y h:i A" }}</div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="left-section">
+                            <div class="order-meta">
+                                <div class="order-id">
+                                    <div class="order-id-label">Order ID</div>
+                                    <div class="order-id-value">
+                                        <i class="fas fa-hashtag me-1"></i> {{ group.order_code }}
+                                    </div>
+                                </div>
+
+                                {% if group.items.0.scheduled_at %}
+                                    <div class="order-id-label">
+                                        <i class="fas fa-clock text-warning me-1"></i>
+                                        Scheduled order for: {{ group.items.0.scheduled_at|date:"M d, Y h:i A" }}
+                                    </div>
+                                {% endif %}
+
+
+                                {% if group.status == "Completed" %}
+                                    <div class="rate-section mt-2">
+                                        <a href="{% url 'customer_reviews' %}" class="btn btn-sm btn-primary">
+                                            ⭐ Rate Our Service
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            {% if group.status == "rejected" and group.rejection_reason %}
+                                <div class="rejection-section">
+                                    <div class="rejection-title">Rejection Reason</div>
+                                    <div class="rejection-text">{{ group.rejection_reason }}</div>
+                                </div>
+                            {% endif %}
+                            
+                            {% if group.status == "Void" and group.void_reason %}
+                                <div class="rejection-section">
+                                    <div class="rejection-title">Void Reason</div>
+                                    <div class="rejection-text">{{ group.void_reason }}</div>
+                                </div>
+                            {% endif %}
+
+                            {% if group.status == "Out for Delivery" %}
+                                <div class="delivery-section">
+                                    <!-- Delivery Method -->
+                                    <div class="delivery-method">
+                                        <span class="delivery-label">
+                                            <i class="bi bi-truck"></i> Delivery Method:
+                                            {% if group.items.0.delivery_method == "in_house" %}
+                                                In House Delivery
+                                            {% elif group.items.0.delivery_method == "third_party" %}
+                                                Third Party Delivery
+                                            {% else %}
+                                                {{ group.items.0.delivery_method|title }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+
+                                    <!-- ETA -->
+                                    {% if group.items.0.eta_value and group.items.0.eta_unit %}
+                                        <div class="eta-section">
+                                            <span class="delivery-label">
+                                                <i class="bi bi-clock"></i> Expected Arrival: {{ group.items.0.eta_value }} {{ group.items.0.eta_unit|title }}
+                                            </span>
+                                        </div>
+                                    {% endif %}
+
+                                    <!-- Rider -->
+                                    {% if group.items.0.delivery_method == "in_house" and group.items.0.rider %}
+                                        <div class="rider-section">
+                                            <span class="delivery-label">
+                                                <i class="bi bi-person-badge"></i> Rider: {{ group.items.0.rider }}
+                                            </span>
+                                        </div>
+                                    {% endif %}
+
+                                    <!-- Tracking -->
+                                    {% if group.items.0.delivery_method == "third_party" and group.items.0.tracking_url %}
+                                        <div class="tracking-section">
+                                            <span class="tracking-label">
+                                                <i class="bi bi-geo-alt"></i> Track Your Order: 
+                                            </span>
+                                            <a href="{{ group.items.0.tracking_url }}" target="_blank" class="tracking-link">Track Here</a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="right-section">
+                            <div class="items-section">
+                                <div class="items-title">
+                                    <i class="fas fa-receipt me-1"></i> Ordered Items
+                                </div>
+                                <div class="items-grid">
+                                    {% for item in group.items %}
+                                        <div class="item-row">
+                                            <div class="item-info">
+                                                <div class="item-name">{{ item.product_name }}</div>
+                                            </div>
+                                            <div class="item-qty">×{{ item.quantity }}</div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+
+                                <hr class="my-2">
+
+                                <!-- ✅ Total moved here after items -->
+                                <div class="order-total mt-2">
+                                    <strong><i class="fas fa-wallet me-1"></i> Subtotal: ₱{{ group.items.0.sub_total }} </strong>
+                                </div>
+
+                                {% if group.items.0.order_type == "delivery" and group.items.0.delivery_fee %}
+                                    <div class="delivery-fee mt-1">
+                                        <strong>Delivery Fee:</strong> ₱{{ group.items.0.delivery_fee }}
+                                    </div>
+                                    <div class="final-total mt-1">
+                                        <strong>Total:</strong> ₱{{ group.items.0.sub_total|add:group.items.0.delivery_fee }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+                <div class="empty-state">
+                    <div class= "empty-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <h3>No Notifications</h3>
+                    <p>You'll see order updates here when they're available</p>
+                </div>
+        {% endif %}
+    </div>
+</body>

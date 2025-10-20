@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Cashier Panel{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap-icons.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome Free (only supports solid and regular limited set) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caudex:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Arapey:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Brawler:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    
+    {% load static %}
+
+        <style>
+        :root {
+            --sidebar-width: 250px;
+            --navbar-height: 70px;
+            --navbar-bg: #ffffff;
+            --content-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --hover-bg: #f1f1f1;
+            --primary-color: {{ customization.primary_color|default:'#FF5733' }};
+            --secondary-color: {{ customization.secondary_color|default:'#FF5733' }};
+            --accent-color: {{ customization.accent_color|default:'#FF5733' }};
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: transparent;
+            overflow-x: hidden;
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--navbar-height);
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(30px);
+            border-bottom: 2px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1030;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.32);
+            transition: left 0.3s ease;
+        }
+
+        .top-navbar.collapsed {
+            left: 80px;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            color: {{ customization.header_font_color|default:"#000000" }};
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .navbar-brand span {
+            display: inline-block;
+        }
+
+        .sidebar.collapsed + .content-wrapper .top-navbar .navbar-brand span {
+            display: none;
+        }
+
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .navbar-nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Hover and Active Style */
+        .navbar-nav a:hover,
+        .navbar-nav a.active {
+            color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-color), 0 0 8px var(--primary-color);
+            background-color: rgba(255, 255, 255, 0.05);
+            z-index: 2;
+        }
+
+
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            z-index: 1040;
+            transition: width 0.3s ease, transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+
+            {% if customization.navigation_background_type == 'solid' %}
+                background-color: {{ customization.navigation_solid_color|default:"#ffffff" }} !important;
+            {% elif customization.navigation_background_type == 'gradient' %}
+                background: linear-gradient({{ customization.navigation_gradient_direction|default:"to right" }},
+                    {{ customization.navigation_gradient_color_1|default:"#ffffff" }},
+                    {{ customization.navigation_gradient_color_2|default:"#000000" }}) !important;
+                    {{ customization.navigation_gradient_color_3|default:"#000000" }}) !important;
+            {% else %}
+                background-color: #ffffff !important;
+            {% endif %}
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header{
+            line-height: 15px;;
+            text-shadow: 2px 2px 5px black;
+            font-family: "{{ customization.header_font_family|default:"Arial" }}";
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}700{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+        }
+        
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.20rem;
+            padding: 9px;
+            border-bottom: 2px solid;
+            border-color: var(--primary-color);
+            cursor: pointer;
+            text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.377);
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            color: {{ customization.navigation_text_color|default:"#000000" }};
+        }
+
+        .logo-text {
+            white-space: normal;
+            word-break: break-word;
+            display: block;
+            max-width: 100%;
+            line-height: 1.2;
+        }
+
+        .sidebar-logo img {
+            width: auto;
+            height: 50px;
+            transition: width 0.3s ease, height 0.3s ease;
+        }
+
+        .sidebar-logo span {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            white-space: wrap;
+        }
+
+        .sidebar.collapsed .sidebar-logo img {
+            width: 50px;
+            height: 50px;
+            align-items: center;
+        }
+
+        .sidebar.collapsed .sidebar-logo span {
+            opacity: 0;
+            visibility: hidden;
+            align-items: center;
+        }
+
+        .sidebar.collapsed .logo-text {
+            visibility: hidden;
+            display: none !important;
+        }
+
+
+        /* Sidebar Navigation */
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        .sidebar-nav li {
+            margin: 2px 0;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            font-weight: 700;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            text-decoration: none;
+            transition: all 0.3s;
+            text-shadow: 1px 1px 6px rgba(37, 37, 37, 0.377);
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            color: {{ customization.navigation_text_color|default:"#000000" }};
+        }
+
+        .sidebar-label{
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            color: {{ customization.navigation_text_color|default:"#000000" }};
+        }
+
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            border-left: 5px solid;
+            background-color: {{ customization.navigation_hover_color|default:"#a8a8a8" }};
+            border-color: {{ customization.navigation_border_color|default:"#cccccc" }};
+        }
+
+        .sidebar-nav i {
+            font-size: larger;
+            width: 30px;
+            text-align: center;
+            flex-shrink: 0;
+
+        }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 5px 0 30px 0;
+            border-top: 2px solid;
+            border-color: var(--primary-color);
+        }
+
+        .logout-btn {
+            display: flex;
+            font-weight: 700;
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: {{ customization.navigation_text_color|default:"#000000" }};
+            text-decoration: none;
+            transition: all 0.3s;
+            text-shadow: 1px 1px 6px rgba(37, 37, 37, 0.377);
+        }
+
+        .logout-btn:hover {
+            border-left: 5px solid;
+            background-color: {{ customization.navigation_hover_color|default:"#a8a8a8" }};
+            border-color: {{ customization.navigation_border_color|default:"#cccccc" }};
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--navbar-height);
+            min-height: calc(100vh - var(--navbar-height));
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.collapsed {
+            margin-left: 65px;
+        }
+
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .mobile-menu-btn:hover {
+            color: var(--secondary-color);
+            transition: all 0.3s;
+        }
+
+        /* Sidebar Overlay  for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1035;
+        }
+
+        /* Hide sidebar labels when collapsed on desktop */
+        .sidebar.collapsed .sidebar-label {
+            display: none !important;
+        }
+
+        .sidebar.collapsed .logout-btn span {
+            display: none !important;
+        }
+        
+        /* Responsive Design */
+        
+        /* Tablets and small desktops (768px - 1199px) */
+        @media (min-width: 768px) and (max-width: 1199px) {
+            :root {
+                --sidebar-width: 220px;
+            }
+            
+            .main-content {
+                padding: 25px;
+            }
+            
+            .content-header {
+                font-size: 1.75rem;
+            }
+        }
+
+        /* Mobile devices (max-width: 767px) */
+        @media (max-width: 767px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: var(--sidebar-width);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+
+            .top-navbar {
+                left: 0;
+                padding: 0 15px;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px 15px;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .content-header {
+                font-size: 1.5rem;
+                margin-bottom: 20px;
+            }
+
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+
+            .navbar-nav {
+                gap: 10px;
+            }
+
+            .navbar-nav a {
+                padding: 6px 8px;
+                font-size: 0.9rem;
+            }
+
+            /* Ensure sidebar is full width on mobile when collapsed state is applied */
+            .sidebar.collapsed {
+                width: var(--sidebar-width);
+                transform: translateX(-100%);
+            }
+
+            .sidebar.collapsed.show {
+                transform: translateX(0);
+            }
+        }
+
+        /* Small mobile devices (max-width: 575px) */
+        @media (max-width: 575px) {
+            .main-content {
+                padding: 15px 10px;
+            }
+
+            .content-header {
+                font-size: 1.25rem;
+            }
+
+            .navbar-brand {
+                font-size: 1rem;
+            }
+
+            .top-navbar {
+                padding: 0 10px;
+            }
+
+            .navbar-nav a span {
+                display: none;
+            }
+
+            .navbar-nav a {
+                padding: 8px;
+            }
+        }
+
+        /* Large screens (min-width: 1200px) */
+        @media (min-width: 1200px) {
+            .main-content {
+                padding: 40px;
+            }
+            
+            .content-header {
+                font-size: 2.25rem;
+            }
+        }
+
+        .delivery-fee-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border-radius: 15px;
+            z-index: 10000;
+            width: 380px;
+            box-shadow: 0 20px 40px var(--primary-color);
+        }
+
+        .delivery-modal-content {
+            background: white;
+            border-radius: 15px;
+        }
+
+        .delivery-modal-header {
+            display: flex;
+            align-items: center;
+            flex-direction: column; 
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 15px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .delivery-fee-modal h4 {
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            font-family: "{{ customization.header_font_family|default:"Arial" }}";
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}700{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+        }
+
+        .delivery-modal-section {
+            padding-bottom: 15px;
+            padding-left: 15px;
+            padding-right: 15px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .delivery-modal-section:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-1px);
+        }
+
+        .delivery-modal-label {
+            margin: 0 0 4px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 12 %}12
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+
+        .delivery-modal-value {
+            margin: 0;
+            color: #1f2937;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .delivery-address-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .delivery-address-container .modal-value {
+            flex: 1;
+        }
+
+        .delivery-copyAddressBtn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+            padding: 6px 12px;
+            font-size: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: transform 0.2s ease;
+        }
+
+        .delivery-copyAddressBtn:hover {
+            transform: translateY(-1px) scale(1.05);
+        }
+
+        .modalItems {
+            background: rgba(248, 249, 250, 0.8);
+            border: 1px solid rgba(233, 236, 239, 0.5);
+            border-radius: 6px;
+            padding: 12px;
+            max-height: 100px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.4;
+            font-weight: 700;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+
+        .delivery-total-price {
+            background: rgba(255, 255, 255, 0.6);
+            padding-left: 15px;
+            padding-right: 15px;
+
+        }
+
+        .delivery-total-price .delivery-modal-value {
+            background: var(--primary-color);
+            font-weight: 700;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 12 %}12
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            color: {{ customization.body_font_color|default:"#000000" }};
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .delivery-input-section {
+            margin-bottom: 20px;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        .delivery-fee-modal label {
+            display: block;
+            margin-bottom: 5px;
+            color: #374151;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        }
+
+        .delivery-fee-modal input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            border-width: {{ customization.input_border_width|default:1 }}px; 
+            border-style: {{ customization.input_border_style|default:'solid' }};
+            border-color: {{ customization.primary_color|default:'#000000' }};
+            border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+        }
+
+        .delivery-fee-modal input[type="number"]:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .delivery-button-container {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+            padding-right: 15px;
+        }
+
+        .rejectDeliveryFeeBtn{
+            background: rgba(107, 114, 128, 0.1);
+            border: none;
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #6b7280;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+        }
+
+        .rejectDeliveryFeeBtn:hover {
+            background: rgba(107, 114, 128, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .submitDeliveryFeeBtn {
+            padding: 10px 24px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            background: linear-gradient(90deg, {{ customization.primary_color|default:'#000000' }}, {{ customization.secondary_color|default:'#808080' }}); /* Gradient background */
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+        }
+
+        .submitDeliveryFeeBtn:hover {
+            background: linear-gradient(90deg, {{ customization.secondary_color|default:'#000000' }}, {{ customization.primary_color|default:'#808080' }}); /* Gradient background */
+        }
+
+        /* Backdrop to disable background clicks */
+        .delivery-fee-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 9999; /* Just below the modal */
+        }
+
+        /* Responsive notification badge size */
+        #notification-badge {
+            font-size: 0.7em;          /* Scale with icon size */
+            padding: 0.35em 0.5em;     /* Relative padding */
+            min-width: 1.4em;          /* Keeps round shape */
+            min-height: 1.4em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Medium devices: make badge slightly bigger */
+        @media (max-width: 992px) {
+            #notification-badge {
+                font-size: 0.8em;
+                min-width: 1.6em;
+                min-height: 1.6em;
+            }
+        }
+
+        /* Small devices: bigger for visibility */
+        @media (max-width: 576px) {
+            #notification-badge {
+                font-size: 0.9em;
+                min-width: 1.8em;
+                min-height: 1.8em;
+            }
+        }
+
+        /* Reuse main logo-circle styles, but adjust size for sidebar */
+        .sidebar-logo-circle {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background-color: #f0f0f0; /* adjust color */
+            display: flex;
+            align-items: center;   /* vertical center */
+            justify-content: center; /* horizontal center */
+        }
+
+        .sidebarlogo-text {
+            font-weight: bold;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .timer-container {
+            margin-top: -4px;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: flex;
+            justify-content: left;
+            align-items: left;
+            gap: 6px;
+        }
+    
+        .timer-label {
+            font-size: 13px;
+            font-weight: 700;
+            font-family: "{{ customization.header_font_family|default:"Arial" }}";
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}700{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+        }
+    
+    
+        .timer-display {
+            fontsize: 12px;
+            font-weight: 600;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            color: {{ customization.body_font_color|default:"#000000" }};
+            color: {{ customization.button_text_color|default:'#ffffff' }};   
+        }
+        .timer-icon {
+            width: 13px;
+            height: 13px;
+            border: 2px solid {{ customization.body_font_color|default:"#000000" }};
+            border-top: 2px solid transparent; /* creates spinner effect */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        
+    </style>
+    
+</head>
+<body>
+    <audio id="modalSound" src="{% static 'sounds/notification.mp3' %}" preload="auto"></audio>
+
+    <!-- Top Navbar -->
+    <nav class="top-navbar">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-light d-md-none me-3 mobile-menu-btn p-0 border-0" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                {% if business and business.logo %}
+                    <img src="{{ business.logo.url }}" alt="Logo" style="height: 40px; width: auto;">
+                {% else %}
+                    <div class="logo-circle sidebar-logo-circle">
+                        <span class="sidebarlogo-text">Logo</span>
+                    </div>
+                {% endif %}
+            </button>
+            <div class="navbar-brand">
+                {% if title %}
+                    {{ title }}
+                {% else %}
+                    Business Name
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="navbar-nav d-flex flex-row align-items-center gap-2">
+            <a href="{% url 'cashier_notifications' %}" class="position-relative {% if request.resolver_match.url_name == 'cashier_notifications' %}active{% endif %}">
+                <i class="fa-duotone fa-regular fa-bell" style="font-size: 20px;"></i>
+                <span id="notification-badge"
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                    0
+                </span>
+            </a>
+
+            <a href="{% url 'staff_profile' %}"
+            class="{% if request.resolver_match.url_name == 'staff_profile' %}active{% endif %}"
+            aria-label="Profile">
+                <i class="bi bi-person-circle fs-5"></i>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo" onclick="toggleSidebarDesktop()">
+                {% if business and business.logo %}
+                    <img src="{{ business.logo.url }}" alt="Logo" class="logo-img" />
+                {% else %}
+                    <div class="logo-circle sidebar-logo-circle">
+                        <span class="sidebarlogo-text">Logo</span>
+                    </div>
+                {% endif %}
+                <span class="logo-text">
+                    {% if business and business.business_name %}
+                        {{ business.business_name }}
+                    {% else %}
+                        Business Name
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="{% url 'cashier_dashboard' %}"
+                    class="{% if request.resolver_match.url_name == 'cashier_dashboard' %}active{% endif %}">
+                        <i class="bi bi-bar-chart-line"></i>
+                        <span class="sidebar-label">Dashboard</span>
+                    </a>
+                </li>
+
+                {% if 'OnSite' in business.services_offered %}
+                    <li>
+                        <a href="{% url 'cashier_pos' %}"
+                        class="{% if request.resolver_match.url_name == 'cashier_pos' %}active{% endif %}">
+                            <i class="bi bi-cart4"></i>
+                            <span class="sidebar-label">Point-of-Sale</span>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                <li><a href="{% url 'cashier_delivery' %}" class="{% if request.resolver_match.url_name == 'cashier_delivery' %}active{% endif %}">
+                    <i class="bi bi-truck"></i> 
+                    <span class="sidebar-label">Delivery</span>
+                </a></li>
+                
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="{% url 'logout' %}" class="logout-btn">
+                <i class="bi bi-box-arrow-right"></i> <span>Log Out</span>
+            </a>
+        </div>
+
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        {% block content %}
+        <div class="content-header">
+            <h1>Welcome to Business Panel</h1>
+            <p>Manage your business operations from this dashboard</p>
+        </div>
+        {% endblock %}
+    </main>
+
+    <div id="modalContainer"></div>
+
+</body>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            if (window.innerWidth <= 767) {
+                // Mobile behavior
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('show');
+            }
+        }
+
+        function toggleSidebarDesktop() {
+            if (window.innerWidth > 767) {
+                // Desktop behavior
+                const sidebar = document.getElementById('sidebar');
+                const mainContent = document.getElementById('mainContent');
+                const topNavbar = document.querySelector('.top-navbar');
+                
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('collapsed');
+                topNavbar.classList.toggle('collapsed');
+            } else {
+                // On mobile, just toggle the sidebar
+                toggleSidebar();
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const mainContent = document.getElementById('mainContent');
+            const topNavbar = document.querySelector('.top-navbar');
+            
+            if (window.innerWidth > 767) {
+                // Desktop mode - remove mobile classes
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+            } else {
+                // Mobile mode - remove desktop collapsed state
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('collapsed');
+                topNavbar.classList.remove('collapsed');
+            }
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (window.innerWidth <= 767 && 
+                sidebar.classList.contains('show') && 
+                !sidebar.contains(e.target) && 
+                !mobileMenuBtn.contains(e.target)) {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+
+                const badge = document.getElementById('notification-badge');
+
+                if (data.type === "send_notification" || data.type === "send_pending_count") {
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.classList.remove('d-none');
+                    } else {
+                        badge.classList.add('d-none');
+                    }
+
+                    const pendingCounter = document.getElementById('pending-counter');
+                    if (pendingCounter) {
+                        pendingCounter.textContent = ''; // repaint
+                        pendingCounter.offsetHeight;
+                        pendingCounter.textContent = data.dashboard_count; // update with total pending
+                    }
+
+                    if (window.location.pathname.includes('BusinessNotifications')) {
+                        fetch('/business/pending-orders/')
+                            .then(response => response.text())
+                            .then(html => {
+                                document.getElementById('pending-orders').innerHTML = html;
+                            });
+                    }
+                }
+            };
+        });
+
+        function updateOrderStatusByCode(orderCode, status) {
+            fetch('/update-order-status/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({ order_code: orderCode, status: status })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const modal = new bootstrap.Modal(document.getElementById('statusModal'));
+                const title = document.getElementById('statusModalTitle');
+                const body = document.getElementById('statusModalBody');
+
+                if (data.success) {
+                    title.innerHTML = `<i class="fas fa-check-circle me-2 text-success"></i> Success`;
+                    body.innerHTML = `Order <strong>${orderCode}</strong> accepted successfully!`;
+
+                    // Refresh table after modal closes
+                    document.getElementById('statusModal').addEventListener('hidden.bs.modal', function () {
+                        fetch('/partial/pending-orders/')
+                            .then(response => response.text())
+                            .then(html => {
+                                document.getElementById('pending-orders').innerHTML = html;
+                            });
+                    }, { once: true });
+                } else {
+                    title.innerHTML = `<i class="fas fa-exclamation-triangle me-2 text-danger"></i> Error`;
+                    body.innerHTML = `Failed to update order: ${data.error || "Unknown error"}`;
+                }
+
+                modal.show();
+            });
+        }
+
+        // CSRF helper function
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const badge = document.getElementById('notification-badge');
+        const socket = new WebSocket("wss://" + window.location.host + "/ws/notifications/");
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.type === "send_notification") {
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+            }
+        };
+
+        socket.onclose = function(event) {
+            console.error("WebSocket closed unexpectedly");
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const proofModal = document.getElementById('proofModal');
+            proofModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const imageUrl = button.getAttribute('data-img-url');
+                const proofImage = proofModal.querySelector('#proofImage');
+                proofImage.src = imageUrl;
+            });
+        });
+
+        // Function to play the notification sound
+        function playNotificationSound() {
+            const modalSound = document.getElementById('modalSound');
+            modalSound.play()
+                .then(() => {
+                    console.log("Audio played successfully");
+                })
+                .catch((error) => {
+                    console.error("Error playing audio: ", error);
+                });
+        }
+
+        const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+        const deliveryFeeSocketOwner = new WebSocket(`${protocol}://${window.location.host}/ws/delivery-fee/owners/`);
+
+        // Queue to hold requests (FIFO - First In, First Out)
+        const deliveryFeeQueue = [];
+        let isModalOpen = false;
+        let currentModalTimer = null;
+        let currentRequestId = null;
+
+        // Timer sync interval (check server time every 5 seconds)
+        let timerSyncInterval = null;
+
+        // Global timer for tracking all queued requests
+        let globalQueueTimer = null;
+
+        deliveryFeeSocketOwner.onopen = () => {
+            console.log("[Owner JS] WebSocket connected");
+            // Request initial timer sync when connection opens
+            requestTimerSync();
+        };
+
+        deliveryFeeSocketOwner.onerror = (e) => console.error("[Owner JS] WebSocket error:", e);
+        deliveryFeeSocketOwner.onclose = (e) => {
+            console.log("[Owner JS] WebSocket closed:", e);
+            // Clear timer sync when connection closes
+            if (timerSyncInterval) {
+                clearInterval(timerSyncInterval);
+                timerSyncInterval = null;
+            }
+            // Clear global queue timer
+            if (globalQueueTimer) {
+                clearInterval(globalQueueTimer);
+                globalQueueTimer = null;
+            }
+        };
+
+        deliveryFeeSocketOwner.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            console.log("[Owner JS] Received message:", data);
+
+            if (data.type === 'delivery_fee_request') {
+                
+                // Play the sound when a delivery fee request comes in
+                const modalSound = document.getElementById('modalSound');
+                
+                modalSound.play()
+                    .then(() => {
+                        console.log("Audio played successfully");
+                    })
+                    .catch((error) => {
+                        console.error("Error playing audio: ", error);
+                    });
+                
+                // Create request object with server timestamp and local tracking
+                const requestData = {
+                    ...data,
+                    requestId: data.request_id || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    serverCreatedAt: data.created_at || Date.now(),
+                    expiresAt: data.expires_at || (Date.now() + 120000), // 2 minutes from now if not provided
+                    localCreatedAt: Date.now(), // Track when we received it locally
+                    timeRemaining: 120 // Default 2 minutes in seconds
+                };
+                
+                // Add request to queue (FIFO) and try to show modal
+                deliveryFeeQueue.push(requestData);
+                
+                // Start global queue timer if not already running
+                startGlobalQueueTimer();
+                
+                showNextModal();
+                
+                // Start timer sync if not already running
+                if (!timerSyncInterval) {
+                    startTimerSync();
+                }
+            } 
+            else if (data.type === 'delivery_fee_timeout') {
+                console.log("[Owner JS] Request timed out from server:", data.request_id);
+                
+                // Remove from queue if still there
+                const queueIndex = deliveryFeeQueue.findIndex(req => req.requestId === data.request_id);
+                if (queueIndex !== -1) {
+                    deliveryFeeQueue.splice(queueIndex, 1);
+                }
+                
+                // If this was the currently displayed modal, close it
+                if (currentRequestId === data.request_id) {
+                    closeCurrentModal();
+                }
+                
+                // Stop global timer if no more queued requests
+                if (deliveryFeeQueue.length === 0 && !isModalOpen) {
+                    stopGlobalQueueTimer();
+                }
+            }
+            else if (data.type === 'timer_sync') {
+                // Update timer display with server time
+                updateTimerFromServer(data);
+            }
+            else if (data.type === 'delivery_fee_resolved') {
+                console.log("[Owner JS] Received delivery_fee_resolved:", data);
+            
+                // If this matches the currently open modal, close it
+                if (currentRequestId && data.request_id && currentRequestId === data.request_id) {
+                    closeCurrentModal();
+                }
+            
+                // Remove matching queued items (if any) so they won't show later
+                for (let i = deliveryFeeQueue.length - 1; i >= 0; i--) {
+                    if (deliveryFeeQueue[i].requestId === data.request_id) {
+                        deliveryFeeQueue.splice(i, 1);
+                    }
+                }
+            }
+        };
+
+        function startGlobalQueueTimer() {
+            // Clear existing timer if any
+            if (globalQueueTimer) {
+                clearInterval(globalQueueTimer);
+            }
+            
+            // Start timer to update all queued requests every second
+            globalQueueTimer = setInterval(() => {
+                const currentTime = Date.now();
+                
+                // Update time remaining for all queued requests
+                for (let i = deliveryFeeQueue.length - 1; i >= 0; i--) {
+                    const request = deliveryFeeQueue[i];
+                    
+                    // Calculate elapsed time since request was created locally
+                    const elapsedSeconds = Math.floor((currentTime - request.localCreatedAt) / 1000);
+                    const newTimeRemaining = Math.max(0, 120 - elapsedSeconds); // Always start from 120 seconds
+                    
+                    // Update the request's time remaining
+                    request.currentTimeRemaining = newTimeRemaining;
+                    
+                    // If time expired, remove from queue and notify customer
+                    if (newTimeRemaining <= 0) {
+                        console.log("[Owner JS] Queued request expired locally:", request.requestId);
+                        
+                        // Send timeout notification to customer using reject_fee action
+                        deliveryFeeSocketOwner.send(JSON.stringify({
+                            action: "reject_fee",
+                            customer_email: request.customer_email,
+                            request_id: request.requestId,
+                            reason: "Request timed out please try again"
+                        }));
+                        
+                        deliveryFeeQueue.splice(i, 1);
+                    }
+                }
+                
+                // Stop timer if no more requests
+                if (deliveryFeeQueue.length === 0 && !isModalOpen) {
+                    stopGlobalQueueTimer();
+                }
+                
+            }, 1000);
+        }
+
+        function stopGlobalQueueTimer() {
+            if (globalQueueTimer) {
+                clearInterval(globalQueueTimer);
+                globalQueueTimer = null;
+            }
+        }
+
+        function requestTimerSync() {
+            if (deliveryFeeSocketOwner.readyState === WebSocket.OPEN) {
+                deliveryFeeSocketOwner.send(JSON.stringify({
+                    action: "request_timer_sync"
+                }));
+            }
+        }
+
+        function startTimerSync() {
+            // Clear existing interval if any
+            if (timerSyncInterval) {
+                clearInterval(timerSyncInterval);
+            }
+            
+            // Only start sync if we have active modal or queued requests
+            if (isModalOpen || deliveryFeeQueue.length > 0) {
+                // Sync every 5 seconds
+                timerSyncInterval = setInterval(() => {
+                    // Only sync if we have requests to track
+                    if (isModalOpen || deliveryFeeQueue.length > 0) {
+                        requestTimerSync();
+                    } else {
+                        // No more requests to track, stop syncing
+                        clearInterval(timerSyncInterval);
+                        timerSyncInterval = null;
+                        console.log("[Owner JS] No active requests, stopping timer sync");
+                    }
+                }, 5000);
+            }
+        }
+
+        function updateTimerFromServer(syncData) {
+            const activeServerRequests = syncData.active_requests || [];
+            const serverRequestIds = new Set(activeServerRequests.map(req => req.request_id));
+            
+            // Update currently displayed modal timer
+            if (currentRequestId && isModalOpen) {
+                const activeRequest = activeServerRequests.find(req => req.request_id === currentRequestId);
+                if (!activeRequest) {
+                    // Request no longer active on server, close modal
+                    console.log("[Owner JS] Active request timed out on server:", currentRequestId);
+                    closeCurrentModal();
+                    return;
+                } else {
+                    const timeLeft = Math.max(0, activeRequest.time_remaining);
+                    const timerDisplay = document.getElementById(`timer_deliveryFeeModal_${currentRequestId}`);
+                    
+                    if (timerDisplay) {
+                        timerDisplay.textContent = formatTime(timeLeft);
+                        
+                        // Change color based on time remaining
+                        if (timeLeft <= 30) {
+                            timerDisplay.style.color = '#ff4444';
+                        } else if (timeLeft <= 60) {
+                            timerDisplay.style.color = '#ff8800';
+                        } else {
+                            timerDisplay.style.color = '#333';
+                        }
+                    }
+                }
+            }
+            
+            // Update queued requests with server time
+            for (let i = deliveryFeeQueue.length - 1; i >= 0; i--) {
+                const queuedRequest = deliveryFeeQueue[i];
+                const serverRequest = activeServerRequests.find(req => req.request_id === queuedRequest.requestId);
+                
+                if (!serverRequest || serverRequest.time_remaining <= 0) {
+                    // Request timed out on server, remove from queue
+                    console.log("[Owner JS] Queued request timed out on server:", queuedRequest.requestId);
+                    deliveryFeeQueue.splice(i, 1);
+                } else {
+                    // Update the queued request's timing info with server data
+                    queuedRequest.serverTimeRemaining = serverRequest.time_remaining;
+                    queuedRequest.lastSyncTime = Date.now();
+                    queuedRequest.currentTimeRemaining = serverRequest.time_remaining;
+                    
+                    // Reset local tracking based on server time - adjust localCreatedAt to match server timing
+                    const elapsedFromServer = 120 - serverRequest.time_remaining;
+                    queuedRequest.localCreatedAt = Date.now() - (elapsedFromServer * 1000);
+                }
+            }
+            
+            // If no more requests and no active modal, stop timers
+            if (deliveryFeeQueue.length === 0 && !isModalOpen) {
+                if (timerSyncInterval) {
+                    clearInterval(timerSyncInterval);
+                    timerSyncInterval = null;
+                }
+                stopGlobalQueueTimer();
+                console.log("[Owner JS] No more active requests, stopping all timers");
+            }
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function closeCurrentModal() {
+            if (currentModalTimer) {
+                clearInterval(currentModalTimer);
+                currentModalTimer = null;
+            }
+            
+            const activeModal = document.querySelector('.delivery-fee-modal');
+            const backdrop = document.getElementById('modalBackdrop');
+            
+            if (activeModal) {
+                activeModal.remove();
+            }
+            if (backdrop) {
+                backdrop.remove();
+            }
+            
+            document.body.style.overflow = '';
+            isModalOpen = false;
+            currentRequestId = null;
+            
+            // Stop timer sync if no more requests
+            if (deliveryFeeQueue.length === 0) {
+                if (timerSyncInterval) {
+                    clearInterval(timerSyncInterval);
+                    timerSyncInterval = null;
+                }
+                stopGlobalQueueTimer();
+            }
+            
+            // Process next modal in queue
+            showNextModal();
+        }
+
+        function showNextModal() {
+            if (isModalOpen) return;  // modal already showing, wait
+            if (deliveryFeeQueue.length === 0) return; // no requests waiting
+
+            isModalOpen = true;
+
+            // Get the first request from queue (FIFO)
+            const requestData = deliveryFeeQueue.shift();
+            currentRequestId = requestData.requestId;
+            
+            // Check if this request is still valid
+            const currentTimeRemaining = requestData.currentTimeRemaining !== undefined ? requestData.currentTimeRemaining : requestData.timeRemaining;
+            if (currentTimeRemaining <= 0) {
+                console.log("[Owner JS] Skipping expired queued request:", requestData.requestId);
+                isModalOpen = false;
+                currentRequestId = null;
+                showNextModal(); // Try next request
+                return;
+            }
+            
+            console.log("[Owner JS] Showing modal for request:", requestData.requestId, "with time remaining:", currentTimeRemaining);
+            
+            const container = document.getElementById('modalContainer');
+            const { customer_email, order_details, requestId } = requestData;
+            const { customer_name, email, address, items, total } = order_details;
+
+            const modalId = `deliveryFeeModal_${requestId}`;
+
+            // Create backdrop
+            const backdrop = document.createElement('div');
+            backdrop.id = 'modalBackdrop';
+            backdrop.style.cssText = `
+                position: fixed;
+                top: 0; left: 0; width: 100vw; height: 100vh;
+                background: rgba(0,0,0,0.3);
+                z-index: 9999;
+            `;
+            document.body.appendChild(backdrop);
+
+            const modalHtml = `
+            <div class="delivery-fee-modal" id="${modalId}">
+                <div class="delivery-modal-content">
+                    <div class="delivery-modal-header" style="flex-direction: column; text-align: left;">
+                        <h4>Delivery Fee Request</h4>
+                        <div class="timer-container">
+                            <span class="timer-label">Time remaining:</span>
+                            <span class="timer-display" id="timer_${modalId}">
+                                Loading...
+                            </span>
+                            <span class="timer-icon"></span>
+                        </div>
+                    </div>
+
+                    
+                    <div class="delivery-modal-section">
+                        <p class="delivery-modal-label">Customer</p>
+                        <p class="delivery-modal-value"><span class="modalCustomerName"></span></p>
+                    </div>
+                    
+                    <div class="delivery-modal-section">
+                        <p class="delivery-modal-label">Email</p>
+                        <p class="delivery-modal-value"><span class="modalEmail"></span></p>
+                    </div>
+                    
+                    <div class="delivery-modal-section">
+                        <p class="delivery-modal-label">Address</p>
+                        <div class="delivery-address-container">
+                            <p class="delivery-modal-value"><span class="modalAddress"></span></p>
+                            <button class="delivery-copyAddressBtn">Copy</button>
+                        </div>
+                    </div>
+                    
+                    <div class="delivery-modal-section">
+                        <p class="delivery-modal-label">Order Items</p>
+                        <pre class="modalItems"></pre>
+                    </div>
+                    
+                    <div class="delivery-modal-section delivery-total-price">
+                        <p class="delivery-modal-label">Total Price</p>
+                        <p class="delivery-modal-value">₱<span class="modalTotal"></span></p>
+                    </div>
+
+                    <div class="delivery-input-section">
+                        <label for="deliveryFeeInput_${modalId}">Enter delivery fee:</label>
+                        <input type="number" id="deliveryFeeInput_${modalId}" min="0" step="0.01">
+                    </div>
+
+                    <div class="delivery-button-container">
+                        <button class="rejectDeliveryFeeBtn">Reject</button>
+                        <button class="submitDeliveryFeeBtn">Submit</button>
+                    </div>
+                </div>
+            </div>
+            `;
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = modalHtml;
+            container.appendChild(tempDiv.firstElementChild);
+
+            const modal = document.getElementById(modalId);
+            modal.querySelector('.modalCustomerName').textContent = customer_name;
+            modal.querySelector('.modalEmail').textContent = email;
+            modal.querySelector('.modalAddress').textContent = address;
+            modal.querySelector('.modalItems').textContent = items.map(item => `${item.product_name} x${item.quantity} @ ₱${item.price}`).join('\n');
+            modal.querySelector('.modalTotal').textContent = total;
+
+            // Disable page scroll while modal open
+            document.body.style.overflow = 'hidden';
+
+            // Request immediate timer sync for this modal
+            requestTimerSync();
+
+            // Initialize timer display with current time remaining from queue
+            const timerDisplay = document.getElementById(`timer_${modalId}`);
+            let localTimeLeft = currentTimeRemaining;
+            
+            // Update initial display
+            if (timerDisplay && localTimeLeft > 0) {
+                timerDisplay.textContent = formatTime(localTimeLeft);
+                if (localTimeLeft <= 30) {
+                    timerDisplay.style.color = '#ff4444';
+                } else if (localTimeLeft <= 60) {
+                    timerDisplay.style.color = '#ff8800';
+                }
+            }
+            
+            // Start local countdown timer for the displayed modal
+            currentModalTimer = setInterval(() => {
+                localTimeLeft--;
+                if (timerDisplay && localTimeLeft > 0) {
+                    timerDisplay.textContent = formatTime(localTimeLeft);
+                    
+                    // Change color when less than 30 seconds left
+                    if (localTimeLeft <= 30) {
+                        timerDisplay.style.color = '#ff4444';
+                    } else if (localTimeLeft <= 60) {
+                        timerDisplay.style.color = '#ff8800';
+                    }
+                } else if (localTimeLeft <= 0) {
+                    // Time expired, send timeout notification to customer using reject_fee and close modal
+                    console.log("[Owner JS] Modal timer expired locally:", requestId);
+                    
+                    deliveryFeeSocketOwner.send(JSON.stringify({
+                        action: "reject_fee",
+                        customer_email: customer_email,
+                        request_id: requestId,
+                        reason: "Request timed out please try again"
+                    }));
+                    
+                    closeCurrentModal();
+                }
+            }, 1000);
+
+            // Copy address button
+            modal.querySelector('.delivery-copyAddressBtn').onclick = () => {
+                const addressText = modal.querySelector('.modalAddress').textContent.trim();
+                navigator.clipboard.writeText(addressText)
+                    .then(() => {
+                        alert('Address copied to clipboard!');
+                    })
+                    .catch(() => {
+                        alert('Failed to copy address');
+                    });
+            };
+
+            // Submit button
+            modal.querySelector('.submitDeliveryFeeBtn').onclick = () => {
+                const feeInput = modal.querySelector(`#deliveryFeeInput_${modalId}`);
+                const fee = feeInput.value.trim();
+                
+                // Allow 0 as a valid input
+                if (fee === '' || isNaN(fee) || parseFloat(fee) < 0) {
+                    alert('Please enter a valid delivery fee (0 or greater)');
+                    return;
+                }
+
+                console.log("[Owner JS] Sending fee:", fee);
+                
+                deliveryFeeSocketOwner.send(JSON.stringify({
+                    action: "send_fee",
+                    customer_email: customer_email,
+                    request_id: requestId,
+                    delivery_fee: fee,
+                }));
+
+                closeCurrentModal();
+            };
+
+            // Reject button
+            modal.querySelector('.rejectDeliveryFeeBtn').onclick = () => {
+                deliveryFeeSocketOwner.send(JSON.stringify({
+                    action: "reject_fee",
+                    customer_email: customer_email,
+                    request_id: requestId,
+                    reason: "Delivery fee request is rejected, location is out of coverage area"
+                }));
+
+                closeCurrentModal();
+            };
+        }
+
+        // Handle page visibility changes to sync timers when page becomes visible
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && (isModalOpen || deliveryFeeQueue.length > 0)) {
+                // Page became visible, request immediate timer sync
+                requestTimerSync();
+            }
+        });
+
+        // Handle window focus to sync timers when window gets focus
+        window.addEventListener('focus', function() {
+            if (isModalOpen || deliveryFeeQueue.length > 0) {
+                // Window got focus, request immediate timer sync
+                requestTimerSync();
+            }
+        });
+    </script>
+    
+</body>
+</html>

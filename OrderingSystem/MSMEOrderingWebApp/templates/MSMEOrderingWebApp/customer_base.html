@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Business Owner Panel{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome Free (only supports solid and regular limited set) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    
+    <!-- Google Fonts -->
+     <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Abel&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gloock:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    {% load static %}
+    
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --navbar-height: 70px;
+            --primary-color: {{ customization.primary_color|default:'#FF5733' }};
+            --secondary-color: {{ customization.secondary_color|default:'#FF5733' }};
+            --accent-color: {{ customization.accent_color|default:'#FF5733' }};
+            --navbar-bg: #ffffff;
+            --content-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --hover-bg: #f1f1f1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: transparent;
+            color: #212529;
+            overflow-x: hidden;
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--navbar-height);
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(30px);
+            border-bottom: 2px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 26px;
+            z-index: 1030;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.32);
+            transition: left 0.3s ease;
+        }
+
+        .top-navbar.collapsed {
+            left: 80px;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            color: {{ customization.header_font_color|default:"#000000" }};
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .navbar-brand span {
+            display: inline-block;
+        }
+
+        .sidebar.collapsed + .content-wrapper .top-navbar .navbar-brand span {
+            display: none;
+        }
+
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .navbar-nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 1;
+            border-radius: 6px;
+
+        }
+
+        /* Hover and Active Style */
+        .navbar-nav a:hover,
+        .navbar-nav a.active {
+            color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-color), 0 0 8px var(--primary-color);
+            background-color: rgba(255, 255, 255, 0.05);
+            z-index: 2;
+        }
+
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            z-index: 1040;
+            transition: width 0.3s ease, transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+
+            {% if customization.navigation_background_type == 'solid' %}
+                background-color: {{ customization.navigation_solid_color|default:"#ffffff" }} !important;
+            {% elif customization.navigation_background_type == 'gradient' %}
+                background: linear-gradient({{ customization.navigation_gradient_direction|default:"to right" }},
+                    {{ customization.navigation_gradient_color_1|default:"#ffffff" }},
+                    {{ customization.navigation_gradient_color_2|default:"#000000" }}) !important;
+                    {{ customization.navigation_gradient_color_3|default:"#000000" }}) !important;
+            {% else %}
+                background-color: #ffffff !important;
+            {% endif %}
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header{
+            line-height: 18px;;
+            text-shadow: 2px 2px 5px black;
+            font-family: "{{ customization.header_font_family|default:"Arial" }}";
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}700{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+        }
+
+        .sidebar-logo {
+            background: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.20rem;
+            padding: 12px;
+            border-bottom: 2px solid;
+            border-color: var(--primary-color);
+            cursor: pointer;
+            text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.377);
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            color: {{ customization.navigation_text_color|default:"#000000" }};
+        }
+
+        .sidebar-logo img {
+            width: auto;
+            height: 50px;
+            transition: width 0.3s ease, height 0.3s ease;
+        }
+
+        .sidebar-logo span {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            white-space: wrap;
+        }
+
+        .sidebar.collapsed .sidebar-logo img {
+            width: 50px;
+            height: 50px;
+            align-items: center;
+        }
+
+        .sidebar.collapsed .sidebar-logo span {
+            opacity: 0;
+            visibility: hidden;
+            align-items: center;
+        }
+
+        .sidebar.collapsed .logo-text {
+            visibility: hidden;
+            display: none !important;
+        }
+
+
+        /* Sidebar Navigation */
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        .sidebar-nav li {
+            margin: 2px 0;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            font-weight: 700;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            text-decoration: none;
+            transition: all 0.3s;
+            text-shadow: 1px 1px 6px rgba(37, 37, 37, 0.377);
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            color: {{ customization.navigation_text_color|default:"#000000" }};
+        }
+
+        .sidebar-label{
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            color: {{ customization.navigation_text_color|default:"#000000" }};
+        }
+
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            border-left: 5px solid;
+            background-color: {{ customization.navigation_hover_color|default:"#a8a8a8" }};
+            border-color: {{ customization.navigation_border_color|default:"#cccccc" }};
+        }
+
+        .sidebar-nav i {
+            font-size: larger;
+            width: 30px;
+            text-align: center;
+            flex-shrink: 0;
+
+        }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 5px 0 30px 0;
+            border-top: 2px solid;
+            border-color: var(--primary-color);
+        }
+
+        .logout-btn {
+            display: flex;
+            font-weight: 700;
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: {{ customization.navigation_text_color|default:"#000000" }};
+            text-decoration: none;
+            transition: all 0.3s;
+            text-shadow: 1px 1px 6px rgba(37, 37, 37, 0.377);
+        }
+
+        .logout-btn:hover {
+            border-left: 5px solid;
+            background-color: {{ customization.navigation_hover_color|default:"#a8a8a8" }};
+            border-color: {{ customization.navigation_border_color|default:"#cccccc" }};
+        }
+
+
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--navbar-height);
+            min-height: calc(100vh - var(--navbar-height));
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.collapsed {
+            margin-left: 75px;
+        }
+
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+
+        /* Sidebar Overlay  for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0);
+            z-index: 1035;
+        }
+
+        /* Hide sidebar labels when collapsed on desktop */
+        .sidebar.collapsed .sidebar-label {
+            display: none !important;
+        }
+
+        .sidebar.collapsed .logout-btn span {
+            display: none !important;
+        }
+
+        /* Responsive Design */
+        
+        /* Tablets and small desktops (768px - 1199px) */
+        @media (min-width: 768px) and (max-width: 1199px) {
+            :root {
+                --sidebar-width: 220px;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .content-header {
+                font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 27 %}{{ customization.header_font_size|default:20 }}{% else %}27{% endif %}px;
+            }
+        }
+
+        /* Mobile devices (max-width: 767px) */
+        @media (max-width: 767px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: var(--sidebar-width);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+
+            .top-navbar {
+                left: 0;
+                padding: 0 15px;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px 15px;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .content-header {
+                font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 30 %}{{ customization.header_font_size|default:20 }}{% else %}30{% endif %}px;
+                margin-bottom: 20px;
+            }
+
+            .navbar-brand {
+                font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 17 %}{{ customization.header_font_size|default:20 }}{% else %}17{% endif %}px;
+            }
+
+            .navbar-nav {
+                gap: 10px;
+            }
+
+            .navbar-nav a {
+                padding: 6px 8px;
+                font-size: 0.9rem;
+            }
+
+            /* Ensure sidebar is full width on mobile when collapsed state is applied */
+            .sidebar.collapsed {
+                width: var(--sidebar-width);
+                transform: translateX(-100%);
+            }
+
+            .sidebar.collapsed.show {
+                transform: translateX(0);
+            }
+        }
+
+        /* Small mobile devices (max-width: 575px) */
+        @media (max-width: 575px) {
+            .main-content {
+                padding: 15px 10px;
+            }
+
+            .content-header {
+                font-size: 1.25rem;
+            }
+
+            .navbar-brand {
+                font-size: 1rem;
+            }
+
+            .top-navbar {
+                padding: 0 10px;
+            }
+
+            .navbar-nav a span {
+                display: none;
+            }
+
+            .navbar-nav a {
+                padding: 8px;
+            }
+        }
+
+        /* Large screens (min-width: 1200px) */
+        @media (min-width: 1200px) {
+            .main-content {
+                padding: 40px;
+            }
+            
+            .content-header {
+                font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 35 %}{{ customization.header_font_size|default:20 }}{% else %}35{% endif %}px;
+            }
+        }
+
+        .top-navbar .nav-icon {
+            transition: color 0.3s ease, transform 0.2s ease;
+            color: #000000;
+            background: transparent;
+        }
+
+        .top-navbar .nav-icon:hover {
+            color: var(--primary-color); /* Change to your preferred highlight color */
+            transform: scale(1.2);
+        }
+
+        /* Responsive customer notification badge */
+        #customer-notification-badge {
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 12 %}{{ customization.body_font_size|default:10 }}{% else %}12{% endif %}px;
+            padding: 0.35em 0.5em;
+            min-width: 1.4em;
+            min-height: 1.4em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Medium screens */
+        @media (max-width: 992px) {
+            #customer-notification-badge {
+                font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 14 %}{{ customization.body_font_size|default:10 }}{% else %}14{% endif %}px;                min-width: 1.6em;
+                min-height: 1.6em;
+            }
+        }
+
+        /* Small screens */
+        @media (max-width: 576px) {
+            #customer-notification-badge {
+                font-size: 0.9em;
+                min-width: 1.8em;
+                min-height: 1.8em;
+            }
+        }
+
+        /* Modal Styling */
+        .aboutus-modal .modal-content {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+            overflow: hidden;
+        }
+
+        .aboutus-modal .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: {{customization.button_text_color|default:"#ffffff"}};
+            border: none;
+            padding: 24px 32px; 
+        }
+
+        .aboutus-modal .modal-title {    
+            font-weight: 800;
+            margin: 0;
+            font-family:  {{ customization.header_font_family|default:"Montserrat" }};
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 25 %}{{ customization.header_font_size|default:15 }}{% else %}25{% endif %}px;
+        }
+
+        .aboutus-modal .btn-close {
+            filter: brightness(0) invert(1);
+            opacity: 0.8;
+        }
+
+        .aboutus-modal .btn-close:hover {
+            opacity: 1;
+        }
+
+        .aboutus-modal .modal-body {
+            padding: 32px;
+            background: white;
+        }
+
+        /* Business Name */
+        .business-name {
+            font-weight: 900;
+            color: var(--primary-color);
+            font-family:  {{ customization.header_font_family|default:"Montserrat" }};
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 30 %}{{ customization.header_font_size|default:20 }}{% else %}30{% endif %}px;
+            margin: 0;
+        }
+
+        /* Description */
+        .description {
+            font-weight: 600;
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        }
+
+        /* Mission/Vision Section */
+        .mission-vision-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .mission-card, .vision-card {
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 5px solid var(--primary-color) ;
+            transition: all 0.3s ease;
+        }
+
+        .vision-card {
+            border-left-color: var(--primary-color);
+        }
+
+        .mission-card:hover, .vision-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .mission-card h6, .vision-card h6 {
+            font-weight: 800;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary-color);
+            font-family: '{{ customization.header_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 18 %}{{ customization.body_font_size|default:12 }}{% else %}18{% endif %}px;
+        }
+
+        .mission-card h6::before {
+            content: "🎯";
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 18 %}{{ customization.body_font_size|default:12 }}{% else %}18{% endif %}px;
+        }
+
+        .vision-card h6::before {
+            content: "👁️";
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 18 %}{{ customization.body_font_size|default:12 }}{% else %}18{% endif %}px;
+        }
+
+        .mission-card p, .vision-card p {
+            font-weight: 600;
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: color 0.2s ease;
+            font-weight: 600;
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        }
+
+        .contact-item:hover {
+            color: var(--primary-color);
+        }
+
+        .contact-item i {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Social Section */
+        .social-section {
+            padding-top: 24px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .social-title {
+            font-weight: 800;
+            color: var(--primary-color);
+            font-family: '{{ customization.header_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 18 %}{{ customization.body_font_size|default:12 }}{% else %}18{% endif %}px;
+        }
+
+        .social-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .social-item:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(92, 92, 92, 0.2);
+        }
+
+        .social-item i {
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+            color: var(--primary-color);
+        }
+
+        .social-item a {
+            color: {{ customization.body_font_color|default:"#000000" }};
+            text-decoration: none;
+            font-weight: 600;
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        }
+
+        .social-item:hover a {
+            color: var(--secondary-color);
+        }
+
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .business-name {
+                font-size: 1.4rem;
+            }
+
+            .aboutus-modal .modal-body {
+                padding: 24px;
+            }
+
+            .mission-vision-section {
+                grid-template-columns: 1fr;
+            }
+        }    
+
+
+        
+
+                
+    </style>
+    
+</head>
+<body>
+    <!-- Top Navbar -->
+    <nav class="top-navbar d-flex justify-content-between align-items-center px-3 py-2">
+        <!-- Left: Toggle + Title -->
+        <div class="d-flex align-items-center">
+            <button class="btn btn-light d-md-none me-3 mobile-menu-btn p-0 border-0" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                {% if business and business.logo %}
+                    <img src="{{ business.logo.url }}" alt="Logo" style="height: 40px; width: auto;">
+                {% else %}
+                    <div class="logo-circle sidebar-logo-circle">
+                        <span class="sidebarlogo-text">Logo</span>
+                    </div>
+                {% endif %}
+            </button>
+
+        </div>
+
+        <div class="navbar-nav d-flex flex-row align-items-center gap-2">
+            <a href="{% url 'customer_cart' %}"
+            class="position-relative {% if request.resolver_match.url_name == 'customer_cart' %}active{% endif %}"
+            aria-label="Cart">
+                <i class="bi bi-cart-fill fs-5"></i>
+            </a>
+
+            <a href="{% url 'customer_notifications' %}"
+            class="position-relative {% if request.resolver_match.url_name == 'customer_notifications' %}active{% endif %}"
+            aria-label="customer_notifications">
+                <i class="bi bi-bell-fill fs-5"></i>
+                <span id="customer-notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                    0
+                    <span class="visually-hidden">unread notifications</span>
+                </span>
+            </a>
+
+            <a href="{% url 'customer_profile' %}"
+            class="{% if request.resolver_match.url_name == 'customer_profile' %}active{% endif %}"
+            aria-label="Profile">
+                <i class="bi bi-person-circle fs-5"></i>
+            </a>
+        </div>
+        </div>
+    </nav>
+
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+   <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo" onclick="toggleSidebarDesktop()">
+                {% if business and business.logo %}
+                    <img src="{{ business.logo.url }}" alt="Logo" class="logo-img" />
+                {% else %}
+                    <div class="logo-circle sidebar-logo-circle">
+                        <span class="sidebarlogo-text">Logo</span>
+                    </div>
+                {% endif %}
+                <span class="logo-text">
+                    {% if business and business.business_name %}
+                        {{ business.business_name }}
+                    {% else %}
+                        Business Name
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        
+        <nav class="sidebar-nav">
+            <ul class="list-unstyled ps-0">
+                <li>
+                    <a href="{% url 'customer_home' %}" 
+                    class="{% if request.resolver_match.url_name == 'customer_home' %}active{% endif %}">
+                        <i class="bi bi-house-door"></i>
+                        <span class="sidebar-label">Home</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'customer_reviews' %}" 
+                    class="{% if request.resolver_match.url_name == 'customer_reviews' %}active{% endif %}">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span class="sidebar-label">Reviews</span>
+                    </a>
+                </li>
+            </ul>
+
+        </nav>
+        
+        <div class="sidebar-footer">
+                        <!-- About Us button -->
+            <a href="#" class="logout-btn" data-bs-toggle="modal" data-bs-target="#aboutUsModal">
+                <i class="bi bi-info-circle"></i> <span>About Us</span>
+            </a>
+            <a href="{% url 'logout' %}" class="logout-btn">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="sidebar-label">Log Out</span>
+            </a>
+
+
+        </div>
+
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        {% block content %}
+        <div class="content-header">
+            <h1>Welcome to Business Panel</h1>
+            <p>Manage your business operations from this dashboard</p>
+        </div>
+        {% endblock %}
+    </main>
+
+
+    <!-- About Us Modal -->
+    <div class="modal fade aboutus-modal" id="aboutUsModal" tabindex="-1" aria-labelledby="aboutUsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+        <!-- Header -->
+        <div class="modal-header">
+            <h5 class="modal-title" id="aboutUsLabel">About Us</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <!-- Body -->
+        <div class="modal-body">
+            <!-- Logo + Name -->
+            <div class="d-flex flex-column flex-md-row align-items-center mb-3 text-center">
+            <div class="flex-shrink-0 me-md-3 mb-3 mb-md-0">
+                {% if business.logo %}
+                <img src="{{ business.logo.url }}" alt="{{ business.business_name }}" class="img-fluid rounded shadow-sm" style="max-height:100px; width:auto;">
+                {% endif %}
+            </div>
+            <div>
+                <h4 class="business-name">{{ business.business_name }}</h4>
+            </div>
+            </div>
+            <!-- Description -->
+            {% if business.business_description %}
+            <p class="description mb-4">{{ business.business_description }}</p>
+            {% endif %}
+            <!-- Mission / Vision -->
+            <div class="mission-vision-section">
+            {% if business.business_mission %}
+            <div class="mb-3 mission-card">
+                <h6>Our Mission</h6>
+                <p>{{ business.business_mission }}</p>
+            </div>
+            {% endif %}
+            {% if business.business_vision %}
+            <div class="mb-3 vision-card">
+                <h6>Our Vision</h6>
+                <p>{{ business.business_vision }}</p>
+            </div>
+            {% endif %}
+            </div>
+            <!-- Contact Info -->
+            <div class="contact-section mt-2">
+            {% if business.contact_number %}
+            <div class="contact-item mb-1">
+                <i class="bi bi-telephone"></i>
+                <span>{{ business.contact_number }}</span>
+            </div>
+            {% endif %}
+            {% if business.email_address %}
+            <div class="contact-item mb-1">
+                <i class="bi bi-envelope"></i>
+                <span>{{ business.email_address }}</span>
+            </div>
+            {% endif %}
+            {% if business.store_address %}
+            <div class="contact-item">
+                <i class="bi bi-geo-alt"></i>
+                <span>{{ business.store_address }}</span>
+            </div>
+            {% endif %}
+            </div>
+            <!-- Social Media -->
+            {% if business.social_media.all %}
+            <div class="social-section mt-2">
+            <h6 class="social-title text-center mb-2">Follow us on:</h6>
+            <div class="social-links d-flex justify-content-center flex-wrap gap-2">
+                {% for sm in business.social_media.all %}
+                <div class="social-item">
+                <i class="bi bi-{{ sm.platform|lower }}"></i>
+                <a href="{{ sm.username_or_link }}" target="_blank">{{ sm.platform }}</a>
+                </div>
+                {% endfor %}
+            </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    </div>
+    
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const email = "{{ request.session.email|default:'' }}";
+        const encodedEmail = encodeURIComponent(email);
+
+        // ✅ Utility to update the badge
+        function updateCustomerBadge(count) {
+            const badge = document.getElementById("customer-notification-badge");
+            if (!badge) return;
+
+            if (count > 0) {
+                badge.textContent = count;
+                badge.classList.remove("d-none");
+            } else {
+                badge.classList.add("d-none");
+            }
+        }
+
+        // ✅ CUSTOMER WebSocket (based on session email)
+        if (email) {
+            const socket = new WebSocket(
+                "wss://" + window.location.host + "/ws/customer-notifications/?email=" + encodedEmail
+            );
+
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+
+                if (data.type === "send_customer_notification") {
+                    updateCustomerBadge(data.customer_count);
+
+                    // ✅ Reload notifications only if the container is safe to update dynamically
+                    const container = document.getElementById("customer-notifications");
+                    if (container && container.classList.contains("ajax-refresh")) {
+                        fetch("/partial/customer-notifications/")
+                            .then(response => response.text())
+                            .then(html => {
+                                container.innerHTML = html;
+                            });
+                    }
+                }
+            };
+        }
+
+        // ✅ GENERAL WebSocket (for business dashboard only)
+        const generalSocket = new WebSocket("wss://" + window.location.host + "/ws/notifications/");
+
+        generalSocket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            // Only update customer badge if you're not already a customer
+            if (data.type === "send_notification" && !email) {
+                updateCustomerBadge(data.customer_count);
+
+                if (window.location.pathname.toLowerCase().includes("customernotifications")) {
+                    fetch("/partial/customer-notifications/")
+                        .then(response => response.text())
+                        .then(html => {
+                            const container = document.getElementById("customer-notifications");
+                            if (container) {
+                                container.innerHTML = html;
+                            }
+                        });
+                }
+            }
+        };
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            if (window.innerWidth <= 767) {
+                // Mobile behavior
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('show');
+            }
+        }
+
+        function toggleSidebarDesktop() {
+            if (window.innerWidth > 767) {
+                // Desktop behavior
+                const sidebar = document.getElementById('sidebar');
+                const mainContent = document.getElementById('mainContent');
+                const topNavbar = document.querySelector('.top-navbar');
+                
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('collapsed');
+                topNavbar.classList.toggle('collapsed');
+            } else {
+                // On mobile, just toggle the sidebar
+                toggleSidebar();
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const mainContent = document.getElementById('mainContent');
+            const topNavbar = document.querySelector('.top-navbar');
+            
+            if (window.innerWidth > 767) {
+                // Desktop mode - remove mobile classes
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+            } else {
+                // Mobile mode - remove desktop collapsed state
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('collapsed');
+                topNavbar.classList.remove('collapsed');
+            }
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (window.innerWidth <= 767 && 
+                sidebar.classList.contains('show') && 
+                !sidebar.contains(e.target) && 
+                !mobileMenuBtn.contains(e.target)) {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+            }
+        });
+    </script>
+    {% if business %}
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const openingTime = "{{ opening_time }}";
+            const closingTime = "{{ closing_time }}";
+            const startDay = "{{ business.start_day }}";  // e.g., "Monday"
+            const endDay = "{{ business.end_day }}";      // e.g., "Friday"
+            
+            let forceClosed = {{ business.force_closed|yesno:"true,false" }}; // from backend
+        
+            const weekdays = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+        
+            function parseTime(t) {
+                const [h, m, s] = t.split(":").map(Number);
+                const now = new Date();
+                return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, s, 0);
+            }
+        
+            function isWithinOperatingDays() {
+                const now = new Date();
+                const todayIndex = now.getDay();
+                const startIndex = weekdays.indexOf(startDay);
+                const endIndex = weekdays.indexOf(endDay);
+        
+                if (startIndex <= endIndex) {
+                    return todayIndex >= startIndex && todayIndex <= endIndex;
+                } else {
+                    return todayIndex >= startIndex || todayIndex <= endIndex;
+                }
+            }
+        
+            function isWithinOperatingHours() {
+                const now = new Date();
+                let open = parseTime(openingTime);
+                let close = parseTime(closingTime);
+            
+                // Handle special case: closing exactly at midnight (00:00:00)
+                if (closingTime === "00:00:00") {
+                    close = new Date(open);
+                    close.setHours(23, 59, 59, 999);
+                    return now >= open && now <= close;
+                }
+                
+                // Check if this is an overnight operation (closing time is "earlier" than opening)
+                const isOvernight = close <= open;
+                
+                if (isOvernight) {
+                    // For overnight hours, we're open if:
+                    // - Current time is after opening time (still same day), OR
+                    // - Current time is before closing time (early morning of next day)
+                    return now >= open || now <= close;
+                } else {
+                    // Normal same-day operation
+                    return now >= open && now <= close;
+                }
+            }
+        
+            function isShopClosed() {
+                // 🚨 Forced closed overrides schedule
+                if (forceClosed === true) return true;
+        
+                return !(isWithinOperatingDays() && isWithinOperatingHours());
+            }
+        
+            function updateCartLink() {
+                const cartLink = document.querySelector('a[aria-label="Cart"]');
+                if (!cartLink) return;
+        
+                if (isShopClosed()) {
+                    cartLink.onclick = e => e.preventDefault();
+                    cartLink.title = "Shop is currently closed";
+                    cartLink.classList.add("disabled");
+                } else {
+                    cartLink.onclick = null;
+                    cartLink.title = "";
+                    cartLink.classList.remove("disabled");
+                }
+            }
+        
+            // Initial check
+            updateCartLink();
+        
+            // Recheck every 60 seconds
+            setInterval(() => {
+                if (!forceClosed) {
+                    updateCartLink();
+                }
+            }, 60000);
+        
+            // --- Poll backend every 3s to refresh forceClosed ---
+            setInterval(() => {
+                fetch("{% url 'toggle_shop_status' %}", { method: "GET" })
+                .then(res => res.json())
+                .then(data => {
+                    const newForceClosed = data.force_closed;
+                    if (forceClosed !== newForceClosed) {
+                        forceClosed = newForceClosed;
+                        updateCartLink();  // immediately reapply new state
+                    }
+                })
+                .catch(() => {});
+            }, 3000);
+        
+        });
+    </script>
+    {% endif %}  
+</body>
+</html>

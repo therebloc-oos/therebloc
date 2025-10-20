@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+
+    {% load static %}
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caudex:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Arapey:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Brawler:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: {{ customization.primary_color|default:'#3b82f6' }};
+            --secondary-color: {{ customization.secondary_color|default:'#1d4ed8' }};
+            --accent-color: {{ customization.accent_color|default:'#059669' }};
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        {% if customization.login_background_type == 'solid' %}
+        .bg-image {
+            background-color: {{ customization.login_solid_color|default:"#ffffff" }};
+            height: 100vh;
+        }
+        {% elif customization.login_background_type == 'gradient' %}
+        .bg-image {
+            background: linear-gradient(
+                {{ customization.login_gradient_direction|default:"to right" }},
+                {{ customization.login_gradient_color_1|default:"#ffffff" }},
+                {{ customization.login_gradient_color_2|default:"#000000" }}
+                {% if customization.login_gradient_color_3 %}
+                    , {{ customization.login_gradient_color_3 }}
+                {% endif %}
+            );
+            height: 100vh;
+        }
+        {% elif customization.login_background_type == 'image' %}
+        .bg-image {
+            background-image: url("{{ customization.login_background_image.url }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            height: 100vh;
+        }
+        {% endif %}
+
+
+        .logo-img {
+            display: block;
+            margin: 0 auto 10px auto; /* top: 0px, right: auto, bottom: 24px, left: auto */
+            max-width: 100px;
+            height: auto;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.589);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.534);
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-family: "{{ customization.header_font_family|default:"Arial" }}";
+            font-size: min({{ customization.header_font_size|default:24 }}px, 65px);
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}900{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+            line-height: 1.2;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .login-container button {
+            width: 100%; 
+            margin-top: 5px;
+            padding: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 17px;
+            transition: all 0.3s ease;
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            background: linear-gradient(90deg, {{ customization.primary_color|default:'#000000' }}, {{ customization.secondary_color|default:'#808080' }}); /* Gradient background */
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+        }
+
+        .login-container button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-container a {
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            color: {{ customization.primary_color|default:'#0000EE' }};
+        }
+
+        .login-container a:hover {
+            text-decoration: underline;
+            font-weight: 700;
+            color: {{ customization.secondary_color|default:'#FF5733' }};
+        }
+        
+        .login-container .form-label {
+            margin-top: 0px;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+
+        /* Input fields styling */
+        .login-container input[type="email"],
+        .login-container input[type="password"],
+        .login-container input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 5px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            font-weight: 500;
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            border-width: {{ customization.input_border_width|default:1 }}px; 
+            border-style: {{ customization.input_border_style|default:'solid' }};
+            border-color: {{ customization.primary_color|default:'#000000' }};
+            border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+        }
+
+        .login-container input[type="email"]:focus,
+        .login-container input[type="password"]:focus,
+        .login-container input[type="text"]:focus {
+            border-color: {{ customization.secondary_color|default:'#000000' }};
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 0, 238, 0.1);
+        }
+
+        .login-container input[type="email"]:hover,
+        .login-container input[type="password"]:hover,
+        .login-container input[type="text"]:hover {
+            border-color: {{ customization.secondary_color|default:'#808080' }};
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 420px;
+            width: 90%;
+            position: relative;
+            font-family: '{{ customization.header_font_family|default:"Arial" }}';
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            transform: translateY(-50px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--accent-color);
+            
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-family: "{{ customization.header_font_family|default:"Arial" }}";
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 25 %}25
+            {% else %}{{ customization.header_font_size|default:20 }}{% endif %}px;
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+        }
+
+        .modal .close {
+            font-size: 28px;
+            cursor: pointer;
+            color: {{ customization.primary_color|default:'#FF5733' }};
+            transition: color 0.3s ease;
+            line-height: 1;
+            padding: 0;
+            background: none;
+            border: none;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal .close:hover {
+            color: {{ customization.secondary_color|default:'#FF5733' }};
+        }
+
+        /* Modal form elements */
+        .modal label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16
+            {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+
+        .modal input[type="email"],
+        .modal input[type="text"],
+        .modal input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            font-weight: 500;
+            font-size: 15px;
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            color: {{ customization.body_font_color|default:"#000000" }};
+            border-width: {{ customization.input_border_width|default:1 }}px; 
+            border-style: {{ customization.input_border_style|default:'solid' }};
+            border-color: {{ customization.primary_color|default:'#000000' }};
+            border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+        }
+
+        .modal input[type="email"]:focus,
+        .modal input[type="text"]:focus,
+        .modal input[type="password"]:focus {
+            border-color: {{ customization.primary_color|default:'#808080' }};
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 0, 238, 0.1);
+        }
+
+        .modal input[type="email"]:hover,
+        .modal input[type="text"]:hover,
+        .modal input[type="password"]:hover {
+            border-color:  {{ customization.secondary_color|default:'#808080' }};
+        }
+
+        /* Modal buttons */
+        .modal button {
+            width: 100%;
+            padding: 12px;
+            font-weight: 600;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            background-color: {{ customization.primary_color|default:'#000000' }};
+            color: {{ customization.button_text_color|default:'#ffffff' }}
+            
+        }
+
+        .modal button:hover {
+            background-color:  {{ customization.secondary_color|default:'#808080' }};
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Password show/hide styling */
+        .password-showhide {
+            display: flex;
+            align-items: center;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .password-showhide input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+            margin-bottom: 0;
+        }
+
+        .password-showhide label {
+            margin-bottom: 0;
+            font-weight: 400;
+            cursor: pointer;
+        }
+
+        /* Loading spinner */
+        #spinner-container {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        #spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid {{ customization.accent_color|default:'#FF5733' }};
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #loading-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            
+            .modal-content {
+                margin: 10% auto;
+                padding: 1.5rem;
+            }
+        }
+
+        /* Enhanced Responsive Design */
+        /* Large tablets and small desktops */
+        @media (max-width: 1024px) {
+            .login-container {
+                max-width: 450px;
+                padding: 2rem;
+                margin: 0 auto;
+            }
+            
+            .modal-content {
+                max-width: 480px;
+                margin: 8% auto;
+            }
+        }
+
+        /* Tablets */
+        @media (max-width: 768px) {
+            .login-container {
+                max-width: 400px;
+                padding: 2rem;
+                margin: 0 auto;
+                width: calc(100% - 2rem);
+            }
+            
+            .login-container h2 {
+                font-size: min({{ customization.header_font_size|default:22 }}px, 60px);
+            }
+            
+            .login-container button {
+                font-size: 16px;
+                padding: 11px;
+            }
+            
+            .modal-content {
+                max-width: 450px;
+                margin: 10% auto;
+                padding: 1.75rem;
+                width: 90%;
+            }
+            
+            .modal-header h2 {
+                font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 22 %}22
+                {% else %}{{ customization.header_font_size|default:18 }}{% endif %}px;
+            }
+        }
+
+        /* Mobile phones - landscape */
+        @media (max-width: 667px) and (orientation: landscape) {
+            .login-container {
+                padding: 1.5rem;
+                margin: 0 auto;
+                max-width: 350px;
+            }
+            
+            .logo-img {
+                max-width: 80px;
+                margin-bottom: 8px;
+            }
+            
+            .login-container h2 {
+                font-size: min({{ customization.header_font_size|default:20 }}px, 55px);
+                margin-bottom: 8px;
+            }
+            
+            .login-container .form-label {
+                font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 14 %}14
+                {% else %}{{ customization.body_font_size|default:13 }}{% endif %}px;
+                margin-bottom: 4px;
+            }
+            
+            .login-container input[type="email"],
+            .login-container input[type="password"],
+            .login-container input[type="text"] {
+                padding: 10px;
+                font-size: 14px;
+                margin-bottom: 4px;
+            }
+            
+            .login-container button {
+                padding: 10px;
+                font-size: 15px;
+                margin-top: 4px;
+            }
+            
+            .modal-content {
+                margin: 5% auto;
+                padding: 1.25rem;
+            }
+        }
+
+        /* Mobile phones - portrait */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 1.5rem;
+                margin: 0 auto;
+                max-width: 320px;
+                width: calc(100% - 2rem);
+                border-radius: 12px;
+            }
+            
+            .logo-img {
+                max-width: 70px;
+                margin-bottom: 8px;
+            }
+            
+            .login-container h2 {
+                font-size: min({{ customization.header_font_size|default:20 }}px, 50px);
+                margin-bottom: 5px;
+            }
+            
+            .login-container .form-label {
+                font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 14 %}14
+                {% else %}{{ customization.body_font_size|default:13 }}{% endif %}px;
+                margin-bottom: 4px;
+            }
+            
+            .login-container input[type="email"],
+            .login-container input[type="password"],
+            .login-container input[type="text"] {
+                padding: 10px;
+                font-size: 14px;
+                margin-bottom: 4px;
+            }
+            
+            .login-container button {
+                padding: 10px;
+                font-size: 15px;
+                margin-top: 4px;
+            }
+            
+            .login-container a {
+                font-size: 13px;
+            }
+            
+            .modal-content {
+                margin: 10% auto;
+                padding: 1.25rem;
+                width: 90%;
+                max-width: 320px;
+            }
+            
+            .modal-header h2 {
+                font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 18 %}18
+                {% else %}{{ customization.header_font_size|default:16 }}{% endif %}px;
+            }
+            
+            .modal input[type="email"],
+            .modal input[type="text"],
+            .modal input[type="password"] {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            .modal button {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+
+        /* Small mobile phones */
+        @media (max-width: 375px) {
+            .login-container {
+                padding: 1.25rem;
+                margin: 0 auto;
+                max-width: 280px;
+                width: calc(100% - 1.5rem);
+            }
+            
+            .logo-img {
+                max-width: 60px;
+                margin-bottom: 6px;
+            }
+            
+            .login-container h2 {
+                font-size: min({{ customization.header_font_size|default:18 }}px, 45px);
+                margin-bottom: 6px;
+            }
+            
+            .login-container .form-label {
+                font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 13 %}13
+                {% else %}{{ customization.body_font_size|default:12 }}{% endif %}px;
+                margin-bottom: 3px;
+            }
+            
+            .login-container input[type="email"],
+            .login-container input[type="password"],
+            .login-container input[type="text"] {
+                padding: 8px;
+                font-size: 13px;
+                margin-bottom: 3px;
+            }
+            
+            .login-container button {
+                padding: 8px;
+                font-size: 14px;
+                margin-top: 3px;
+            }
+            
+            .login-container a {
+                font-size: 12px;
+            }
+            
+            .modal-content {
+                margin: 8% auto;
+                padding: 1rem;
+                width: 92%;
+                max-width: 280px;
+            }
+            
+            .modal-header h2 {
+                font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 16 %}16
+                {% else %}{{ customization.header_font_size|default:15 }}{% endif %}px;
+            }
+            
+            .modal input[type="email"],
+            .modal input[type="text"],
+            .modal input[type="password"] {
+                padding: 8px;
+                font-size: 13px;
+            }
+            
+            .modal button {
+                padding: 8px;
+                font-size: 13px;
+            }
+        }
+
+        /* Extra small mobile phones */
+        @media (max-width: 320px) {
+            .login-container {
+                padding: 1rem;
+                margin: 0 auto;
+                max-width: 250px;
+                width: calc(100% - 1rem);
+            }
+            
+            .logo-img {
+                max-width: 50px;
+                margin-bottom: 5px;
+            }
+            
+            .login-container h2 {
+                font-size: min({{ customization.header_font_size|default:16 }}px, 35px);
+                margin-bottom: 5px;
+            }
+            
+            .login-container .form-label {
+                font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 12 %}12
+                {% else %}{{ customization.body_font_size|default:11 }}{% endif %}px;
+                margin-bottom: 2px;
+            }
+            
+            .login-container input[type="email"],
+            .login-container input[type="password"],
+            .login-container input[type="text"] {
+                padding: 7px;
+                font-size: 12px;
+                margin-bottom: 2px;
+            }
+            
+            .login-container button {
+                padding: 7px;
+                font-size: 13px;
+                margin-top: 2px;
+            }
+            
+            .login-container a {
+                font-size: 11px;
+            }
+            
+            .modal-content {
+                margin: 5% auto;
+                padding: 0.75rem;
+                width: 95%;
+                max-width: 250px;
+            }
+            
+            .modal-header h2 {
+                font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 14 %}14
+                {% else %}{{ customization.header_font_size|default:13 }}{% endif %}px;
+            }
+            
+            .modal input[type="email"],
+            .modal input[type="text"],
+            .modal input[type="password"] {
+                padding: 7px;
+                font-size: 12px;
+            }
+            
+            .modal button {
+                padding: 7px;
+                font-size: 12px;
+            }
+        }
+
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .login-container {
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            }
+            
+            .modal-content {
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .login-container button,
+            .modal button {
+                min-height: 44px; /* Minimum touch target size */
+            }
+            
+            .login-container input[type="email"],
+            .login-container input[type="password"],
+            .login-container input[type="text"],
+            .modal input[type="email"],
+            .modal input[type="text"],
+            .modal input[type="password"] {
+                min-height: 44px; /* Minimum touch target size */
+            }
+            
+            .toggle-password {
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
+
+        /* Landscape orientation adjustments for mobile */
+        @media (max-width: 667px) and (orientation: landscape) {
+            .bg-image {
+                height: 100vh;
+                min-height: 400px;
+            }
+            
+            .login-container {
+                position: relative;
+                top: auto;
+                left: auto;
+                transform: none;
+                margin: 2rem auto;
+                width: calc(100% - 2rem);
+            }
+        }
+
+        /* Fixed input wrapper styles */
+        .input-wrapper {
+            position: relative;
+            display: block;
+            width: 100%;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 12px 40px 12px 12px; /* Right padding for icon space */
+            margin-bottom: 5px;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border-width: {{ customization.input_border_width|default:1 }}px; 
+            border-style: solid;
+            box-sizing: border-box;
+        }
+
+        .input-wrapper .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: {{ customization.primary_color|default:'#000000' }};
+            font-size: 16px;
+            z-index: 10;
+            padding: 0;
+            background: none;
+            border: none;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-wrapper .toggle-password:hover {
+            color: {{ customization.secondary_color|default:'#808080' }};
+        }
+
+        /* Modal input wrapper styles */
+        .modal .input-wrapper {
+            position: relative;
+            display: block;
+            width: 100%;
+        }
+
+        .modal .input-wrapper input {
+            width: 100%;
+            padding: 12px 40px 12px 12px;
+            margin-bottom: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .modal .input-wrapper .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: {{ customization.primary_color|default:'#000000' }};
+            font-size: 16px;
+            z-index: 10;
+            padding: 0;
+            background: none;
+            border: none;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal .input-wrapper .toggle-password:hover {
+            color: {{ customization.secondary_color|default:'#808080' }};
+        }
+
+        /* Circle styling */
+        .logo-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #f0f0f0; /* adjust color */
+            display: flex;
+            align-items: center;   /* vertical center */
+            justify-content: center; /* horizontal center */
+            margin: 0 auto;        /* center in parent */
+        }
+
+        /* Optional: text styling */
+        .logo-text {
+            font-weight: bold;
+            font-size: 18px;
+            color: #333;
+        }
+
+
+
+    </style>
+
+</head>
+<body>
+{% if messages %}
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        {% for message in messages %}
+            <div class="toast align-items-center text-white 
+                        {% if message.tags == 'error' %}bg-danger
+                        {% elif message.tags == 'success' %}bg-success
+                        {% elif message.tags == 'warning' %}bg-warning text-dark
+                        {% else %}bg-secondary
+                        {% endif %}" 
+                 role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" 
+                            data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+
+<div class="bg-image">
+    <div class="login-container">
+        {% if business and business.logo %}
+            <img src="{{ business.logo.url }}" alt="Logo" class="logo-img" />
+        {% else %}
+                <div class="logo-circle">
+                    <span class="logo-text">Logo</span>
+                </div>
+        {% endif %}
+        <h2 class="text-center">LOG IN</h2>
+
+
+            <form action="{% url 'login' %}" method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="email" class="form-label">E-Mail</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" value="{{ email }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+
+                    <div class="input-wrapper">
+                        <input type="password" class="form-control" id="password" name="password" required>
+                        <i class="fa fa-eye toggle-password" id="toggle-password"></i>
+                    </div>
+
+                    <a href="javascript:void(0);" class="d-block text-end mt-2" onclick="openModal('forgotPasswordModal')">
+                        Forgot password?
+                    </a>
+                </div>
+
+
+                <button type="submit">LOGIN</button>
+
+                <a href="{% url 'register_user' %}" class="d-block mt-3 text-center">
+                    Don't have an account yet? <span style="font-weight: bold; text-decoration: underline;">Sign Up</span>
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>FORGOT PASSWORD</h2>
+                <span class="close" onclick="closeModal('forgotPasswordModal')">&times;</span>
+            </div>
+            <form id="forgotPasswordForm" onsubmit="submitForgotPasswordForm(event)">
+                <div>
+                    <label for="forgot-email">EMAIL</label>
+                    <input type="email" id="forgot-email" name="email" required autocomplete="off">
+                </div>
+                <div>
+                    <button id="sendEmailBtn" type="submit">SEND EMAIL</button>
+                    <div id="spinner-container">
+                        <span id="spinner"></span>
+                        <span id="loading-text">Sending email, please wait...</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- OTP Modal -->
+    <div id="otpModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>OTP VERIFICATION</h2>
+                <span class="close" onclick="closeModal('otpModal')">&times;</span>
+            </div>
+            <form id="otpForm" onsubmit="submitOtpForm(event)">
+                <div>
+                    <label for="otp-code">INSERT OTP CODE</label>
+                    <input type="text" id="otp-code" name="otp_code" required maxlength="6" placeholder="Enter 6-digit code">
+                </div>
+                <div>
+                    <button type="submit">VERIFY OTP</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>CHANGE PASSWORD</h2>
+                <span class="close" onclick="closeModal('changePasswordModal')">&times;</span>
+            </div>
+
+            <form id="changePasswordForm" onsubmit="submitChangePasswordForm(event)">
+                
+                <!-- New Password -->
+                <div class="mb-3">
+                    <label for="newPassword">NEW PASSWORD</label>
+                    <div class="input-wrapper">
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" required minlength="8">
+                        <i class="fa fa-eye toggle-password" data-target="newPassword"></i>
+                    </div>
+                </div>
+
+
+                <!-- Confirm Password -->
+                <div class="mb-3">
+                    <label for="confirmPassword">CONFIRM PASSWORD</label>
+                    <div class="input-wrapper">
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required minlength="8">
+                        <i class="fa fa-eye toggle-password" data-target="confirmPassword"></i>
+                    </div>
+                    <small class="text-muted">Password must be at least 8 characters, include a letter, a number, and a special character.</small>
+                    <button type="submit">CHANGE PASSWORD</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script>
+    // Unified password toggle functionality
+    document.addEventListener("DOMContentLoaded", function () {
+        // Handle all password toggle icons
+        document.querySelectorAll(".toggle-password").forEach(function (icon) {
+            icon.addEventListener("click", function () {
+                let input;
+                
+                // Check if this icon has a data-target attribute (for modal inputs)
+                const targetId = this.getAttribute("data-target");
+                if (targetId) {
+                    input = document.getElementById(targetId);
+                } else {
+                    // For the main login form password field
+                    input = this.parentElement.querySelector("input");
+                }
+
+                if (input) {
+                    if (input.type === "password") {
+                        input.type = "text";
+                        this.classList.remove("fa-eye");
+                        this.classList.add("fa-eye-slash");
+                    } else {
+                        input.type = "password";
+                        this.classList.remove("fa-eye-slash");
+                        this.classList.add("fa-eye");
+                    }
+                }
+            });
+        });
+    });
+
+    // Toast messages
+    document.addEventListener('DOMContentLoaded', function () {
+        var toastElements = document.querySelectorAll('.toast');
+        toastElements.forEach(function (toastElement) {
+            var toast = new bootstrap.Toast(toastElement);
+            toast.show();
+        });
+    });
+
+    // Modal functions
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.style.display = "block";
+        // Trigger reflow to ensure transition works
+        modal.offsetHeight;
+        modal.classList.add('show');
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = "none";
+        }, 300);
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+    };
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const openModals = document.querySelectorAll('.modal.show');
+            openModals.forEach(modal => {
+                closeModal(modal.id);
+            });
+        }
+    });
+
+    function submitForgotPasswordForm(event) {
+        event.preventDefault();
+        const sendEmailBtn = document.getElementById("sendEmailBtn");
+        const spinnerContainer = document.getElementById("spinner-container");
+    
+        sendEmailBtn.disabled = true;
+        sendEmailBtn.style.display = "none";
+        spinnerContainer.style.display = "flex";
+    
+        const email = document.getElementById("forgot-email").value;
+    
+        fetch("{% url 'forgot_password' %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/x-www-form-urlencoded" },
+            body: `email=${encodeURIComponent(email)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                closeModal('forgotPasswordModal');
+                openModal('otpModal');
+            } else {
+                showToast(data.message);   // 🔹 replaced alert
+            }
+        })
+        .catch(err => showToast("Error: " + err))  // 🔹 replaced alert
+        .finally(() => {
+            sendEmailBtn.disabled = false;
+            sendEmailBtn.style.display = "block";
+            spinnerContainer.style.display = "none";
+        });
+    }
+    
+    function submitOtpForm(event) {
+        event.preventDefault();
+        const email = document.getElementById("forgot-email").value;
+        const otp_code = document.getElementById("otp-code").value;
+    
+        fetch("{% url 'forgot_passwordotp' %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/x-www-form-urlencoded" },
+            body: `email=${encodeURIComponent(email)}&otp_code=${encodeURIComponent(otp_code)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                closeModal('otpModal');
+                openModal('changePasswordModal');
+            } else {
+                showToast(data.message);   // 🔹 replaced alert
+            }
+        })
+        .catch(err => showToast("Error: " + err));  // 🔹 replaced alert
+    }
+
+    function showToast(message, type = "error") {
+        const container = document.querySelector(".toast-container") || (() => {
+            const div = document.createElement("div");
+            div.className = "toast-container position-fixed top-0 end-0 p-3";
+            document.body.appendChild(div);
+            return div;
+        })();
+
+        const bgClass = type === "success" ? "bg-success" : "bg-danger";
+        const toast = document.createElement("div");
+        toast.className = `toast align-items-center text-white ${bgClass}`;
+        toast.setAttribute("role", "alert");
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>`;
+        container.appendChild(toast);
+        new bootstrap.Toast(toast).show();
+    }
+
+    function submitChangePasswordForm(event) {
+        event.preventDefault();
+        const email = document.getElementById("forgot-email").value;
+        const newPassword = document.getElementById("newPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+
+        // Client-side password requirement check
+        const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+        if (!regex.test(newPassword)) {
+            showToast("Password must be at least 8 characters, include a letter, number, and special character.");
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showToast("Passwords do not match.");
+            return;
+        }
+
+        fetch("{% url 'forgot_password_reset' %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/x-www-form-urlencoded" },
+            body: `email=${encodeURIComponent(email)}&newPassword=${encodeURIComponent(newPassword)}&confirmPassword=${encodeURIComponent(confirmPassword)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                closeModal('changePasswordModal');
+                showToast("Password changed successfully!", "success");
+            } else {
+                showToast(data.message);
+            }
+        })
+        .catch(err => showToast("Error: " + err));
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

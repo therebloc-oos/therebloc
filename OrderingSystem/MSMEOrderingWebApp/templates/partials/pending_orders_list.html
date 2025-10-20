@@ -1,0 +1,771 @@
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caudex:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Arapey:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Brawler:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: {{ customization.primary_color|default:'#FF5733' }};
+            --secondary-color: {{ customization.secondary_color|default:'#FF5733' }};
+            --accent-color: {{ customization.accent_color|default:'#FF5733' }};
+            --success-color: #059669;
+            --danger-color: #dc2626;
+            --warning-color: #d97706;
+            --info-color: #0891b2;
+            --light-bg: #f8fafc;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        {% if customization.general_background_type == 'solid' %}
+        body {
+            background-color: {{ customization.general_solid_color|default:"#ffffff" }};
+        }
+        {% elif customization.general_background_type == 'gradient' %}
+        body {
+            background: linear-gradient(
+                {{ customization.general_gradient_direction|default:"to right" }},
+                {{ customization.general_gradient_color_1|default:"#ffffff" }},
+                {{ customization.general_gradient_color_2|default:"#000000" }}
+                {% if customization.general_gradient_color_3 %}
+                    , {{ customization.general_gradient_color_3 }}
+                {% endif %}
+            );
+        }
+        {% elif customization.general_background_type == 'image' %}
+        body {
+            background-image: url("{{ customization.general_background_image.url }}");
+        }
+        {% endif %}
+
+
+        .container-fluid {
+            padding: 0;
+        }
+
+        .orders-header {
+            background: white;
+            border-radius: 2px;
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            color: white;
+            padding: 1.5rem;
+            margin: 0;
+        }
+
+        .table-header h3 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .order-card {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .order-card:hover {
+            background-color: #f9fafb;
+        }
+
+        .order-card:last-child {
+            border-bottom: none;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .order-code {
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: {{ customization.header_font_color|default:"#000000" }};
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .order-date {
+            color: #6b7280;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .order-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .order-content {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .order-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        .customer-details {
+            padding: 1rem;
+            background: var(--light-bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .customer-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 800;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            color: {{ customization.header_font_color|default:"#fffffff" }};
+        }
+
+        .customer-info {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: {{ customization.body_font_family|default:"Arial" }};
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+
+        .items-section {
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .items-title {
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            color: {{ customization.header_font_color|default:"#fffffff" }};
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .item-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e0f2fe;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-list li:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-family: {{ customization.body_font_family|default:"Arial" }};
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+
+        .item-quantity {
+            color: var(--primary-color);
+            font-family: {{ customization.body_font_family|default:"Arial" }};
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .payment-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .total-price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        }
+
+        .payment-method {
+            background: #ecfdf5;
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-modern {
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-accept {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-accept:hover {
+            background: #047857;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-reject {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-proof {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+        }
+
+        .btn-proof:hover {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .no-orders-icon {
+            font-size: 4rem;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+
+        .no-orders h3 {
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .no-orders p {
+            color: #9ca3af;
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-header {
+            font-weight: 800;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color));
+            color: white;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        .proof-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .empty-state{
+            opacity:0.6;
+        }
+        
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(50px);
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+        }
+
+
+        .empty-icon {
+            font-size: 60px;
+            margin-bottom: 5px;
+            color: {{ customization.header_font_color|default:"#000000" }};
+        }
+
+        .empty-state h3 {
+            margin-bottom: 2px;
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-family: '{{ customization.header_font_family|default:"Arial" }}';
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 35 %}{{ customization.header_font_size|default:35 }}{% else %}35{% endif %}px;
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+        }
+        .empty-state p {
+            font-weight: 600;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:10 }}{% else %}16{% endif %}px;
+            
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+            {% if grouped_orders %}
+                {% for group in grouped_orders %}
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-code">
+                            <i class="fas fa-hashtag"></i>
+                            {{ group.order_code }}
+                        </div>
+                        <div class="order-date">
+                            <i class="far fa-calendar-alt"></i>
+                            {{ group.first.created_at|date:"M d, Y h:i A" }}
+                        </div>
+                    </div>
+
+                    <div class="order-content">
+                        <div class="customer-details">
+                            <div class="customer-name">
+                                <i class="fas fa-user"></i>
+                                {{ group.first.first_name }} {{ group.first.last_name }}
+                            </div>
+                            <div class="customer-info">
+                                <i class="fas fa-phone"></i>
+                                {{ group.first.contact_number }}
+                            </div>
+                            <div class="customer-info">
+                                <i class="fas fa-map-marker-alt"></i>
+                                {{ group.first.address }}
+                            </div>
+
+                            <!-- Scheduled Order Display -->
+                            {% if group.first.scheduled_at %}
+                            <div class="customer-info scheduled-info">
+                                <i class="fas fa-clock text-warning"></i>
+                                <strong>Scheduled Order for:</strong> {{ group.first.scheduled_at|date:"M d, Y h:i A" }}
+                            </div>
+                            {% endif %}
+
+                            {% if group.first.additional_notes %}
+                            <div class="customer-info">
+                                <i class="fas fa-sticky-note"></i>
+                                <strong>Additional Notes:</strong> {{ group.first.additional_notes }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="items-section">
+                            <div class="items-title">
+                                <i class="fas fa-box"></i>
+                                Ordered Items
+                            </div>
+                            <ul class="item-list">
+                                {% for item in group.items %}
+                                <li>
+                                    <span class="item-name">{{ item.product_name }}</span>
+                                    <span class="item-quantity">x{{ item.quantity }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="order-footer">
+                        <div class="payment-info">
+                            <div class="total-price">
+                                <i class="fas fa-peso-sign"></i>
+                                {{ group.total_price|floatformat:2 }}
+                            </div>
+
+                            <!-- Delivery Fee (only if order_type is Delivery) -->
+                            {% if group.first.order_type|lower == "delivery" and group.first.delivery_fee %}
+                            <div class="delivery-fee text-muted">
+                                <i class="fas fa-truck"></i>
+                                + {{ group.first.delivery_fee|floatformat:2 }}
+                            </div>
+                            {% endif %}
+                            <div class="payment-method">
+                                {% if group.first.payment_method|lower == "cash" %}
+                                    <i class="fas fa-money-bill-wave"></i>
+                                {% else %}
+                                    <i class="fas fa-credit-card"></i>
+                                {% endif %}
+                                {{ group.first.payment_method|capfirst }}
+                            </div>
+                            {% if group.first.proof_of_payment %}
+                                <button class="btn btn-proof btn-modern" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#proofModal" 
+                                        data-img-url="{{ group.first.proof_of_payment.url }}">
+                                    <i class="fas fa-image"></i> View Proof
+                                </button>
+                            {% endif %}
+
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-accept btn-modern"
+                                    data-order-code="{{ group.order_code }}"
+                                    data-group-id="{{ group.first.group_id }}"
+                                    onclick="updateOrderStatusByGroup(this, 'accepted')">
+                                <i class="fas fa-check"></i> Accept
+                            </button>
+                            <button class="btn btn-reject btn-modern"
+                                    data-order-code="{{ group.order_code }}"
+                                    data-group-id="{{ group.first.group_id }}"
+                                    data-url="{% url 'reject_order' group.order_code %}"
+                                    onclick="showRejectModal(this)">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class= "empty-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <h3>No Pending Orders</h3>
+                    <p>All caught up! No orders need your attention right now.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Proof of Payment Modal -->
+    <div class="modal fade" id="proofModal" tabindex="-1" aria-labelledby="proofModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="proofModalLabel">
+                        <i class="fas fa-receipt me-2"></i>
+                        Proof of Payment
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <img id="proofImage" src="" alt="Proof of Payment" class="proof-image" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-times-circle"></i> Reject Order</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label for="rejectionReason">Reason for Rejection:</label>
+                <select id="rejectionReason" class="form-control" onchange="toggleOtherReason(this)">
+                    <option value="">-- Select Reason --</option>
+                    <option value="Out of Stock">Out of Stock</option>
+                    <option value="Invalid Address">Invalid Address</option>
+                    <option value="Delivery Location Out of Coverage Area">Delivery Location Out of Coverage Area</option>
+                    <option value="Payment Issue">Payment Issue</option>
+                    <option value="Duplicate Order">Duplicate Order</option>
+                    <option value="Special Request Not Possible">Special Request Not Possible</option>
+                    <option value="Minimum Order Not Met">Minimum Order Not Met</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <input type="text" id="otherReason" class="form-control mt-2" 
+                       placeholder="Enter custom reason" style="display:none;" oninput="validateRejectButton()">
+
+                <!-- ✅ Hidden inputs -->
+                <input type="hidden" id="rejectOrderUrl">
+                <input type="hidden" id="rejectOrderGroupId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="rejectBtn" class="btn btn-danger" onclick="submitRejection()" disabled>
+                    Reject Order
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Status Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="statusModalTitle"></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center" id="statusModalBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-success" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Global Loading Spinner -->
+<div id="loadingOverlay" class="loading-overlay" style="display:none;">
+    <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Processing...</span>
+    </div>
+    <p class="text-light mt-2">Processing, please wait...</p>
+</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Handle proof of payment modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const proofModal = document.getElementById('proofModal');
+            const proofImage = document.getElementById('proofImage');
+
+            proofModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const imgUrl = button.getAttribute('data-img-url');
+                proofImage.src = imgUrl;
+            });
+        });
+
+    function showRejectModal(button) {
+        document.getElementById("rejectOrderUrl").value = button.getAttribute("data-url");
+        document.getElementById("rejectOrderGroupId").value = button.getAttribute("data-group-id");
+        new bootstrap.Modal(document.getElementById('rejectModal')).show();
+    }
+
+    function showLoading() {
+        document.getElementById("loadingOverlay").style.display = "flex";
+    }
+
+    function hideLoading() {
+        document.getElementById("loadingOverlay").style.display = "none";
+    }
+
+    function submitRejection() {
+        const url = document.getElementById("rejectOrderUrl").value;
+        const groupId = document.getElementById("rejectOrderGroupId").value;
+        let reason = document.getElementById("rejectionReason").value;
+        
+        if (reason === "Other") {
+            reason = document.getElementById("otherReason").value;
+        }
+        
+        if (!reason.trim()) {
+            alert("Please provide a rejection reason.");
+            return;
+        }
+
+        showLoading();
+
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({ 
+                reason: reason,
+                group_id: groupId // ✅ include group_id
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                document.getElementById("statusModalTitle").innerText = "Order Rejected!";
+                document.getElementById("statusModalBody").innerHTML = `<p>The order has been rejected successfully.</p>`;
+                new bootstrap.Modal(document.getElementById('statusModal')).show();
+
+                document.getElementById('statusModal').addEventListener('hidden.bs.modal', () => {
+                    location.reload();
+                }, { once: true });
+            } else {
+                alert(data.error || "Failed to reject order.");
+            }
+        })
+        .catch(err => {
+            hideLoading();
+            console.error(err);
+            alert("Error rejecting order.");
+        });
+    }
+
+    function toggleOtherReason(select) {
+        const otherInput = document.getElementById("otherReason");
+        if (select.value === "Other") {
+            otherInput.style.display = "block";
+        } else {
+            otherInput.style.display = "none";
+            otherInput.value = ""; // clear input when not needed
+        }
+        validateRejectButton();
+    }
+
+    function validateRejectButton() {
+        const reason = document.getElementById("rejectionReason").value;
+        const otherInput = document.getElementById("otherReason").value.trim();
+        const rejectBtn = document.getElementById("rejectBtn");
+
+        if (reason && (reason !== "Other" || (reason === "Other" && otherInput))) {
+            rejectBtn.disabled = false;
+        } else {
+            rejectBtn.disabled = true;
+        }
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function updateOrderStatusByGroup(button, status) {
+        const orderCode = button.dataset.orderCode;
+        const groupId = button.dataset.groupId;
+
+        // Prevent multiple clicks
+        button.disabled = true;
+
+        // Show full-screen loading overlay
+        showLoading();
+
+        fetch("/update-order-status/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({ order_code: orderCode, group_id: groupId, status: status })
+        })
+        .then(res => res.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert("Failed to update order: " + (data.error || "Unknown error"));
+                button.disabled = false; // re-enable if failed
+            }
+        })
+        .catch(err => {
+            hideLoading();
+            console.error(err);
+            alert("Error updating order.");
+            button.disabled = false; // re-enable if error
+        });
+    }
+    </script>
+</body>
+</html>

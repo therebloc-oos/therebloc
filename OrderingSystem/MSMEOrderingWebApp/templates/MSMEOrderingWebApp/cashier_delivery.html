@@ -1,0 +1,815 @@
+{% extends 'MSMEOrderingWebApp/cashier_base.html' %}
+
+{% block title %}Delivery{% endblock %}
+
+{% block content %}
+
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Abel&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gloock:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: {{ customization.primary_color|default:'#FF5733' }};
+            --secondary-color: {{ customization.secondary_color|default:'#FF5733' }};
+            --accent-color: {{ customization.accent_color|default:'#FF5733' }};
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #06b6d4;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.356);
+        }
+
+        .container{
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        {% if customization.general_background_type == 'solid' %}
+        body {
+            background-color: {{ customization.general_solid_color|default:"#ffffff" }};
+        }
+        {% elif customization.general_background_type == 'gradient' %}
+        body {
+            background: linear-gradient(
+                {{ customization.general_gradient_direction|default:"to right" }},
+                {{ customization.general_gradient_color_1|default:"#ffffff" }},
+                {{ customization.general_gradient_color_2|default:"#000000" }}
+                {% if customization.general_gradient_color_3 %}
+                    , {{ customization.general_gradient_color_3 }}
+                {% endif %}
+            );
+        }
+        {% elif customization.general_background_type == 'image' %}
+        body {
+            background-image: url("{{ customization.general_background_image.url }}");
+        }
+        {% endif %}
+
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* For large to small screens (3 cards per row) */
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (min-width: 1200px) { /* For extra-large screens */
+            .stats-cards {
+                grid-template-columns: repeat(3, 1fr); /* For xl screens (1 card per row) */
+            }
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: white;
+            font-size: min({{ customization.header_font_size|default:24 }}px, 25px);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .stat-number {
+            line-height: 1;
+            font-size: min({{ customization.header_font_size|default:24 }}px, 45px);
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            color: {{ customization.header_font_color|default:"#1f2937" }};
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+        }
+
+        .stat-label {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06rem;
+            font-size: min({{ customization.header_font_size|default:24 }}px, 16px);
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            color: {{ customization.header_font_color|default:"#6b7280" }};
+        }
+
+        .delivery-table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table thead {
+            position: relative;  /* Make sure the pseudo-element is positioned relative to the header */
+            z-index: 1;  /* Ensures the header appears above the pseudo-element */
+        }
+
+        .table thead th {
+            text-align: center;
+            border-right: 1px solid var(--primary-color);
+            border-top: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1rem 0.75rem;
+            white-space: nowrap;
+            background-color: var(--accent-color);
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+            font-family: '{{ customization.header_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:10 }}{% else %}13{% endif %}px;
+        }
+
+
+        .table thead th:first-child {
+            border-radius: 12px 0 0 0;
+        }
+
+        .table thead th:last-child {
+            border-radius: 0 12px 0 0;
+        }
+
+        .table tbody tr {
+            background: white;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        .table td {
+            text-align: center;
+            padding: 0.80rem;
+            vertical-align: middle;
+            margin-bottom: 0;
+            padding: 15px;
+            border-right: 0.5px solid #80808081;
+            border-bottom: 0.5px solid #80808081;
+            font-weight: 600;
+            font-family: {{ customization.body_font_family|default:"Montserrat" }};
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 15 %}{{ customization.body_font_size|default:12 }}{% else %}15{% endif %}px;
+        }
+
+        .table td:first-child {
+            border-radius: 0 0 0 12px;
+            border-left: 0.5px solid #80808081;
+        }
+
+        .table td:last-child {
+            border-radius: 0 0 12px 0;
+            border-left: 0.5px solid #80808081;
+        }
+
+        .table td .customer-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Status badge styles */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-transform: capitalize;
+        }
+
+        .status-pending {
+            background-color: #ffc107;
+            color: #fff;
+        }
+
+        .status-delivered, .status-completed {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .status-other {
+            background-color: #17a2b8;
+            color: #fff;
+        }
+
+
+
+        .order-id {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .customer-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .customer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .address-text {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .view-details-btn {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-size: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+
+        }
+
+        .view-details-btn:hover {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            font-family:  {{ customization.header_font_family|default:"Montserrat" }};
+            border-bottom: 1px solid var(--accent-color);
+        }
+
+        .modal-title {
+            font-weight: 700;
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+        }
+
+        .btn-close {
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .form-label {
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            padding: 0.75rem;
+            font-weight: 600;
+            transition: border-color 0.3s;
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+            color: {{ customization.body_font_color|default:"#000000" }};
+            border-color: var(--primary-color);
+            border-width: {{ customization.input_border_width|default:1 }}px; 
+            border-style: {{ customization.input_border_style|default:'solid' }};
+            border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: none;
+        }
+
+        .order-summary-box {
+            background: #f8f9fa;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 1rem;
+            font-weight: 600;
+            height: 120px;
+            overflow-y: auto;
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+            color: {{ customization.body_font_color|default:"#000000" }};
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .item-price {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .delivery-btn {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+            border: none;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .delivery-btn:hover {
+            background: linear-gradient(135deg, #229954, var(--success-color));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--primary-color);
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            transition: border-color 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: var(--secondary-color);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        @media (max-width: 768px) {
+            .delivery-header h1 {
+                font-size: 2rem;
+            }
+            
+            .delivery-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-responsive {
+                font-size: 0.9rem;
+            }
+            
+            .modal-dialog {
+                margin: 1rem;
+            }
+        }
+
+        @media (max-width: 992px) { /* Tablets */
+            .table td, .table th {
+                font-size: 13px !important;
+            }
+        }
+
+        @media (max-width: 768px) { /* Mobile */
+            .table td, .table th {
+                font-size: 12px !important;
+                padding: 8px !important;
+            }
+            .view-details-btn {
+                font-size: 12px !important;
+                padding: 0.4rem 0.8rem !important;
+            }
+        }
+
+        @media (max-width: 576px) { /* Small phones */
+            .table td, .table th {
+                font-size: 11px !important;
+                padding: 6px !important;
+            }
+            .view-details-btn {
+                font-size: 11px !important;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .status-badge {
+                font-size: 13px !important;
+                padding: 4px 8px !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .status-badge {
+                font-size: 12px !important;
+                padding: 3px 7px !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .status-badge {
+                font-size: 11px !important;
+                padding: 2px 6px !important;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row g-4">
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-label">Pending Deliveries</div>
+                <div class="stat-number" id="pendingCount">{{ pending_count }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-label">Delivered Today</div>
+                <div class="stat-number" id="deliveredTodayCount">{{ delivered_today_count }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-route"></i>
+                </div>
+                <div class="stat-label">Out for Delivery</div>
+                <div class="stat-number" id="outForDeliveryCount">{{ out_for_delivery_count }}</div>
+            </div>
+        </div>
+
+        <!-- Delivery Table -->
+        <div class="delivery-table-container">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Date & Time</th>
+                            <th>Customer</th>
+                            <th>Address</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for group in delivery_orders %}
+                        <tr>
+                            <td class="order-id">#{{ group.order_code }}</td>
+                            <td>
+                                <div>{{ group.created_at|date:"F d, Y" }}</div>
+                                <small class="text-muted">{{ group.created_at|time:"g:i A" }}</small>
+                            </td>
+                            <td>
+                                <div class="customer-info">
+                                    <div>
+                                        <div class="fw-semibold">
+                                            {{ group.first.first_name }} {{ group.first.last_name }}
+                                        </div>
+                                        <small class="text-muted">{{ group.first.contact_number }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ group.first.address }}</div>
+                                <small class="address-text">{{ group.first.city }} {{ group.first.province }}</small>
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ group.first.status|lower }}">
+                                    {% if group.first.status == "pending" %}
+                                        <i class="fas fa-clock me-1"></i>
+                                    {% elif group.first.status == "delivered" or group.first.status == "completed" %}
+                                        <i class="fas fa-check me-1"></i>
+                                    {% else %}
+                                        <i class="fas fa-info-circle me-1"></i>
+                                    {% endif %}
+                                    {{ group.first.status|capfirst }}
+                                </span>
+                            </td>
+                            <td>
+                                <button
+                                    class="btn btn-primary view-details-btn"
+                                    data-order-id="{{ group.order_code }}"
+                                    data-name="{{ group.first.first_name }} {{ group.first.last_name }}"
+                                    data-phone="{{ group.first.contact_number }}"
+                                    data-address="{{ group.first.address }}"
+                                    data-summary="{% for item in group.items %}{{ item.quantity }}x {{ item.product_name }}{% if not forloop.last %};{% endif %}{% endfor %}"
+                                    data-item-total="{{ group.total_price }}"
+                                    data-delivery-fee="{{ group.delivery_fee }}"
+                                    data-subtotal="{{ group.grand_total }}"
+                                    data-payment="{{ group.first.payment_method }}"
+                                    data-eta="{% if group.first.eta_value and group.first.eta_unit %}{{ group.first.eta_value }} {{ group.first.eta_unit }}{% else %}N/A{% endif %}"
+                                    data-rider="{{ group.first.rider|default:'Unassigned' }}"
+                                    data-notes="{{ group.first.additional_notes }}"
+                                    {% if group.first.proof_of_delivery %}
+                                        data-proof="{{ group.first.proof_of_delivery.url }}"
+                                    {% else %}
+                                        data-proof=""
+                                    {% endif %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#orderDetailsModal"
+                                >
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="fas fa-box-open fa-2x mb-2"></i>
+                                <div>No delivery orders found.</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="orderDetailsModalLabel">
+                        <i class="fas fa-receipt me-2"></i>Order Details
+                    </h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="modalOrderId" class="form-label">
+                                    <i class="fas fa-hashtag me-2"></i>Order ID
+                                </label>
+                                <input type="text" class="form-control" id="modalOrderId" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modalName" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Customer Name
+                                </label>
+                                <input type="text" class="form-control" id="modalName" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="modalPhone" class="form-label">
+                                    <i class="fas fa-phone me-2"></i>Phone Number
+                                </label>
+                                <input type="text" class="form-control" id="modalPhone" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modalAddress" class="form-label">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Delivery Address
+                                </label>
+                                <textarea class="form-control" id="modalAddress" rows="2" readonly style="resize: vertical; overflow-y: auto;"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Order Summary & Other Details -->
+                        <div class="row mb-4">
+                            <!-- LEFT SIDE -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    <i class="fas fa-shopping-cart me-2"></i>Order Summary
+                                </label>
+                                <div id="modalSummary" class="order-summary-box"></div>
+
+                                <!-- Order Total aligned under Order Summary -->
+                                <label class="form-label mt-3">
+                                    <i class="fas fa-calculator me-2"></i>Order Total
+                                </label>
+                                <div class="order-summary-box">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Item Total:</span>
+                                        <span id="modalItemTotal">₱0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Delivery Fee:</span>
+                                        <span id="modalDeliveryFee">₱0.00</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between fw-bold">
+                                        <span>Subtotal:</span>
+                                        <span id="modalSubtotal">₱0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    <i class="fas fa-info-circle me-2"></i>Other Details
+                                </label>
+                                <div class="order-summary-box mb-3" style="height:auto;">
+                                    <div><strong>Payment Method:</strong> <span id="modalPayment"></span></div>
+                                    <div><strong>Expected Arrival:</strong> <span id="modalEta"></span></div>
+                                    <div><strong>Assigned Rider:</strong> <span id="modalRider"></span></div>
+                                </div>
+
+                                <label for="modalNotes" class="form-label">
+                                    <i class="fas fa-sticky-note me-2"></i>Special Instructions
+                                </label>
+                                <textarea class="form-control" id="modalNotes" rows="3" readonly></textarea>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-camera me-2"></i>Proof of Delivery
+                            </label>
+                            <div id="modalProofPreview" class="text-center mb-3">
+                                <img id="proofPreviewImg" 
+                                    src="" 
+                                    alt="Proof of Delivery" 
+                                    class="img-fluid rounded shadow mx-auto d-block" 
+                                    style="max-height: 300px;">
+                                <div id="noProofText"
+                                    class="px-3 py-2 rounded"
+                                    style="background-color: #e9ecef; color: #6c757d;">
+                                    No proof of delivery attachment yet.
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Populate modal with order details
+        document.querySelectorAll('.view-details-btn').forEach(button => {
+
+            button.addEventListener('click', function () {
+                const proofUrl = this.getAttribute('data-proof');
+                const previewImg = document.getElementById('proofPreviewImg');
+                const noProofText = document.getElementById('noProofText');
+
+                if (proofUrl && proofUrl.trim() !== "") {
+                    // Show image, hide text
+                    previewImg.src = proofUrl;
+                    previewImg.style.display = 'block';
+                    noProofText.style.display = 'none';
+                } else {
+                    // Hide image, show text
+                    previewImg.src = '';
+                    previewImg.style.display = 'none';
+                    noProofText.style.display = 'block';
+                }
+
+                const orderId = this.getAttribute('data-order-id');
+                const name = this.getAttribute('data-name');
+                const phone = this.getAttribute('data-phone');
+                const address = this.getAttribute('data-address');
+                const summary = this.getAttribute('data-summary');
+                const payment = this.getAttribute('data-payment');
+                const eta = this.getAttribute('data-eta');
+                const rider = this.getAttribute('data-rider');
+                const notes = this.getAttribute('data-notes');
+
+                // ✅ new attributes
+                const itemTotal = this.getAttribute('data-item-total');
+                const deliveryFee = this.getAttribute('data-delivery-fee');
+                const subtotal = this.getAttribute('data-subtotal');
+
+                // Fill modal fields
+                document.getElementById('modalOrderId').value = `#${orderId}`;
+                document.getElementById('modalName').value = name;
+                document.getElementById('modalPhone').value = phone;
+                document.getElementById('modalAddress').value = address;
+                document.getElementById('modalPayment').textContent = payment;
+                document.getElementById('modalEta').textContent = eta;
+                document.getElementById('modalRider').textContent = rider;
+                document.getElementById('modalNotes').value = notes;
+                document.getElementById('modalItemTotal').textContent = parseFloat(itemTotal).toFixed(2);
+                document.getElementById('modalDeliveryFee').textContent = parseFloat(deliveryFee).toFixed(2);
+                document.getElementById('modalSubtotal').textContent = parseFloat(subtotal).toFixed(2);
+
+                // Populate order summary
+                const summaryDiv = document.getElementById('modalSummary');
+                summaryDiv.innerHTML = '';
+                const items = summary.split(';');
+                items.forEach(item => {
+                    if (item.trim()) {
+                        const orderItem = document.createElement('div');
+                        orderItem.className = 'order-item';
+                        orderItem.textContent = item.trim();
+                        summaryDiv.appendChild(orderItem);
+                    }
+                });
+            });
+        });
+
+        // Add some interactive animations
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    </script>
+{% endblock %}

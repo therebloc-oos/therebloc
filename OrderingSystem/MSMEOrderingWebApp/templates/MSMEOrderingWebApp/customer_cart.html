@@ -1,0 +1,2022 @@
+{% extends 'MSMEOrderingWebApp/customer_base.html' %}
+
+{% block title %}Shopping Cart{% endblock %}
+
+{% block content %}
+
+ {% load static %}
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caudex:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Arapey:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Brawler:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-color: {{ customization.primary_color|default:'#3b82f6' }};
+        --secondary-color: {{ customization.secondary_color|default:'#1d4ed8' }};
+        --accent-color: {{ customization.accent_color|default:'#059669' }};
+    }
+
+    body {
+        min-height: 100vh;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    {% if customization.general_background_type == 'solid' %}
+    body {
+        background-color: {{ customization.general_solid_color|default:"#ffffff" }};
+    }
+    {% elif customization.general_background_type == 'gradient' %}
+    body {
+        background: linear-gradient(
+            {{ customization.general_gradient_direction|default:"to right" }},
+            {{ customization.general_gradient_color_1|default:"#ffffff" }},
+            {{ customization.general_gradient_color_2|default:"#000000" }}
+            {% if customization.general_gradient_color_3 %}
+                , {{ customization.general_gradient_color_3 }}
+            {% endif %}
+        );
+    }
+    {% elif customization.general_background_type == 'image' %}
+    body {
+        background-image: url("{{ customization.general_background_image.url }}");
+    }
+    {% endif %}
+
+
+
+    .cart-content {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 30px;
+    }
+
+    .cart-summary {
+        position: sticky;
+        top: 20px;
+        grid-column: 2; /* Places it in the second column (right side) */
+
+    }
+
+    .cart-container {
+        margin: 0 auto;
+        padding: 0;
+    }
+
+    .cart-header {
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 25px; /* Added padding */
+        border-radius: 20px; /* Make corners rounded */
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border: 3px solid var(--primary-color);
+
+    }
+
+    .cart-title {
+        display: flex;
+        align-items: left;
+        justify-content: left;
+        gap: 1rem;
+        margin: 0;
+        font-family: {{ customization.header_font_family|default:"Arial" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 30 %}{{ customization.header_font_size|default:20 }}{% else %}30{% endif %}px;
+        font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+        font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+    
+    }
+
+    .cart-icon {
+        font-size: 1.8rem;
+        color: {{ customization.header_font_color|default:"#000000" }};
+    }
+
+    .item-count {
+        background: var(--primary-color);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-family: {{ customization.body_font_family|default:"Arial" }};
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 15 %}{{ customization.body_font_size|default:12 }}{% else %}15{% endif %}px;
+    }
+
+    .cart-content {
+        display: grid;
+        grid-template-columns: 1fr 350px; /* default: 2 columns */
+        gap: 30px;
+        align-items: start;
+    }
+
+
+    /* Tablets and small desktops (992px–1199px) */
+    @media (min-width: 992px) and (max-width: 1199px) {
+        .cart-content {
+            grid-template-columns: 1fr; /* stack */
+            gap: 25px;
+        }
+        .cart-summary {
+            grid-column: 1;
+        }
+    }
+
+    /* Medium screens (768px–991px) */
+    @media (min-width: 768px) and (max-width: 991px) {
+        .cart-content {
+            grid-template-columns: 1fr; /* stack */
+            gap: 20px;
+        }
+        .cart-summary {
+            grid-column: 1;
+        }
+    }
+
+
+    .cart-items {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .cart-item {
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 12px;
+        padding: 24px;
+        display: grid;
+        grid-template-columns: 120px 1fr auto;
+        gap: 20px;
+        align-items: start;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px var(--primary-color);
+
+    }
+
+    .cart-item:hover {
+        transform: translateY(-3px);
+    }
+
+    .item-image {
+        width: 120px;
+        height: 120px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f9fafb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .no-image {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
+    .image-placeholder {
+        font-size: 2rem;
+        margin-bottom: 4px;
+    }
+
+    .item-details {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .product-name {
+        font-weight: 700;
+        margin: 0;
+        font-family: {{ customization.header_font_family|default:"Arial" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 25 %}{{ customization.header_font_size|default:20 }}{% else %}25{% endif %}px;
+    }
+
+    .item-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .quantity-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .qty-label {
+        font-weight: 600;
+        color:var(--secondary-color);
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+    }
+
+    .qty-wrapper {
+        border: 1px solid var(--secondary-color);
+        display: flex;
+        align-items: center;
+        border-radius: 8px;
+        overflow: hidden;
+        width: fit-content;
+        background: white;
+    }
+
+    .qty-btn {
+        background:white;
+        border: none;
+        padding: 10px 12px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color:var(--primary-color);
+        transition: all 0.2s ease;
+        user-select: none;
+        min-width: 40px;
+    }
+
+    .qty-btn:hover {
+        background:var(--secondary-color);
+        color: white;
+    }
+
+    .qty-btn:active {
+        transform: scale(0.95);
+    }
+
+    .qty-input {
+        border: none;
+        padding: 10px 12px;
+        width: 60px;
+        text-align: center;
+        font-size: 1rem;
+        font-weight: 500;
+        background: white;
+        outline: none;
+        color: var(--primary-color);
+    }
+
+    .qty-input:focus {
+        background: #f0f9ff;
+    }
+
+    .price-section {
+        display: inline;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .price-label {
+        display: inline;
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-weight: 500;
+    }
+
+
+    .product_price {
+        display: inline;
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:10 }}{% else %}13{% endif %}px;
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-weight: 500;
+    }
+
+    .price {
+        display: inline;
+        font-weight: 700;
+        color: var(--primary-color);
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 20 %}{{ customization.body_font_size|default:15 }}{% else %}20{% endif %}px;
+
+    }
+
+    .item-actions {
+        display: flex;
+        justify-content: center;
+    }
+
+    .delete-form {
+        margin: 0;
+    }
+
+    .delete-btn {
+        width: fit-content;
+        background: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+
+    }
+
+    .delete-btn:hover {
+        background: #fecaca;
+        border-color: #f87171;
+        transform: translateY(-1px);
+    }
+
+    .delete-btn:active {
+        transform: translateY(0);
+    }
+
+    .cart-summary {
+        position: relative;
+        padding: 0;
+        margin-bottom: 20px;
+    }
+
+    .summary-card {
+        backdrop-filter: blur(20px);
+        border-left: 2px solid var(--primary-color);
+        border-right: 3px solid var(--primary-color);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .summary-title {
+        font-weight: 700;
+        margin: 0 0 20px 0;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--accent-color);
+         font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 25 %}{{ customization.header_font_size|default:20 }}{% else %}25{% endif %}px;
+    }
+
+    .summary-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .summary-label {
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        font-size: 1rem;
+        font-weight: 500;
+        color: #4b5563;
+    }
+
+    .summary-value {
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .total-line {
+        border-top: 1px solid var(--accent-color);
+        padding-top: 16px;
+        margin-top: 16px;
+        margin-bottom: 24px;
+    }
+
+    .total-line .summary-label,
+    .total-line .summary-value {
+        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+        font-weight: 700;
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 20 %}{{ customization.body_font_size|default:15 }}{% else %}20{% endif %}px;
+
+    }
+
+    .total-value {
+        color: var(--accent-color);
+    }
+
+    .checkout-btn {
+        width: 100%;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border: none;
+        padding: 16px 24px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+        font-family:  {{ customization.header_font_family|default:"Arial" }};
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+    }
+
+    .checkout-btn:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+
+    }
+
+    .checkout-btn:active {
+        transform: translateY(0);
+    }
+
+    .checkout-icon {
+        font-size: 1.2rem;
+    }
+
+    .empty-cart {
+        text-align: center;
+        padding: 80px 20px;
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .empty-cart-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.6;
+    }
+
+    .empty-cart-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 5px 0;
+        font-family:  {{ customization.header_font_family|default:"Arial" }};
+
+    }
+
+    .empty-cart-text {
+        font-size: 1.1rem;
+        color: #6b7280;
+        margin: 0 0 15px 0;
+        line-height: 1.6;
+        font-family:  {{ customization.body_font_family|default:"Arial" }};
+
+    }
+
+    .continue-shopping-btn {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        padding: 14px 28px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
+        font-family:  {{ customization.header_font_family|default:"Arial" }};
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+
+    }
+
+    .continue-shopping-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(16, 185, 129, 0.35);
+        text-decoration: none;
+        color: {{ customization.button_text_color|default:'#ffffff' }}
+    }
+
+    /* Loading state */
+    .cart-item.updating {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .price-value.updating {
+        opacity: 0.5;
+    }
+
+    .option-grid {
+        display: flex;
+        justify-content: center;  /* Center horizontally */
+        align-items: center;      /* Center vertically */
+        gap: 10px;                /* Optional, adjusts spacing between options */
+        width: 95%;              /* Ensure full width for proper centering */
+    }
+
+    .radio-option {
+        flex-grow: 1; /* By default, options will not grow */
+        text-align: center;  /* Center the content of each radio option */
+    }
+
+    .radio-option input[type="radio"] {
+        display: none;
+    }
+
+    .radio-card {
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.25rem;
+        border: 2px solid var(--primary-color);
+        border-radius: 12px;
+        background: #f8fafc;
+        transition: all 0.3s ease;
+        position: relative;
+        text-align: center;
+        height: 100%;
+    }
+
+    .radio-card:hover {
+        border-color:var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.527);
+    }
+
+    .radio-option input[type="radio"]:checked + .radio-card {
+        border: 2px solid;
+        border-color:var(--secondary-color);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    .radio-option input[type="radio"]:checked + .radio-card::after {
+        content: '✓';
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+
+    /* Disabled radio buttons */
+    .radio-option input[type="radio"]:disabled + .radio-card {
+        background-color: #f0f0f0; /* Lighter background */
+        border-color: #d1d1d1; /* Lighter border */
+        opacity: 0.5; /* Reduce opacity to give a disabled effect */
+        cursor: not-allowed; /* Change the cursor to show it's not clickable */
+    }
+
+    .radio-option input[type="radio"]:disabled + .radio-card .option-title,
+    .radio-option input[type="radio"]:disabled + .radio-card .option-desc {
+        color: #b0b0b0; /* Change the text color to gray */
+    }
+
+    .radio-option input[type="radio"]:disabled + .radio-card:hover {
+        box-shadow: none; /* Remove hover effect when disabled */
+        transform: none; /* Disable transform effect on hover */
+    }
+
+    /* Animation for quantity updates */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .price-value.updated {
+        animation: pulse 0.3s ease-in-out;
+        color: var(--accent-color);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .cart-content {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .cart-item {
+            grid-template-columns: 80px 1fr;
+            gap: 16px;
+        }
+        
+        .item-image {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .item-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-end;
+            width: 100%;
+        }
+        
+        .item-controls {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        
+        .cart-header {
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .cart-title {
+            font-size: 1.5rem;
+        }
+        
+        .summary-card {
+            position: relative;
+            top: auto;
+        }
+        .item-count {
+            width: 100%;
+            text-align: center;
+        }
+
+    }
+
+    @media (max-width: 480px) {
+        .cart-container {
+            padding: 10px;
+        }
+        
+        .cart-header {
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cart-item {
+            padding: 16px;
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+        
+        .item-image {
+            justify-self: center;
+            margin-bottom: 5px;
+        }
+        
+        .item-controls {
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .qty-wrapper {
+            justify-self: center;
+        }
+        .item-count {
+            width: 100%;
+            text-align: center;
+        }
+
+        .item-actions {
+            justify-content:center;
+            width: 100%;
+        }
+        
+        .delete-btn {
+            font-size: 0.85rem;
+        }
+            
+    }
+    .option-grid {
+        display: flex;
+        justify-content: center;  /* Center horizontally */
+        align-items: center;      /* Center vertically */
+        gap: 10px;                /* Optional, adjusts spacing between options */
+        width: 95%;              /* Ensure full width for proper centering */
+    }
+
+    .radio-option {
+        flex-grow: 1; /* By default, options will not grow */
+        text-align: center;  /* Center the content of each radio option */
+    }
+
+    .radio-option input[type="radio"] {
+        display: none;
+    }
+
+    .radio-card {
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.25rem;
+        border: 2px solid var(--primary-color);
+        border-radius: 12px;
+        background: #f8fafc;
+        transition: all 0.3s ease;
+        position: relative;
+        text-align: center;
+        height: 100%;
+    }
+
+    .radio-card:hover {
+        border-color: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.527);
+    }
+
+    .radio-option input[type="radio"]:checked + .radio-card {
+        border: 2px solid;
+        border-color: var(--secondary-color);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    .radio-option input[type="radio"]:checked + .radio-card::after {
+        content: '✓';
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+
+    .option-title {
+        display: block;
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .option-desc {
+        display: block;
+        font-size: 0.875rem;
+        color: #718096;
+    }
+
+    /* Disabled radio buttons */
+    .radio-option input[type="radio"]:disabled + .radio-card {
+        background-color: #f0f0f0;
+        border-color: #d1d1d1;
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .radio-option input[type="radio"]:disabled + .radio-card .option-title,
+    .radio-option input[type="radio"]:disabled + .radio-card .option-desc {
+        color: #b0b0b0;
+    }
+
+    .radio-option input[type="radio"]:disabled + .radio-card:hover {
+        box-shadow: none;
+        transform: none;
+    }
+
+    /* Store Address Section Styling */
+    #store-address {
+        margin-top: 1rem;
+        font-family:  {{ customization.body_font_family|default:"Montserrat" }};
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+    }
+
+    #store-address i {
+        font-size: 1.2rem;
+    }
+
+    #order_type_error {
+        color: red;
+        font-size: 0.875rem;
+        display: block;
+        margin-top: 10px;
+    }
+
+    .form-section {
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border-top: 3px solid var(--primary-color);
+        border-bottom: 3px solid var(--primary-color);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.233);
+    }
+
+    .section-header {
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .section-header h3 {
+        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        color: {{ customization.header_font_color|default:"#000000" }};
+        margin: 0;
+        font-weight: 700;
+        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 25 %}{{ customization.header_font_size|default:20 }}{% else %}25{% endif %}px;
+
+    }
+
+    .section-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        color: {{ customization.header_font_color|default:"#000000" }};
+    }
+
+    .checkout-btn.disabled-btn,
+    .checkout-btn:disabled {
+        background-color: #888 !important; /* gray background */
+        color: #ccc !important; /* lighter text color */
+        cursor: not-allowed;
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    /* Overlay */
+    #delivery-fee-modal {
+        display: none; /* hidden by default */
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 10000;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        backdrop-filter: blur(4px);
+    }
+
+    /* Modal Box */
+    #delivery-fee-modal .modal-box {
+        background: #fff;
+        padding: 24px 28px;
+        border-radius: 16px;
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        animation: fadeInScale 0.3s ease;
+        position: relative;
+    }
+
+    #delivery-fee-modal .modal-box h4 {
+        margin-bottom: 12px;
+        font-size: 1.3rem;
+        font-weight: 700;
+        font-family: {{ customization.header_font_family|default:"Arial" }};
+         color: {{ customization.header_font_color|default:"#000000" }};
+    }
+
+    /* Message */
+    #delivery-fee-modal-message {
+        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16
+        {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        color: {{ customization.body_font_color|default:"#374151" }};
+        margin-bottom: 10px;
+        line-height: 1.5;
+    }
+
+    #delivery-fee-modal-close {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 700;
+            width: 100%;
+            text-align: center;
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+        
+        }
+
+    #delivery-fee-modal-close:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+
+    #delivery-fee-modal-close:active {
+        transform: translateY(0);
+    }
+
+    /* Animation */
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+
+
+    .form-control {
+        padding: 14px;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+        font-weight: 600;
+        border-color: var(--primary-color);
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        border-width: {{ customization.input_border_width|default:1 }}px; 
+        border-style: {{ customization.input_border_style|default:'solid' }};
+        border-radius: {{ customization.input_rounded_corner|default:1 }}px;        
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--secondary-color);
+        box-shadow: none;
+        outline: none;
+    }
+
+    .form-label {
+        margin-top: 15px;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: {{ customization.header_font_color|default:"#000000" }};
+        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+    }
+
+</style>
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h1 class="cart-title">
+            <i class="fas fa-shopping-cart cart-icon"></i>
+            Shopping Cart
+        </h1>
+        {% if cart_items %}
+            <span class="item-count">{{ cart_items|length }} item{{ cart_items|length|pluralize }}</span>
+        {% endif %}
+    </div>
+
+    {% if cart_items %}
+        <div class="row cart-content">
+            <!-- Cart Items -->
+            <div>
+                <div class="cart-items">
+                    {% for item in cart_items %}
+                    <div class="cart-item" data-cart-id="{{ item.id }}">
+                        <div class="item-image">
+                            {% if item.product and item.product.image %}
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product_name }}" loading="lazy">
+                            {% else %}
+                                <div style="
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    width: 100%;
+                                    height: 100%;
+                                    border-radius: 8px;
+                                    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+                                    color: #fff;
+                                    font-weight: 700;
+                                    font-size: 1.8rem;
+                                    text-transform: uppercase;
+                                ">
+                                    {{ item.product_name|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="item-details">
+                            <h3 class="product-name">{{ item.product_name }}</h3>
+                            <div class="item-controls">
+                                <div class="quantity-controls">
+                                    {% if item.product %}
+                                        <label class="product_price">Unit Price: ₱{{ item.product.price }}</label>
+                                    {% else %}
+                                        <label class="product_price">Unit Price: ₱0.00</label>
+                                    {% endif %}
+                                    <div class="qty-wrapper">
+                                        <button type="button" class="qty-btn qty-decrease" data-cart-id="{{ item.id }}">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" 
+                                            id="qty-{{ item.id }}"
+                                            class="qty-input" 
+                                            value="{{ item.quantity }}" 
+                                            min="1" 
+                                            max="99"
+                                            step="1"
+                                            data-cart-id="{{ item.id }}"
+                                            oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                                        <button type="button" class="qty-btn qty-increase" data-cart-id="{{ item.id }}">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="price-section">
+                                    <span class="price-label">Price:</span>
+                                    <span class="price">₱<span class="price-value" data-cart-id="{{ item.id }}">{{ item.price }}</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="item-actions">
+                            <form method="post" action="{% url 'delete_cart_item' item.id %}" class="delete-form">
+                                {% csrf_token %}
+                                <button type="submit" class="delete-btn" title="Remove item">
+                                    <i class="fas fa-trash delete-icon"></i>
+                                    <span>Remove</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Order Type & Summary -->
+            <div>
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>
+                            <i class="fa-solid fa-truck me-2"></i> Order Type
+                        </h3>
+                    </div>
+                    <div class="option-grid">
+                        <!-- Pickup option -->
+                        <label class="radio-option">
+                            <input type="radio" name="order_type" value="pickup" id="pickup"
+                                {% if 'Pickup' not in business.services_offered %}disabled{% endif %}>
+                            <div class="radio-card">
+                                <i class="fa-solid fa-store"></i>
+                                <div class="option-content">
+                                    <span class="option-title">Customer Pickup</span>
+                                    <span class="option-desc">Pick up at store</span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Delivery option -->
+                        <label class="radio-option">
+                            <input type="radio" name="order_type" value="delivery" id="delivery"
+                                {% if 'Delivery' not in business.services_offered %}disabled{% endif %}>
+                            <div class="radio-card">
+                                <i class="fa-solid fa-truck"></i>
+                                <div class="option-content">
+                                    <span class="option-title">Home Delivery</span>
+                                    <span class="option-desc">Deliver to address</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Show message if both are disabled -->
+                    {% if 'Pickup' not in business.services_offered and 'Delivery' not in business.services_offered %}
+                    <div class="text-center fw-bold mt-3">
+                        Please check back later — no services are enabled at the moment.
+                    </div>
+                    {% endif %}
+
+                    <div id="store-address" class="mt-3 ms-2" style="display: none;">
+                        <i class="fa-solid fa-location-dot text-danger me-2"></i>
+                        <span>{{ business.store_address }}</span>
+                    </div>
+                    <div>
+                        <span id="order_type_error" class="text-danger" style="display:none;">This field is required.</span>
+                    </div>
+
+                    <!-- Order Time Section -->
+                    {% if 'Scheduled' in business.services_offered %}
+                    <div class="mt-4">
+                        <div class="section-header">
+                            <h3>
+                                <i class="fa-solid fa-clock me-2"></i> Order Time
+                            </h3>
+                        </div>
+
+                        <div class="option-grid">
+                            <label class="radio-option">
+                                <input type="radio" name="order_time" value="now" id="order_now" checked>
+                                <div class="radio-card">
+                                    <i class="fa-solid fa-bolt"></i>
+                                    <div class="option-content">
+                                        <span class="option-title">Order Now</span>
+                                        <span class="option-desc">Immediate processing</span>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label class="radio-option">
+                                <input type="radio" name="order_time" value="scheduled" id="order_scheduled">
+                                <div class="radio-card">
+                                    <i class="fa-solid fa-calendar-day"></i>
+                                    <div class="option-content">
+                                        <span class="option-title">Scheduled</span>
+                                        <span class="option-desc">Pick date & time</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Date & Time Picker -->
+                        <div id="schedulePicker" class="form" style="display:none;">
+                            <label for="scheduled_date" class="form-label">Select Date & Time:</label>
+                            <input type="datetime-local" id="scheduled_date" name="scheduled_date" class="form-control">
+                        </div>
+                        
+                        <!-- Info message for "Order Now" -->
+                        <div id="orderNowMessage"
+                            class="mt-3 p-3 rounded shadow-sm"
+                            style="
+                                display: none;
+                                background-color: #f0f0f0;          
+                                color: #333;                        
+                                font-family: {{ customization.body_font_family|default:'Poppins, sans-serif' }};
+                                font-size: 14px;
+                                border-left: 4px solid var(--primary-color);    
+                                font-weight: 500;
+                            ">
+                            <i class="fas fa-info-circle me-2"
+                            style="color: var(--primary-color);"></i>         
+                            Preparation time may vary. Check your notifications for progress updates.
+                        </div>
+
+                    </div>
+                    {% endif %}
+
+                    <!-- Order Summary -->
+                    <div class="cart-summary">
+                        <div class="summary-card">
+                            <h3 class="summary-title">Order Summary</h3>
+                        
+                            <div class="summary-line">
+                                <span class="summary-label">Items ({{ cart_items|length }}):</span>
+                                <span class="summary-value">₱<span id="subtotal">{{ subtotal }}</span></span>
+                            </div>
+                        
+                            <!-- Delivery Fee Row -->
+                            <div class="summary-line" id="delivery-fee-row" style="display:none;">
+                                <span class="summary-label">Delivery Fee:</span>
+                                <span class="summary-value">₱<span id="delivery-fee-display">0.00</span></span>
+                            </div>
+                        
+                            <div class="summary-line total-line">
+                                <span class="summary-label">Total:</span>
+                                <span class="summary-value total-value">₱<span id="total">{{ subtotal }}</span></span>
+                            </div>
+                        
+                            <form method="get" action="{% url 'customer_checkout' %}" onsubmit="setScheduledDate()">
+                                <input type="hidden" name="order_type" id="order_type_input">
+                                <input type="hidden" name="scheduled_date" id="scheduled_date_input">
+                                <input type="hidden" name="delivery_fee" id="delivery_fee_input" value="0">
+                                <input type="hidden" name="scheduled_at" id="scheduled_at_input">
+
+                                <button type="submit" class="checkout-btn">
+                                    <i class="fas fa-credit-card checkout-icon"></i>
+                                    Proceed to Checkout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-cart">
+            <div class="empty-cart-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <h2 class="empty-cart-title">Your cart is empty</h2>
+            <p class="empty-cart-text">Looks like you haven't added any items to your cart yet.</p>
+            <a href="{% url 'customer_home' %}" class="continue-shopping-btn">
+                <i class="fas fa-shopping-bag shop-icon"></i>
+                Continue Shopping
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-3 shadow">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-exclamation-triangle me-2"></i> Confirm Removal
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-start">
+        Are you sure you want to remove <span id="product-to-remove" class="fw-bold"></span> from your cart?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+          <i class="fas fa-trash me-1"></i> Remove
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delivery Fee Modal -->
+<div id="delivery-fee-modal" style="display: none;">
+    <div class="modal-box">
+        <h4>Delivery Fee Update</h4>
+        <p id="delivery-fee-modal-message"></p>
+        <button id="delivery-fee-modal-close">OK</button>
+    </div>
+</div>
+
+
+  <!-- jQuery (needed for $("#...").modal()) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- Bootstrap Bundle with Popper (required for modal functionality) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+
+ // NOT ALLOWED TO SELECT THE CURRENT TIME 
+ 
+
+(function () {
+  // CONFIG: change to 2 for 2-hour restriction
+  const MIN_HOURS_AHEAD = 1;
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function toLocalDateTimeInputValue(d) {
+    return d.getFullYear() + '-' +
+           pad(d.getMonth() + 1) + '-' +
+           pad(d.getDate()) + 'T' +
+           pad(d.getHours()) + ':' +
+           pad(d.getMinutes());
+  }
+
+  const scheduledDateInput = document.getElementById('scheduled_date');
+  const scheduledRadio = document.getElementById('order_scheduled');
+  const nowRadio = document.getElementById('order_now');
+  const schedulePicker = document.getElementById('schedulePicker');
+  const checkoutBtn = document.querySelector('.checkout-btn');
+  const checkoutForm = checkoutBtn ? checkoutBtn.closest('form') : null;
+
+  if (!scheduledDateInput) return;
+
+  // Inline error
+  let inlineError = document.getElementById('scheduled_date_error');
+  if (!inlineError) {
+    inlineError = document.createElement('div');
+    inlineError.id = 'scheduled_date_error';
+    inlineError.style.color = '#b91c1c';
+    inlineError.style.fontSize = '0.9rem';
+    inlineError.style.marginTop = '6px';
+    inlineError.style.display = 'none';
+    scheduledDateInput.parentNode.appendChild(inlineError);
+  }
+
+  // Helper to enable/disable checkout button
+  function toggleCheckout(disable) {
+    if (!checkoutBtn) return;
+    checkoutBtn.disabled = disable;
+    if (disable) {
+      checkoutBtn.classList.add('disabled-btn');
+    } else {
+      checkoutBtn.classList.remove('disabled-btn');
+    }
+  }
+
+  // Set min time
+  function updateMin() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + MIN_HOURS_AHEAD * 60);
+    const minValue = toLocalDateTimeInputValue(now);
+    scheduledDateInput.min = minValue;
+
+    if (scheduledDateInput.value) {
+      const selected = new Date(scheduledDateInput.value);
+      if (isNaN(selected.getTime()) || selected < new Date(scheduledDateInput.min)) {
+        inlineError.textContent = `Please pick a date/time at least ${MIN_HOURS_AHEAD} hour(s) from now.`;
+        inlineError.style.display = 'block';
+        toggleCheckout(true);
+      } else {
+        inlineError.style.display = 'none';
+        toggleCheckout(false);
+      }
+    }
+  }
+
+  updateMin();
+  const minUpdater = setInterval(updateMin, 60 * 1000);
+
+  function togglePickerVisibility() {
+    if (scheduledRadio && scheduledRadio.checked) {
+      schedulePicker.style.display = 'block';
+    } else {
+      schedulePicker.style.display = 'none';
+      inlineError.style.display = 'none';
+      toggleCheckout(false);
+    }
+  }
+  if (scheduledRadio) scheduledRadio.addEventListener('change', togglePickerVisibility);
+  if (nowRadio) nowRadio.addEventListener('change', togglePickerVisibility);
+
+  // Validate input
+  scheduledDateInput.addEventListener('input', function () {
+    if (!this.value) {
+      inlineError.style.display = 'none';
+      toggleCheckout(false);
+      return;
+    }
+    const selected = new Date(this.value);
+    const minDate = new Date(this.min);
+    if (isNaN(selected.getTime())) {
+      inlineError.textContent = 'Invalid date/time format.';
+      inlineError.style.display = 'block';
+      toggleCheckout(true);
+      return;
+    }
+    if (selected < minDate) {
+      inlineError.textContent = `Please select a time at least ${MIN_HOURS_AHEAD} hour(s) from now.`;
+      inlineError.style.display = 'block';
+      toggleCheckout(true);
+    } else {
+      inlineError.style.display = 'none';
+      toggleCheckout(false);
+    }
+  });
+
+  // Final validation on submit
+  if (checkoutForm) {
+    checkoutForm.addEventListener('submit', function (e) {
+      if (scheduledRadio && scheduledRadio.checked) {
+        const val = scheduledDateInput.value;
+        const selected = new Date(val);
+        const minDate = new Date(scheduledDateInput.min);
+
+        if (!val) {
+          e.preventDefault();
+          inlineError.textContent = 'Please choose a date and time for your scheduled order.';
+          inlineError.style.display = 'block';
+          toggleCheckout(true);
+          scheduledDateInput.focus();
+          return false;
+        }
+
+        if (isNaN(selected.getTime()) || selected < minDate) {
+          e.preventDefault();
+          inlineError.textContent = `Please select a time at least ${MIN_HOURS_AHEAD} hour from now.`;
+          inlineError.style.display = 'block';
+          toggleCheckout(true);
+          scheduledDateInput.focus();
+          return false;
+        }
+      }
+      toggleCheckout(false);
+      return true;
+    });
+  }
+
+  window.addEventListener('beforeunload', () => clearInterval(minUpdater));
+})();
+
+// === CLEAR LOCAL STORAGE ONLY ON HOMEPAGE ===
+document.addEventListener("DOMContentLoaded", function() {
+    const currentPath = window.location.pathname.toLowerCase();
+    const isHomePage =
+        currentPath === "/" ||
+        currentPath.includes("home") ||   // matches /home, /customer/home, /CustomerHomepage, etc.
+        currentPath.includes("customerhomepage");
+
+    if (isHomePage) {
+        localStorage.removeItem("order_type");
+        localStorage.removeItem("delivery_fee");
+        localStorage.removeItem("delivery_fee_received");
+        console.log("[CustomerHomepage] Cleared localStorage for order_type and delivery_fee");
+    }
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+    const orderNow = document.getElementById("order_now");
+    const orderScheduled = document.getElementById("order_scheduled");
+    const schedulePicker = document.getElementById("schedulePicker");
+    const orderNowMessage = document.getElementById("orderNowMessage");
+
+    function toggleOrderTime() {
+        if (orderNow.checked) {
+            schedulePicker.style.display = "none";
+            orderNowMessage.style.display = "block"; // ✅ show message
+        } else if (orderScheduled.checked) {
+            schedulePicker.style.display = "block";
+            orderNowMessage.style.display = "none"; // ✅ hide message
+        }
+    }
+
+    // Run once on page load (default state)
+    toggleOrderTime();
+
+    // Listen for changes
+    orderNow.addEventListener("change", toggleOrderTime);
+    orderScheduled.addEventListener("change", toggleOrderTime);
+});
+
+const userEmail = "{{ user_email|escapejs }}";
+const deliveryFeeSocketCustomer = new WebSocket(
+    `wss://${window.location.host}/ws/delivery-fee/customer/?email=${encodeURIComponent(userEmail)}`
+);
+
+deliveryFeeSocketCustomer.onopen = () => console.log("[Customer JS] WebSocket connected");
+deliveryFeeSocketCustomer.onerror = (e) => console.error("[Customer JS] WebSocket error:", e);
+deliveryFeeSocketCustomer.onclose = (e) => console.log("[Customer JS] WebSocket closed:", e);
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// === PLACE ORDER BUTTON ===
+function updatePlaceOrderButtonState() {
+    const placeOrderBtn = document.querySelector('form button.checkout-btn');
+    const selectedOrderType = document.querySelector('input[name="order_type"]:checked');
+    const deliveryFeeInput = document.getElementById('delivery_fee_input');
+    const deliveryFee = deliveryFeeInput ? parseFloat(deliveryFeeInput.value) || 0 : 0;
+
+    if (!placeOrderBtn) return;
+
+    if (!selectedOrderType) {
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.title = "Please select an order type first.";
+        placeOrderBtn.classList.add('disabled-btn');
+        return;
+    }
+
+    if (selectedOrderType.value === 'delivery') {
+        const hasFeeResponse = localStorage.getItem("delivery_fee_received") === "true";
+    
+        if (!hasFeeResponse) {
+            // No response yet, keep disabled
+            placeOrderBtn.disabled = true;
+            placeOrderBtn.title = "Please request and receive delivery fee before placing order.";
+            placeOrderBtn.classList.add('disabled-btn');
+        } else {
+            // Response received, allow even if fee is 0
+            placeOrderBtn.disabled = false;
+            placeOrderBtn.title = "";
+            placeOrderBtn.classList.remove('disabled-btn');
+        }
+    }
+
+    else if (selectedOrderType.value === 'pickup') {
+        placeOrderBtn.disabled = false;
+        placeOrderBtn.title = "";
+        placeOrderBtn.classList.remove('disabled-btn');
+    }
+}
+
+
+// === TIMER HELPER ===
+let deliveryFeeTimer = null;
+
+function startDeliveryFeeTimer(button, duration = 120) {
+    const startTime = Date.now();
+    const expiryTime = startTime + duration * 1000;
+
+    // Save expiry time in localStorage
+    localStorage.setItem("delivery_fee_timer_expiry", expiryTime);
+
+    runDeliveryFeeTimer(button, expiryTime);
+}
+
+function runDeliveryFeeTimer(button, expiryTime) {
+    clearInterval(deliveryFeeTimer);
+
+    // Create timer span if not exists
+    let timerSpan = document.getElementById("delivery-fee-timer");
+    if (!timerSpan) {
+        timerSpan = document.createElement("span");
+        timerSpan.id = "delivery-fee-timer";
+        timerSpan.style.marginLeft = "10px";
+        button.parentNode.appendChild(timerSpan);
+    }
+
+    button.disabled = true;
+    button.textContent = "Requested";
+
+    function updateTimer() {
+        const now = Date.now();
+        let remaining = Math.max(0, Math.floor((expiryTime - now) / 1000));
+
+        if (remaining > 0) {
+            timerSpan.textContent = ` (wait ${remaining}s)`;
+        } else {
+            clearInterval(deliveryFeeTimer);
+            deliveryFeeTimer = null;
+            localStorage.removeItem("delivery_fee_timer_expiry");
+
+            button.disabled = false;
+            button.textContent = "Request Delivery Fee Again";
+            timerSpan.textContent = "";
+            button.style.display = "inline-block";
+            const loadingElem = document.getElementById("delivery-fee-loading");
+            if (loadingElem) loadingElem.style.display = "none";
+        }
+    }
+
+    updateTimer();
+    deliveryFeeTimer = setInterval(updateTimer, 1000);
+}
+
+// === RESTORE TIMER ON PAGE LOAD ===
+document.addEventListener("DOMContentLoaded", function () {
+    const requestBtn = document.getElementById("request-delivery-fee-btn");
+    if (!requestBtn) return;
+
+    const expiryTime = parseInt(localStorage.getItem("delivery_fee_timer_expiry"), 10);
+    if (expiryTime && Date.now() < expiryTime) {
+        // Resume timer
+        runDeliveryFeeTimer(requestBtn, expiryTime);
+    }
+});
+
+// === DELIVERY FEE UI ===
+function showDeliveryFeeRequest() {
+    const container = document.querySelector('.cart-summary .summary-card');
+    if (!container) return;
+
+    let feeContainer = document.getElementById('delivery-fee-container');
+    if (!feeContainer) {
+        feeContainer = document.createElement('div');
+        feeContainer.id = 'delivery-fee-container';
+        feeContainer.innerHTML = `
+            <div style="height: 20px; visibility: hidden;"></div>
+            <button id="request-delivery-fee-btn" class="checkout-btn">Request Delivery Fee</button>
+            <span id="delivery-fee-loading" style="display:none;">Loading...</span>
+            <span id="delivery-fee-amount" style="display:none;"></span>
+        `;
+        container.appendChild(feeContainer);
+
+        const requestBtn = document.getElementById('request-delivery-fee-btn');
+
+        requestBtn.addEventListener('click', function () {
+            this.style.display = 'none';
+            document.getElementById('delivery-fee-loading').style.display = 'inline';
+
+            const orderDetails = {
+                customer_name: "{{ cart_items.0.first_name }} {{ cart_items.0.last_name }}",
+                email: "{{ cart_items.0.email }}",
+                address: `{{ cart_items.0.address|escapejs }}`,
+                items: [
+                    {% for item in cart_items %}
+                    {
+                        product_name: "{{ item.product_name|escapejs }}",
+                        quantity: {{ item.quantity }},
+                        price: {{ item.price }},
+                    }{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                total: parseFloat(document.getElementById('total').textContent),
+            };
+
+            console.log("[Customer JS] Sending fee request", orderDetails);
+            deliveryFeeSocketCustomer.send(JSON.stringify({
+                action: "request_fee",
+                customer_email: "{{ cart_items.0.email }}",
+                order_details: orderDetails,
+            }));
+
+            // Start 2 min timer
+            this.style.display = "inline-block"; // Keep visible for timer
+            startDeliveryFeeTimer(this, 120);
+        });
+    }
+}
+
+// After delivery fee input is added dynamically
+function initDeliveryFeeInputListener() {
+    const deliveryFeeInput = document.getElementById('delivery_fee_input');
+    if (deliveryFeeInput) {
+        deliveryFeeInput.addEventListener('input', updatePlaceOrderButtonState);
+    }
+}
+
+// === DELIVERY FEE WEBSOCKET ===
+deliveryFeeSocketCustomer.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+
+    if (data.type === 'delivery_fee_response') {
+        // (unchanged)
+        const fee = parseFloat(data.delivery_fee);
+
+        document.getElementById('delivery-fee-loading').style.display = 'none';
+        document.getElementById('delivery-fee-row').style.display = 'flex';
+        document.getElementById('delivery-fee-display').textContent = fee.toFixed(2);
+
+        const subtotal = parseFloat(document.getElementById('subtotal').textContent);
+        document.getElementById('total').textContent = (subtotal + fee).toFixed(2);
+
+        document.getElementById('delivery_fee_input').value = fee;
+
+        localStorage.setItem('delivery_fee', fee);
+        localStorage.setItem('order_type', 'delivery');
+        localStorage.setItem('delivery_fee_received', "true");
+
+        updatePlaceOrderButtonState();
+
+        // Stop timer since fee responded
+        if (deliveryFeeTimer) {
+            clearInterval(deliveryFeeTimer);
+            deliveryFeeTimer = null;
+        }
+        const timerSpan = document.getElementById("delivery-fee-timer");
+        if (timerSpan) timerSpan.textContent = "";
+        } else if (data.type === 'delivery_fee_rejected') {
+            // (unchanged + reset timer)
+            document.getElementById('delivery-fee-loading').style.display = 'none';
+            showDeliveryFeeModal(data.reason || "Delivery fee request is rejected.");
+        
+            document.getElementById('delivery_fee_input').value = 0;
+            localStorage.removeItem('delivery_fee_received');
+            localStorage.removeItem('delivery_fee');
+        
+            const feeRow = document.getElementById('delivery-fee-row');
+            if (feeRow) feeRow.style.display = 'none';
+        
+            const subtotal = parseFloat(document.getElementById('subtotal').textContent);
+            document.getElementById('total').textContent = subtotal.toFixed(2);
+        
+            updatePlaceOrderButtonState();
+        
+            // Reset button
+            const requestBtn = document.getElementById("request-delivery-fee-btn");
+            if (requestBtn) {
+                requestBtn.disabled = false;
+                requestBtn.style.display = "inline-block";
+                requestBtn.textContent = "Request Delivery Fee Again";
+            }
+            
+            // Clear the timer
+            if (deliveryFeeTimer) {
+                clearInterval(deliveryFeeTimer);
+                deliveryFeeTimer = null;
+            }
+            
+            // ADD THESE LINES HERE:
+            const timerSpan = document.getElementById("delivery-fee-timer");
+            if (timerSpan) timerSpan.textContent = "";
+        }
+};
+
+function showDeliveryFeeModal(message) {
+    const modal = document.getElementById('delivery-fee-modal');
+    const msgElem = document.getElementById('delivery-fee-modal-message');
+    const closeBtn = document.getElementById('delivery-fee-modal-close');
+
+    if (!modal || !msgElem || !closeBtn) return;
+
+    msgElem.textContent = message;
+    modal.style.display = 'flex';
+
+    closeBtn.onclick = () => { modal.style.display = 'none'; }
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; }
+}
+
+// === ORDER TYPE HANDLING ===
+function handleOrderTypeChange() {
+    const pickupRadio = document.getElementById('pickup');
+    const deliveryRadio = document.getElementById('delivery');
+    const storeAddress = document.getElementById('store-address');
+
+    function updateStoreAddressVisibility() {
+        storeAddress.style.display = pickupRadio.checked ? 'block' : 'none';
+    }
+
+    pickupRadio.addEventListener('change', () => {
+        updateStoreAddressVisibility();
+        document.getElementById('delivery_fee_input').value = 0;
+        const feeContainer = document.getElementById('delivery-fee-container');
+        if (feeContainer) feeContainer.remove();
+        const feeRow = document.getElementById('delivery-fee-row');
+        if (feeRow) feeRow.style.display = 'none';
+
+        const subtotal = parseFloat(document.getElementById('subtotal').textContent);
+        document.getElementById('total').textContent = subtotal.toFixed(2);
+
+        localStorage.setItem('order_type', 'pickup');
+        localStorage.removeItem('delivery_fee');
+
+        updatePlaceOrderButtonState();
+    });
+
+    deliveryRadio.addEventListener('change', () => {
+        showDeliveryFeeRequest();
+        initDeliveryFeeInputListener();
+        localStorage.setItem('order_type', 'delivery');
+        updatePlaceOrderButtonState();
+    });
+
+    updateStoreAddressVisibility();
+}
+
+// === CART ITEM QUANTITY UPDATE ===
+function updateCartItem(cartId, newQty) {
+    const cartItem = document.querySelector(`div.cart-item[data-cart-id='${cartId}']`);
+    const priceElement = cartItem.querySelector('.price-value');
+
+    cartItem.classList.add('updating');
+    priceElement.classList.add('updating');
+
+    fetch(`/update-cart/${cartId}/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({ quantity: newQty })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            priceElement.textContent = data.updated_price;
+            document.getElementById("subtotal").textContent = data.new_subtotal;
+            
+            // Update total including delivery fee if it exists
+            const deliveryFee = parseFloat(localStorage.getItem('delivery_fee')) || 0;
+            document.getElementById("total").textContent = (parseFloat(data.new_subtotal) + deliveryFee).toFixed(2);
+            
+            // Update delivery fee display if needed
+            const deliveryFeeDisplay = document.getElementById('delivery-fee-display');
+            if (deliveryFeeDisplay && deliveryFee > 0) {
+                deliveryFeeDisplay.textContent = deliveryFee.toFixed(2);
+            }
+        } else {
+            alert("Unable to update cart. Please try again.");
+            console.error("Cart update failed:", data.error);
+        }
+    })
+    .catch(error => {
+        console.error("Network error:", error);
+        alert("Connection error. Please check your internet and try again.");
+    })
+    .finally(() => {
+        cartItem.classList.remove('updating');
+        priceElement.classList.remove('updating');
+        updatePlaceOrderButtonState();
+    });
+}
+
+// === INIT CART QUANTITY LISTENERS & ANIMATION ===
+function initCartQuantityListeners() {
+    document.querySelectorAll(".qty-input").forEach(input => {
+        input.addEventListener("change", function () {
+            const cartId = this.dataset.cartId;
+            const newQty = Math.max(1, parseInt(this.value) || 1);
+            this.value = newQty;
+            updateCartItem(cartId, newQty);
+        });
+        input.addEventListener("input", function() {
+            if (this.value < 1) this.value = 1;
+        });
+    });
+
+    document.querySelectorAll(".qty-increase").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const cartId = this.dataset.cartId;
+            const input = document.querySelector(`input[data-cart-id='${cartId}']`);
+            const newQty = Math.min(99, (parseInt(input.value) || 1) + 1);
+            input.value = newQty;
+            updateCartItem(cartId, newQty);
+        });
+    });
+
+    document.querySelectorAll(".qty-decrease").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const cartId = this.dataset.cartId;
+            const input = document.querySelector(`input[data-cart-id='${cartId}']`);
+            const newQty = Math.max(1, (parseInt(input.value) || 1) - 1);
+            input.value = newQty;
+            updateCartItem(cartId, newQty);
+        });
+    });
+
+    // Subtle animation
+    document.querySelectorAll('.cart-item').forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            item.style.transition = 'all 0.4s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+}
+
+// === DELETE ITEM MODAL ===
+function initDeleteButtons() {
+    let formToDelete = null;
+
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productName = this.closest('.cart-item').querySelector('.product-name').textContent;
+            formToDelete = this.closest('form');
+
+            document.getElementById('product-to-remove').textContent = `"${productName}"`;
+            const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            modal.show();
+
+            document.getElementById('confirmDeleteBtn').onclick = function () {
+                if (formToDelete) formToDelete.submit();
+            };
+        });
+    });
+}
+
+// === INITIALIZATION ===
+document.addEventListener('DOMContentLoaded', function() {
+    handleOrderTypeChange();
+    initDeleteButtons();
+    initCartQuantityListeners();
+
+    // Restore saved order type & delivery fee
+    const savedOrderType = localStorage.getItem('order_type');
+    const savedDeliveryFee = localStorage.getItem('delivery_fee');
+    const hasFeeResponse = localStorage.getItem("delivery_fee_received") === "true";
+
+    const subtotalElement = document.getElementById('subtotal');
+    const totalElement = document.getElementById('total');
+
+    if (subtotalElement && totalElement) {
+        let subtotal = parseFloat(subtotalElement.textContent) || 0;
+        let deliveryFee = 0;
+
+        const deliveryFeeInput = document.getElementById('delivery_fee_input');
+
+        // Only restore delivery fee if input exists and we have a saved fee
+        if (savedOrderType === 'delivery' && deliveryFeeInput && savedDeliveryFee && hasFeeResponse) {
+            deliveryFee = parseFloat(savedDeliveryFee);
+            deliveryFeeInput.value = deliveryFee;
+            
+            // Show the delivery fee row and update display
+            const feeRow = document.getElementById('delivery-fee-row');
+            const feeDisplay = document.getElementById('delivery-fee-display');
+            if (feeRow && feeDisplay) {
+                feeRow.style.display = 'flex';
+                feeDisplay.textContent = deliveryFee.toFixed(2);
+            }
+         
+            initDeliveryFeeInputListener(); // Add listener if needed
+        }
+
+        totalElement.textContent = (subtotal + deliveryFee).toFixed(2);
+
+        // Restore radio button
+        if (savedOrderType) {
+            const radio = document.querySelector(`input[name="order_type"][value="${savedOrderType}"]`);
+            if (radio) {
+                radio.checked = true;
+                // If delivery is selected and we have a fee response, show the delivery fee request UI
+                if (savedOrderType === 'delivery' && hasFeeResponse) {
+                    showDeliveryFeeRequest();
+                }
+            }
+        }
+    }
+
+    updatePlaceOrderButtonState();
+});
+
+function setScheduledDate() {
+    const scheduledRadio = document.getElementById("order_scheduled");
+    const datetimeInput = document.getElementById("scheduled_date");
+    const hiddenInput = document.getElementById("scheduled_at_input"); // Updated ID
+
+    if (scheduledRadio && scheduledRadio.checked && datetimeInput && hiddenInput) {
+        hiddenInput.value = datetimeInput.value;
+        console.log("Scheduled date set:", datetimeInput.value); // Debug log
+    } else {
+        if (hiddenInput) hiddenInput.value = "";
+    }
+    
+    // Also set order type
+    const orderTypeInput = document.getElementById('order_type_input');
+    const selectedOrderType = document.querySelector('input[name="order_type"]:checked');
+    if (orderTypeInput && selectedOrderType) {
+        orderTypeInput.value = selectedOrderType.value;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const scheduledRadio = document.getElementById("order_scheduled");
+    const nowRadio = document.getElementById("order_now");
+    const schedulePicker = document.getElementById("schedulePicker");
+
+    if (scheduledRadio && schedulePicker) {
+        scheduledRadio.addEventListener("change", function () {
+            if (this.checked) {
+                schedulePicker.style.display = "block";
+            }
+        });
+
+        if (nowRadio) {
+            nowRadio.addEventListener("change", function () {
+                if (this.checked) {
+                    schedulePicker.style.display = "none";
+                }
+            });
+        }
+    }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const scheduledRadio = document.getElementById("order_scheduled");
+    const nowRadio = document.getElementById("order_now");
+    const schedulePicker = document.getElementById("schedulePicker");
+    const scheduledDateInput = document.getElementById("scheduled_date");
+    const hiddenScheduledDate = document.getElementById("scheduled_date_input");
+    const checkoutForm = document.querySelector(".checkout-btn").closest("form");
+
+    if (scheduledRadio && schedulePicker) {
+        scheduledRadio.addEventListener("change", () => {
+            if (scheduledRadio.checked) {
+                schedulePicker.style.display = "block";
+            }
+        });
+        nowRadio.addEventListener("change", () => {
+            if (nowRadio.checked) {
+                schedulePicker.style.display = "none";
+            }
+        });
+    }
+
+    checkoutForm.addEventListener("submit", function () {
+        if (scheduledRadio.checked && scheduledDateInput.value) {
+            hiddenScheduledDate.value = scheduledDateInput.value;
+        } else {
+            hiddenScheduledDate.value = "";
+        }
+    });
+});
+</script>
+{% endblock %}
