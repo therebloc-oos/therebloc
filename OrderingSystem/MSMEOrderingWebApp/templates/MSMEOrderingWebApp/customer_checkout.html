@@ -1330,13 +1330,50 @@ document.addEventListener("DOMContentLoaded", () => {
         const checkoutBtn = document.getElementById('checkoutBtn');
         if (!checkoutBtn) return;
 
-        // PRIORITY 1: Shop must be open
+
+        /*
         if (isShopClosed()) {
             checkoutBtn.disabled = true;
             checkoutBtn.classList.add('disabled-btn');
-            checkoutBtn.title = "Shop is currently closed";
+            message.textContent = "⚠️ We're closing in 5 minutes, so checkout is currently unavailable.";
             return;
         }
+        */    
+
+
+        // PRIORITY 1: Shop must be open or near closing
+        const now = new Date();
+        let open = parseTimeToToday(openingTime);
+        let close = parseTimeToToday(closingTime);
+        const closeBuffer = new Date(close.getTime() - (5 * 60 * 1000)); // 5 minutes before closing
+
+        if (forceClosed === true) {
+            checkoutBtn.disabled = true;
+            checkoutBtn.classList.add('disabled-btn');
+            checkoutBtn.title = "⚠️ The shop is temporarily closed. Please try again later.";
+            return;
+        }
+
+        // If within operating days
+        if (isWithinOperatingDays()) {
+            if (now >= closeBuffer && now < close) {
+                checkoutBtn.disabled = true;
+                checkoutBtn.classList.add('disabled-btn');
+                checkoutBtn.title = "⚠️ Checkout is temporarily unavailable as the shop is about to close.";
+                return;
+            } else if (!isWithinOperatingHours()) {
+                checkoutBtn.disabled = true;
+                checkoutBtn.classList.add('disabled-btn');
+                checkoutBtn.title = "⚠️ The shop is now closed. Please try again during operating hours.";
+                return;
+            }
+        } else {
+            checkoutBtn.disabled = true;
+            checkoutBtn.classList.add('disabled-btn');
+            checkoutBtn.title = "⚠️ The shop is closed today. Please visit during operating days.";
+            return;
+        }
+
 
         // PRIORITY 2: Payment method must be selected
         const paymentSelected = document.querySelector('input[name="payment_method"]:checked');
@@ -1412,6 +1449,56 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 3000);
 });
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const checkoutBtn = document.getElementById("checkoutBtn");
+
+    // Create and style message element
+    const message = document.createElement("div");
+    message.id = "checkoutMessage";
+    message.style.display = "flex";
+    message.style.gridColumn = "1 / -1"; // spans both buttons
+    message.style.marginTop = "10px";
+    message.style.textAlign = "center";
+    message.style.alignItems = "center";
+    message.style.justifyContent = "center";
+    message.style.fontFamily = "Inter, sans-serif";
+    message.style.fontWeight = "600";
+    message.style.fontSize = "14px";
+    message.style.color = "#b91c1c";
+    message.style.background = "rgba(255, 0, 0, 0.08)";
+    message.style.border = "1px solid rgba(255, 0, 0, 0.3)";
+    message.style.borderRadius = "10px";
+    message.style.padding = "10px 12px";
+    message.style.transition = "opacity 0.3s ease";
+    message.style.opacity = "0";
+
+
+    // Insert message below Checkout button
+    const formActions = checkoutBtn.closest(".form-actions");
+    if (formActions) {
+        formActions.appendChild(message);
+    }
+
+
+    // Observe button state changes
+    const observer = new MutationObserver(() => {
+        if (checkoutBtn.disabled) {
+            let reason = checkoutBtn.title || "⚠️ We're about to close. Please try again after reopening hours.";
+            message.textContent = reason;
+            message.style.display = "flex";
+            requestAnimationFrame(() => (message.style.opacity = "1"));
+        } else {
+            message.style.opacity = "0";
+            setTimeout(() => (message.style.display = "none"), 300);
+        }
+    });
+
+    observer.observe(checkoutBtn, { attributes: true, attributeFilter: ["disabled", "title"] });
+});
+</script>
+
 {% endif %}
 
 {% endblock %}
