@@ -20,7 +20,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "insecure-fallback-key")
 
 DEBUG = os.environ.get("DEBUG", "False").lower() in ["true", "1"]
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "therebloc.onrender.com").split(",")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "therebloc.online,www.therebloc.online,therebloc.onrender.com").split(",")
 
 # CSRF Protection for HTTPS
 CSRF_TRUSTED_ORIGINS = [
