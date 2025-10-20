@@ -184,7 +184,7 @@ if IS_RENDER:
     # CRITICAL FOR RENDER
     SECURE_SSL_REDIRECT = False  # Render handles SSL
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    ALLOWED_HOSTS = ['therebloc.onrender.com']
+    ALLOWED_HOSTS = ['therebloc.online', 'www.therebloc.online', 'therebloc.onrender.com']
     DEBUG = False
 else:
     # Local development
