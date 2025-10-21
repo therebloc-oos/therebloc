@@ -1444,6 +1444,8 @@
     <!-- Best Seller Products Grid (same style as product grid) -->
     <div class="row" id="bestsellerGrid">
         {% for product in best_seller_products %}
+        <!-- ✅ Only show if stocks > 0 when tracking stocks -->
+        {% if not product.track_stocks or product.stocks > 0 %}
         <div class="col-6 col-md-4 col-xl-3 g-2 product-card fade-in" 
              data-name="{{ product.name|lower }}" 
              data-category="{{ product.category }}">
@@ -1490,6 +1492,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
         {% empty %}
         <div class="col-12">
             <div class="empty-state">
@@ -1586,6 +1589,8 @@
 <!-- Products Grid -->
 <div class="row" id="productGrid">
     {% for product in products %}
+    <!-- ✅ Only show if stocks > 0 when tracking stocks -->
+    {% if not product.track_stocks or product.stocks > 0 %}
     <div class="col-6 col-md-4 col-xl-3 g-2 product-card fade-in" data-name="{{ product.name|lower }}" data-category="{{ product.category }}">
         <div class="card">
             {% if product.image %}
@@ -1625,6 +1630,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
     {% empty %}
     <div class="col-12">
         <div class="empty-state">
