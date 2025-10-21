@@ -841,6 +841,22 @@
             color: #333;
         }
 
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 5px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            font-weight: 500;
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-family: '{{ customization.body_font_family|default:"Arial" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            border-width: {{ customization.input_border_width|default:1 }}px; 
+            border-style: {{ customization.input_border_style|default:'solid' }};
+            border-color: {{ customization.primary_color|default:'#000000' }};
+            border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+        }
 
 
     </style>
