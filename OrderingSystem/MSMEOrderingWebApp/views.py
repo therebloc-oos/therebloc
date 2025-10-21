@@ -3790,13 +3790,36 @@ def update_pos_cart_quantity(request):
 
 @login_required_session(allowed_roles=['owner', 'cashier'])
 @csrf_exempt
+def update_pos_customer_name(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            first_name = data.get("first_name", "").strip() or "Walk-in"
+            last_name = data.get("last_name", "").strip() or "Customer"
+
+            # Update all walk-in cart items
+            Cart.objects.filter(email="walkin@store.com").update(
+                first_name=first_name,
+                last_name=last_name
+            )
+
+            return JsonResponse({"success": True})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid method"})
+	
+@login_required_session(allowed_roles=['owner', 'cashier'])
+@csrf_exempt
 def pos_place_order(request):
     if request.method == 'POST':
         try:
+            # ✅ Get all walk-in cart items
             cart_items = Cart.objects.filter(email="walkin@store.com")
             if not cart_items.exists():
                 return JsonResponse({'success': False, 'error': 'Cart is empty'})
 
+            # ✅ Determine subtotal
             subtotal = sum(item.price * item.quantity for item in cart_items)
             data = json.loads(request.body)
 
@@ -3809,7 +3832,7 @@ def pos_place_order(request):
 
             order_code = generate_order_code('walkin')
 
-            # ✅ Use business day range
+            # ✅ Use business day range to avoid duplicate order codes
             day_start, day_end = get_business_day_range()
             if Checkout.objects.filter(
                 order_code=order_code,
@@ -3824,9 +3847,15 @@ def pos_place_order(request):
             # ✅ Get specific order type
             specific_order_type = data.get('order_type', None)
 
+            # ✅ Determine the latest entered customer name (or use defaults)
+            latest_cart = cart_items.order_by('-id').first()
+            first_name = latest_cart.first_name if latest_cart and latest_cart.first_name.strip() else "Walk-in"
+            last_name = latest_cart.last_name if latest_cart and latest_cart.last_name.strip() else "Customer"
+
             checkout_entries = []
             grouped_sales = {}
 
+            # ✅ Process all cart items
             for item in cart_items:
                 parts = item.product_name.split(" - ", 1)
                 if len(parts) < 2:
@@ -3836,6 +3865,7 @@ def pos_place_order(request):
                     name = parts[0].strip()
                     variation = parts[1].split(" (₱")[0].strip()
 
+                # ✅ Update product stock
                 try:
                     product = Products.objects.get(
                         name__iexact=name,
@@ -3860,11 +3890,13 @@ def pos_place_order(request):
                         product.stocks = max(0, product.stocks - item.quantity)
                         product.save(update_fields=["stocks"])
 
+                # ✅ Track sold quantity per product
                 grouped_sales[name.lower()] = grouped_sales.get(name.lower(), 0) + item.quantity
 
+                # ✅ Create Checkout entry
                 checkout = Checkout.objects.create(
-                    first_name=item.first_name,
-                    last_name=item.last_name,
+                    first_name=first_name,
+                    last_name=last_name,
                     contact_number=item.contact_number,
                     address=item.address,
                     email=item.email,
@@ -3892,12 +3924,16 @@ def pos_place_order(request):
                     sold_count=F("sold_count") + qty
                 )
 
+            # ✅ Business info for receipt
             business = BusinessDetails.objects.first()
             business_name = business.business_name if business else "My Store"
             store_address = business.store_address if business else "Store Address"
 
+            # ✅ Order summary for print
             order_data = {
                 'order_code': order_code,
+                'first_name': first_name,
+                'last_name': last_name,
                 'business_name': business_name,
                 'store_address': store_address,
                 'payment_method': payment_method,
@@ -3909,6 +3945,7 @@ def pos_place_order(request):
                 'hide_customer_info': True
             }
 
+            # ✅ Items data for printing
             items_data = [
                 {
                     'product_name': item.product_name,
@@ -3932,7 +3969,9 @@ def pos_place_order(request):
                 }
             )
 
+            # ✅ Clear the POS cart
             cart_items.delete()
+
             return JsonResponse({'success': True})
 
         except Exception as e:
