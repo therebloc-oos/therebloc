@@ -947,6 +947,29 @@
             </div>
             {% endif %}
 
+            <div class="options-card">
+                <div class="option-group">
+                    <h4 class="option-title">
+                        <i class="fas fa-user"></i>
+                        Customer Name (Optional)
+                    </h4>
+                    <div class="row g-2">
+                        <div class="col">
+                            <input type="text" id="first-name" class="form-control" placeholder="First Name">
+                        </div>
+                        <div class="col">
+                            <input type="text" id="last-name" class="form-control" placeholder="Last Name">
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button class="btn btn-outline-primary" onclick="updateCustomerName()">
+                            <i class="fas fa-save"></i> Apply Name
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
             <!-- Payment Options -->
             <div class="options-card">
                 <div class="option-group">
@@ -1546,6 +1569,39 @@
         })
         .catch(error => {
             showOrderPopup("Error", "Error placing order: " + error, false);
+        });
+    }
+
+    function updateCustomerName() {
+        const firstName = document.getElementById('first-name').value.trim();
+        const lastName = document.getElementById('last-name').value.trim();
+
+        if (!firstName && !lastName) {
+            showOrderPopup("Missing Name", "Please enter at least one name to update.", false);
+            return;
+        }
+
+        fetch("{% url 'update_pos_customer_name' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                first_name: firstName,
+                last_name: lastName
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showOrderPopup("Updated", "Customer name updated successfully.", true);
+            } else {
+                showOrderPopup("Error", data.error || "Failed to update customer name.", false);
+            }
+        })
+        .catch(error => {
+            showOrderPopup("Error", "Request failed: " + error, false);
         });
     }
 
