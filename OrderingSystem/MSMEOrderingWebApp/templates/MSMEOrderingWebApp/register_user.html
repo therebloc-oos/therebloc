@@ -59,27 +59,38 @@
             {% endif %}
         }
 
-    .container {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        height: 100vh;
-        width: 100%;
-    }
 
     .form-side {
-        width: 50%;
-        padding: 40px;
+        left: 0;
+        width: 52%;
+        padding: 3rem 2rem 1.5rem 2rem;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
         align-items: flex-start;
         position: absolute;
         top: 0;
-        left: 1rem;
         height: 100%;
         overflow-y: auto;
-        background: transparent; /* Ensure it doesn’t override the background set on the body */
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(55px);
+    }
+
+    .form-side::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .form-side::-webkit-scrollbar-track {
+        background: #f1f5f99a;
+    }
+
+    .form-side::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+    }
+
+    .form-side::-webkit-scrollbar-thumb:hover {
+        background: var(--secondary-color);
     }
 
     .form-side h2 {
@@ -163,7 +174,7 @@
 
     /* Image side styles */
     .image-side {
-        width: 45%;
+        width: 48%;
         background-image: url('{% if customization.register_background_image %}{{ customization.register_background_image.url }}{% else %}{{ customization.register_background_image_url }}{% endif %}');
         background-size: cover;
         background-position: center;
@@ -173,28 +184,159 @@
         right: 0;
     }
 
+    /* Tablet responsiveness fix */
+    @media (max-width: 1024px) {
+        /* Make input fields full-width in one column */
+        .form-side form {
+            display: flex;
+            flex-direction: column;
+            gap: 5px; /* optional spacing between inputs */
+        }
+
+        .form-side .row {
+            flex-direction: column !important;
+        }
+
+        .form-side .col,
+        .form-side .col-md-6,
+        .form-side .col-sm-6 {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        /* Adjust overall layout */
+        .form-side {
+            width: 52% !important;
+            left: 0;
+            right: 0;
+            padding: 2.5rem;
+        }
+
+        /* Hide the image on medium and small screens */
+        .image-side {
+            width:48%;
+        }
+    }
+
+
     @media (max-width: 768px) {
+
+        /* Responsive fix for agreement section */
+        .agreement-box {
+            width: 100%;
+            font-size: 14px;                 /* smaller font for mobile */
+            line-height: 1.4;
+            display: flex;
+            align-items: flex-start;
+            padding: 10px;
+            gap: 8px;
+            word-wrap: break-word;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(5px);
+        }
+
+        .agreement-box .form-check {
+            display: flex;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .agreement-box .form-check-input {
+            margin-top: 3px;
+            transform: scale(1.1);          /* make checkbox slightly larger for touch devices */
+        }
+
+        .agreement-box label {
+            font-size: 14px;
+            line-height: 1.5;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .agreement-box a.sign-in-text {
+            text-decoration: underline;
+            white-space: normal;
+        }
+
+        .agreement-box a.sign-in-text:hover {
+            text-decoration: none;
+        }
+        
         .container {
             flex-direction: column;
+            position: relative;
+            height: 100vh; /* ensure full height for scroll behavior */
+            overflow: hidden;
         }
 
-        .image-side, .form-side {
+        /* Image goes behind the form */
+        .image-side {
+            position: fixed; /* fixed instead of absolute to stay in place while scrolling */
+            top: 0;
+            left: 0;
             width: 100%;
-            height: auto;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            opacity: 0.45;
         }
 
+        /* Form above image */
         .form-side {
-            max-height: 90vh;
-            overflow-y: auto;
+            position: relative;
+            z-index: 1;
+            width: 100% !important;
+            height: 100vh; /* make form take full height */
+            padding: 3rem 2.5rem;
+            background: rgba(255, 255, 255, 0.64);
+            backdrop-filter: blur(55px);
             align-items: center;
             left: 0;
+            overflow-y: auto; /* enable scrolling */
+            overflow-x: hidden;
+        }
+
+        /* Stack inputs */
+        .form-side form {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .form-side .row {
+            flex-direction: column !important;
+        }
+
+        .form-side .col,
+        .form-side .col-md-6,
+        .form-side .col-sm-6 {
+            width: 100% !important;
+            max-width: 100% !important;
+            
         }
 
         .form-side h2 {
-            font-size: 45px;
+            font-size: 40px;
             text-align: center;
+            margin-bottom: 1rem;
         }
     }
+
+    /* Extra small devices (phones under 576px) */
+    @media (max-width: 575px) {
+        .form-side{
+            padding: 1.5rem;
+        }
+        .form-side h2 {
+            font-size: 35px;
+            line-height: 1.2;
+        }
+    }
+
 
     .input-wrapper {
         position: relative;
@@ -518,8 +660,9 @@
         }
 
         .verify-note {
-            background-color: rgba(37, 99, 235, 0.08); /* soft blue tone */
+            background-color: rgba(214, 214, 214, 0.41); /* soft blue tone */
             border-left: 4px solid var(--primary-color);
+            font-weight:500;
             color: {{ customization.body_font_color|default:"#000000" }};
             font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
             font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16
@@ -532,7 +675,14 @@
             font-size: 18px;
         }
 
-
+        .form-text {
+            font-weight:500;
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 14 %}14
+            {% else %}{{ customization.body_font_size|default:12 }}{% endif %}px;
+            line-height: 1;
+        }
 
 </style>
 
@@ -548,7 +698,7 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
-            <div class="row mb-3">
+            <div class="row mb-2">
                 <div class="col-md-6">
                     <label for="first_name">First Name</label>
                     <input type="text" id="first_name" name="first_name" 
@@ -565,7 +715,7 @@
                 </div>
             </div>
 
-            <div class="row mb-3">
+            <div class="row mb-2">
                 <div class="col-md-6">
                     <label for="contact_number">Contact Number</label>
                     <input type="tel" id="contact_number" name="contact_number" 
@@ -579,7 +729,7 @@
                 </div>
             </div>
 
-            <div class="row mb-3">
+            <div class="row mb-2">
                 <div class="col-md-6">
                     <label for="address">Address</label>
                     <input type="text" id="address" name="address" placeholder="House No., Street, Subdivision/Barangay" value="{{ address|default:'' }}" required>
@@ -590,8 +740,7 @@
                 </div>
             </div>
 
-
-            <div class="row mb-3">
+            <div class="row mb-2">
                 <div class="col-md-6">
                     <label for="province">Province</label>
                     <input type="text" id="province" name="province" value="{{ province|default:'' }}" required>
@@ -605,7 +754,7 @@
                 </div>
             </div>
             
-            <div class="row mb-3">
+            <div class="row mb-2">
                 <div class="col-md-6">
                     <label for="password">Password</label>
                     <div class="input-wrapper position-relative">
@@ -624,7 +773,7 @@
             <!-- Password Requirements -->
             <div class="row mb-3">
                 <div class="col-md-12">
-                    <small class="form-text text-muted">
+                    <small class="form-text">
                         <strong>Password must meet the following requirements:</strong><br>
                         <span id="password-length" class="requirement">- At least 8 characters long</span><br>
                         <span id="password-letter-number" class="requirement">- Includes both letters and numbers</span><br>
@@ -652,7 +801,7 @@
             <div class="verify-note p-2 rounded mb-3 mt-3 d-flex align-items-center">
                 <i class="fas fa-envelope me-2"></i>
                 <span>
-                    After completing your registration, please check your email for the activation link.
+                    After completing your registration, please check your email for the activation link. If you don’t find it in your inbox within a few minutes, kindly check your spam or junk folder.
                 </span>
             </div>
 
@@ -909,6 +1058,5 @@ toastr.options = {
         });
     });
 </script>
-
 </body>
 </html>
