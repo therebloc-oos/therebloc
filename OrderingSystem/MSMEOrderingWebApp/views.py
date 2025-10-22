@@ -56,6 +56,75 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings as django_settings
 from django.contrib.auth.hashers import make_password
 
+def reprint_receipt(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        order_code = data.get("order_code")
+        group_id = data.get("group_id")
+
+        if not order_code or not group_id:
+            return JsonResponse({"success": False, "error": "Missing data"})
+
+        # Fetch orders belonging to the same order_code and group_id
+        orders = Checkout.objects.filter(order_code=order_code, group_id=group_id)
+        if not orders.exists():
+            return JsonResponse({"success": False, "error": "Order not found"})
+
+        reference_order = orders.first()
+
+        # Get business details
+        business = BusinessDetails.objects.first()
+        business_name = business.business_name if business else ""
+        store_address = business.store_address if business else ""
+
+        # Prepare print data
+        print_data = {
+            "type": "print",
+            "order": {
+                "order_code": reference_order.order_code,
+                "first_name": reference_order.first_name,
+                "last_name": reference_order.last_name,
+                "contact_number": reference_order.contact_number,
+                "address": reference_order.address,
+                "payment_method": reference_order.payment_method,
+                "created_at": timezone.localtime(reference_order.created_at).strftime('%Y-%m-%d %H:%M'),
+                "business_name": business_name,
+                "store_address": store_address,
+                "order_type": reference_order.order_type,
+                "notes": reference_order.additional_notes or "",
+            },
+            "items": [
+                {
+                    "product_name": o.product_name,
+                    "quantity": o.quantity,
+                    "price": float(o.price),
+                } for o in orders
+            ]
+        }
+
+        # Add delivery fee if applicable
+        if reference_order.order_type == "delivery" and reference_order.delivery_fee:
+            print_data["order"]["delivery_fee"] = float(reference_order.delivery_fee)
+
+        # ✅ Add cash_given and change (if available)
+        if hasattr(reference_order, "cash_given") and hasattr(reference_order, "change"):
+            print_data["order"]["cash_given"] = float(reference_order.cash_given or 0)
+            print_data["order"]["change"] = float(reference_order.change or 0)
+
+        # Send to printer group through WebSocket
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "printers",
+            {
+                "type": "send_print_job",
+                "data": print_data
+            }
+        )
+
+        return JsonResponse({"success": True, "message": "Receipt reprint sent successfully."})
+
+    return JsonResponse({"success": False, "error": "Invalid request method"})
+
 @csrf_exempt
 def toggle_shop_status(request):
     business = BusinessDetails.objects.first()  # adjust if multi-business
