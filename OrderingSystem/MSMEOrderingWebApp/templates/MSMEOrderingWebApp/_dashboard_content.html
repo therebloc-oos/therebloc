@@ -1554,12 +1554,14 @@
                                     <th>Ordered Items</th>
                                     <th>Total</th>
                                     <th>Mode of Payment</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for group in completed_orders_grouped %}
                                 <tr data-order-code="{{ group.order_code }}" 
-                                    data-date="{{ group.first.created_at|date:'Y-m-d' }}">
+                                    data-date="{{ group.first.created_at|date:'Y-m-d' }}" 
+                                    data-group-id="{{ group.first.group_id }}">
                                     <td>{{ group.order_code }}</td>
                                     <td>
                                         <div>{{ group.first.first_name }} {{ group.first.last_name }}</div>
@@ -1576,10 +1578,15 @@
                                     </td>
                                     <td>₱{{ group.total_price|floatformat:2 }}</td>
                                     <td style="text-align: center;">{{ group.first.payment_method|upper }}</td>
+                                    <td class="text-center">
+                                        <button class="btn-sm-modern btn-info-modern" onclick="printOrder('{{ group.order_code }}')">
+                                            <i class="fas fa-print"></i> Print
+                                        </button>
+                                    </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="8" class="empty-state" style="padding: 60px 20px;"> <!-- ✅ colspan updated -->
+                                    <td colspan="8" class="empty-state" style="padding: 60px 20px;">
                                         <i class="fas fa-times-circle empty-icon"></i>
                                         <h3>No Completed Orders</h3>
                                         <p>You haven't completed any orders recently.</p>
@@ -2277,5 +2284,60 @@ const statusColors = {
         if (overlay) overlay.style.display = 'none';
     }
 
+</script>
+
+<script>
+function printOrder(orderCode) {
+    const row = document.querySelector(`tr[data-order-code="${orderCode}"]`);
+    const groupId = row ? row.getAttribute("data-group-id") : null;
+
+    if (!groupId) {
+        alert("Group ID not found for this order.");
+        return;
+    }
+
+    if (!confirm("Reprint receipt for this order?")) return;
+
+    fetch("/reprint_receipt/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({
+            order_code: orderCode,
+            group_id: groupId,
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast("🖨️ Receipt reprint sent successfully!");
+        } else {
+            showToast(`❌ ${data.error || "Failed to reprint receipt."}`, true);
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        showToast("⚠️ An unexpected error occurred.", true);
+    });
+}
+
+
+// Helper: Get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 </script>
 {% endblock %}
