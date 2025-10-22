@@ -89,5 +89,6 @@ urlpatterns = [
     path("upload-logo/", views.upload_logo, name="upload_logo"),
     path("toggle-shop-status/", views.toggle_shop_status, name="toggle_shop_status"),
     path('pos/update-customer-name/', views.update_pos_customer_name, name='update_pos_customer_name'),
+    path("reprint_receipt/", views.reprint_receipt, name="reprint_receipt"),
 ]
 
