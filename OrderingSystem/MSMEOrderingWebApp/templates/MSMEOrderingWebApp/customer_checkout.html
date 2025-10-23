@@ -1198,6 +1198,72 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        // Save delivery fee to localStorage when page loads
+        const deliveryFeeInput = document.getElementById('delivery_fee_input');
+        const savedDeliveryFee = localStorage.getItem('delivery_fee');
+        
+        // Restore delivery fee from localStorage if available
+        if (savedDeliveryFee && deliveryFeeInput) {
+            deliveryFeeInput.value = savedDeliveryFee;
+            updateFeeDisplay(savedDeliveryFee);
+        }
+        
+        // Save current delivery fee to localStorage
+        if (deliveryFeeInput && deliveryFeeInput.value) {
+            localStorage.setItem('delivery_fee', deliveryFeeInput.value);
+        }
+
+        // Update display based on saved fee
+        function updateFeeDisplay(fee) {
+            const feeDisplayElement = document.querySelector('.total-row .total-amount');
+            const totalElement = document.querySelector('.final-total .total-amount');
+            
+            if (feeDisplayElement && totalElement) {
+                // Update the additional fee display
+                const feeElements = document.querySelectorAll('.total-row .total-amount');
+                if (feeElements[1]) {
+                    feeElements[1].textContent = '₱' + fee;
+                }
+                
+                // Recalculate total
+                const subtotalText = feeElements[0].textContent.replace('₱', '').replace(',', '');
+                const subtotal = parseFloat(subtotalText);
+                const deliveryFee = parseFloat(fee);
+                const newTotal = subtotal + deliveryFee;
+                
+                totalElement.textContent = '₱' + newTotal.toFixed(2);
+            }
+        }
+
+        // Clear delivery fee from localStorage on successful checkout
+        const form = document.querySelector('.checkout-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                // Only clear if form validation passes
+                if (validateForm()) {
+                    // Mark that checkout is in progress
+                    localStorage.setItem('checkout_in_progress', 'true');
+                }
+            });
+        }
+
+        // Check if we just came back from a successful checkout
+        const checkoutInProgress = localStorage.getItem('checkout_in_progress');
+        if (checkoutInProgress === 'true') {
+            // Check if we're on a success page or if checkout completed
+            // You can customize this condition based on your success indicators
+            const urlParams = new URLSearchParams(window.location.search);
+            const isSuccessPage = urlParams.get('success') === 'true' || 
+                                window.location.pathname.includes('success') ||
+                                document.querySelector('.alert-success, .success-message');
+            
+            if (isSuccessPage) {
+                localStorage.removeItem('delivery_fee');
+                localStorage.removeItem('checkout_in_progress');
+            }
+        }
+
+        // Existing code for saved order type
         const savedOrderType = localStorage.getItem('order_type');
         if (savedOrderType) {
             const orderTypeInput = document.getElementById('order_type_input');
@@ -1206,6 +1272,7 @@
             }
         }
 
+        // Payment method handling
         const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
         const proofSection = document.getElementById('proofSection');
         const fileInput = document.getElementById('proof');
@@ -1222,26 +1289,19 @@
             });
         });
 
-        fileInput.addEventListener('change', function () {
-            const fileName = this.files.length ? this.files[0].name : 'Choose image file (JPG, PNG)';
-            uploadLabel.querySelector('.upload-desc').textContent = fileName;
-        });
-
-        const form = document.querySelector('.checkout-form');
-        if (form && form.querySelector('.errorlist')) {
-            form.scrollIntoView({ behavior: 'smooth' });
+        if (fileInput && uploadLabel) {
+            fileInput.addEventListener('change', function () {
+                const fileName = this.files.length ? this.files[0].name : 'Choose image file (JPG, PNG)';
+                uploadLabel.querySelector('.upload-desc').textContent = fileName;
+            });
         }
 
-        // Disable unavailable services and payments
-        const paymentButtons = document.querySelectorAll('input[name="payment_method"]');
-        paymentButtons.forEach(button => {
-            const paymentType = button.value;
-            if (!enabledPaymentMethods.includes(paymentType)) {
-                button.disabled = true;
-            }
-        });
+        const formElement = document.querySelector('.checkout-form');
+        if (formElement && formElement.querySelector('.errorlist')) {
+            formElement.scrollIntoView({ behavior: 'smooth' });
+        }
 
-        // === SHOW/HIDE STORE ADDRESS WHEN PICKUP IS SELECTED ===
+        // Store address toggle
         const pickupRadio = document.getElementById('pickup');
         const deliveryRadio = document.getElementById('delivery');
         const storeAddress = document.getElementById('store-address');
@@ -1373,6 +1433,7 @@ document.addEventListener("DOMContentLoaded", () => {
             checkoutBtn.title = "⚠️ The shop is closed today. Please visit during operating days.";
             return;
         }
+
 
         // PRIORITY 2: Payment method must be selected
         const paymentSelected = document.querySelector('input[name="payment_method"]:checked');
