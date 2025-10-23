@@ -1021,10 +1021,10 @@
 
                 <!-- Action Buttons -->
                 <div class="form-actions">
-                    <button type="button" onclick="history.back()" class="btn-back">
+                    <a href="{% url 'customer_cart' %}" class="btn-back">
                         <i class="fa-solid fa-arrow-left"></i>
                         Back
-                    </button>
+                    </a>
                     <button type="submit" class="btn-submit disabled-btn" id="checkoutBtn" disabled>
                         <i class="fa-solid fa-check"></i>
                         Checkout
