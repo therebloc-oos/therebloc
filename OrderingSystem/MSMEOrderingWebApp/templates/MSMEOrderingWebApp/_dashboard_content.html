@@ -1134,6 +1134,27 @@
             }
         }
 
+        .btn-sm-modern {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            background-color: {{ customization.primary_color|default:'#000000' }};
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+            white-space: nowrap;
+        }
+
+        .btn-sm-modern .btn-text-full {
+            display: inline;
+        }
+
+        .btn-sm-modern .btn-text-short {
+            display: none;
+        }
 
     </style>
 
@@ -1580,7 +1601,7 @@
                                     <td style="text-align: center;">{{ group.first.payment_method|upper }}</td>
                                     <td class="text-center">
                                         <button class="btn-sm-modern btn-info-modern" onclick="printOrder('{{ group.order_code }}')">
-                                            <i class="fas fa-print"></i> Print
+                                            <i class="fas fa-print"></i> Reprint Receipt
                                         </button>
                                     </td>
                                 </tr>
