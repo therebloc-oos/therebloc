@@ -1898,35 +1898,42 @@
             variationSelect.innerHTML = `
                 <option value="" disabled selected hidden>Choose a variation...</option>
             `;
+
             const variations = getProductVariations(productName);
+
             if (variations.length > 0) {
                 variations.forEach(variation => {
                     const opt = document.createElement('option');
                     opt.value = variation.variation_name;
-                    opt.setAttribute('data-price', variation.price);
-                    opt.setAttribute('data-stocks', variation.stocks);
-                    opt.setAttribute('data-track-stocks', variation.track_stocks);
-                    
+
+                    // ✅ Use dataset for cleaner, safer access in JS
+                    opt.dataset.price = variation.price;
+                    opt.dataset.stocks = variation.stocks;
+                    opt.dataset.trackStocks = variation.track_stocks;
+
+                    // ✅ Build label with stock info
                     let optionText = `${variation.variation_name} (₱${parseFloat(variation.price).toFixed(2)})`;
                     if (variation.track_stocks) {
                         if (variation.stocks > 0) {
-                            optionText += ` - Qty:${variation.stocks}`;
+                            optionText += ` — Stocks: ${variation.stocks}`;
                         } else {
-                            optionText += ` - Out of stock`;
+                            optionText += ` — Out of stock`;
                             opt.disabled = true;
                             opt.style.color = '#dc3545';
                         }
                     }
-                    
+
                     opt.textContent = optionText;
                     variationSelect.appendChild(opt);
                 });
+
                 variationSelect.disabled = false;
             } else {
                 variationSelect.innerHTML = '<option value="" disabled selected>No variations available</option>';
                 variationSelect.disabled = true;
             }
         }
+
     
         // Reset quantity & pricing
         const quantityInput = document.getElementById('modalQuantity');
@@ -1961,34 +1968,48 @@
     function handleVariationChange() {
         const variationSelect = document.getElementById('modalVariation');
         const selected = variationSelect?.selectedOptions[0];
-        const price = parseFloat(selected?.getAttribute('data-price')) || 0;
-        const stocks = parseInt(selected?.getAttribute('data-stocks')) || 0;
-        const trackStocks = selected?.getAttribute('data-track-stocks') === 'True';
-        
         const priceEl = document.getElementById('modalPrice');
         const quantityInput = document.getElementById('modalQuantity');
         const confirmAddBtn = document.getElementById('confirmAddBtn');
-        
+
+        if (!selected) {
+            if (confirmAddBtn) confirmAddBtn.disabled = true;
+            return;
+        }
+
+        // ✅ Extract data attributes safely
+        const price = parseFloat(selected.dataset.price || '0');
+        const stocks = parseInt(selected.dataset.stocks || '0');
+        const trackStocks = selected.dataset.trackStocks === 'True' || selected.dataset.trackStocks === 'true';
+
+        // ✅ Update displayed unit price
         if (priceEl) {
             priceEl.textContent = price.toFixed(2);
         }
 
-        // Set quantity limits based on stock
-        if (quantityInput && trackStocks) {
-            quantityInput.max = stocks;
-            if (parseInt(quantityInput.value) > stocks) {
-                quantityInput.value = Math.min(stocks, 1);
+        // ✅ Set max quantity based on stock tracking
+        if (quantityInput) {
+            if (trackStocks) {
+                quantityInput.max = stocks > 0 ? stocks : 1;
+                if (parseInt(quantityInput.value) > stocks) {
+                    quantityInput.value = 1;
+                }
+            } else {
+                quantityInput.max = 99; // unlimited (or arbitrary high)
             }
+            quantityInput.value = 1; // reset quantity whenever variation changes
         }
 
-        // Enable Add to Cart button if a variation is selected and has stock
+        // ✅ Enable/disable Add to Cart button depending on stock
         if (confirmAddBtn) {
             const hasStock = !trackStocks || stocks > 0;
-            confirmAddBtn.disabled = !selected || !hasStock;
+            confirmAddBtn.disabled = !hasStock;
         }
 
+        // ✅ Update total display
         updateModalTotal();
     }
+
 
     function updateModalTotal() {
         const quantityInput = document.getElementById('modalQuantity');
@@ -2009,16 +2030,27 @@
         const variationSelect = document.getElementById('modalVariation');
         const selected = variationSelect?.selectedOptions[0];
         
-        if (!input) return;
+        if (!input || !selected) return;
 
-        const stocks = parseInt(selected?.getAttribute('data-stocks')) || 99;
-        const trackStocks = selected?.getAttribute('data-track-stocks') === 'True';
-        const maxQuantity = trackStocks ? stocks : 99;
+        // ✅ Fetch stock and tracking info safely
+        const stocks = parseInt(selected.dataset.stocks || '99');
+        const trackStocks = selected.dataset.trackStocks === 'True' || selected.dataset.trackStocks === 'true';
 
+        // ✅ If tracking is enabled, limit to actual stock, otherwise allow up to 99
+        const maxQuantity = trackStocks ? (stocks > 0 ? stocks : 1) : 99;
+
+        // ✅ Clamp the quantity within 1–max
         let current = parseInt(input.value) || 1;
-        const newVal = Math.min(Math.max(current + change, 1), maxQuantity);
+        let newVal = Math.min(Math.max(current + change, 1), maxQuantity);
         input.value = newVal;
+
+        // ✅ Reflect total price change
         updateModalTotal();
+
+        // ✅ Optional: Warn user if hitting the max
+        if (newVal === maxQuantity && trackStocks) {
+            console.warn(`⚠️ Only ${stocks} item(s) available in stock.`);
+        }
     }
 
     function addToCartConfirmed() {
