@@ -1401,7 +1401,7 @@
                                 <!-- Variation -->
                                 <div class="mb-3">
                                     <label for="editVariationName" class="form-label">Variation</label>
-                                    <input type="text" class="form-control" id="editVariationName" disabled>
+                                    <input type="text" class="form-control" name="new_variation" id="editVariationName" required>
                                 </div>
             
                                 <!-- Price -->
@@ -1873,6 +1873,7 @@
         document.getElementById("editType").value = type;
         document.getElementById("editProductName").value = name;
         document.getElementById("editVariationName").value = variation;
+        document.getElementById("editVariationName").disabled = false;
         document.getElementById("editProductPrice").value = price;
         document.getElementById("editProductStocks").value = stocks;
     
