@@ -3569,12 +3569,22 @@ def edit_product_price(request):
         new_price = request.POST.get('new_price')
         new_stocks = request.POST.get('new_stocks')
         new_description = request.POST.get('new_description')
-        new_name = request.POST.get('new_name')  # ✅ Added
+        new_name = request.POST.get('new_name')
+        new_variation = request.POST.get('new_variation')  # ✅ NEW FIELD
 
         try:
             product = Products.objects.get(id=product_id)
 
-            # ✅ Track name changes
+            # ✅ Variation name change
+            if new_variation is not None and str(product.variation_name) != str(new_variation):
+                ProductEditHistory.objects.create(
+                    product=product,
+                    field="variation_name",
+                    old_value=product.variation_name,
+                    new_value=new_variation,
+                )
+                product.variation_name = new_variation
+
             if new_name is not None and str(product.name) != str(new_name):
                 ProductEditHistory.objects.create(
                     product=product,
@@ -3584,7 +3594,6 @@ def edit_product_price(request):
                 )
                 product.name = new_name
 
-            # ✅ Track price changes
             if new_price is not None and str(product.price) != str(new_price):
                 ProductEditHistory.objects.create(
                     product=product,
@@ -3594,7 +3603,6 @@ def edit_product_price(request):
                 )
                 product.price = new_price
 
-            # ✅ Track stocks changes
             if new_stocks is not None and str(product.stocks) != str(new_stocks):
                 ProductEditHistory.objects.create(
                     product=product,
@@ -3604,7 +3612,6 @@ def edit_product_price(request):
                 )
                 product.stocks = new_stocks
 
-            # ✅ Track description changes
             if new_description is not None and str(product.description or "") != str(new_description):
                 ProductEditHistory.objects.create(
                     product=product,
