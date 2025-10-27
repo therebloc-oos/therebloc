@@ -29,662 +29,708 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 
-<style>
-    :root {
-        /* Color Customizations */
-        --primary-color: {{ customization.primary_color|default:'#3b82f6' }};
-        --secondary-color: {{ customization.secondary_color|default:'#1d4ed8' }};
-        --accent-color: {{ customization.accent_color|default:'#059669' }};
-    }
-
-    body, html {
-            margin: 0;
-            height: 100%;
-            overflow: hidden;
-            {% if customization.register_background_type == 'solid' %}
-                background-color: {{ customization.register_solid_color|default:"#ffffff" }};
-            {% elif customization.register_background_type == 'gradient' %}
-                 background: linear-gradient(
-                    {{ customization.register_gradient_direction|default:"to right" }},
-                    {{ customization.register_gradient_color_1|default:"#ffffff" }},
-                    {{ customization.register_gradient_color_2|default:"#000000" }}
-                    {% if customization.register_gradient_color_3 %}
-                        , {{ customization.register_gradient_color_3 }}
-                    {% endif %}
-                );
-            {% elif customization.register_background_type == 'image' %}
-                background-image: url("{{ customization.register_background_image_url }}");
-                background-size: cover;
-                background-position: center;
-            {% endif %}
+    <style>
+        :root {
+            /* Color Customizations */
+            --primary-color: {{ customization.primary_color|default:'#3b82f6' }};
+            --secondary-color: {{ customization.secondary_color|default:'#1d4ed8' }};
+            --accent-color: {{ customization.accent_color|default:'#059669' }};
         }
-
-
-    .form-side {
-        left: 0;
-        width: 52%;
-        padding: 3rem 2rem 1.5rem 2rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: flex-start;
-        position: absolute;
-        top: 0;
-        height: 100%;
-        overflow-y: auto;
-        background: rgba(255, 255, 255, 0.45);
-        backdrop-filter: blur(55px);
-    }
-
-    .form-side::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .form-side::-webkit-scrollbar-track {
-        background: #f1f5f99a;
-    }
-
-    .form-side::-webkit-scrollbar-thumb {
-        background: var(--primary-color);
-        border-radius: 4px;
-    }
-
-    .form-side::-webkit-scrollbar-thumb:hover {
-        background: var(--secondary-color);
-    }
-
-    .form-side h2 {
-        margin-bottom: 15px;
-        text-align: left;
-        line-height: 1;
-        font-family: "{{ customization.header_font_family|default:"Arial" }}";
-        font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 50 %}50{% else %}{{ customization.header_font_size|default:24 }}{% endif %}px;
-        color: {{ customization.header_font_color|default:"#000000" }};
-        font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
-        font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
-    }
-
-    .form-side input {
-        width: 100%;
-        padding: 10px;
-        background: white;
-        margin-bottom: 2px;
-        transition: all 0.3s ease;
-        box-sizing: border-box;
-        font-weight: 500;
-        color: {{ customization.body_font_color|default:"#000000" }};
-        font-family: '{{ customization.body_font_family|default:"Arial" }}';
-        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
-        border-width: {{ customization.input_border_width|default:1 }}px; 
-        border-style: {{ customization.input_border_style|default:'solid' }};
-        border-color: {{ customization.primary_color|default:'#000000' }};
-        border-radius: {{ customization.input_rounded_corner|default:1 }}px;
-
-    }
-
-    .form-side input:hover, .form-side input:focus {
-        color: {{ customization.body_font_color|default:"#000000" }};
-        border-color: {{ customization.secondary_color|default:'#000000' }};
-        outline: none;
-    }
-
-    .form-side label {
-        font-weight: 600;
-        margin-bottom: 3px;
-        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
-        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16
-        {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
-        color: {{ customization.body_font_color|default:"#000000" }};
-    }
-
-    .form-side button {
-        width: 100%;
-        padding: 10px;
-        border: none;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 17px;
-        transition: all 0.3s ease;
-        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
-        font-family: {{ customization.header_font_family|default:"Arial" }};
-        background-color: {{ customization.primary_color|default:'#000000' }};
-        color: {{ customization.button_text_color|default:'#ffffff' }};
-    }
-
-    .form-side button:hover {
-        background-color: {{ customization.secondary_color|default:'#808080' }};
-    }
-
-    .form-side a {
-        display: block;
-        text-align: center;
-        margin-top: 5px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        font-family: {{ customization.header_font_family|default:"Arial" }};
-        color: {{ customization.primary_color|default:'#0000EE' }};
-    }
-
-    .form-side a:hover .sign-in-text {
-        color: {{ customization.secondary_color|default:'#808080' }};
-        text-decoration: underline;
-        font-weight: bold;
-    }
-
-    /* Image side styles */
-    .image-side {
-        width: 48%;
-        background-image: url('{% if customization.register_background_image %}{{ customization.register_background_image.url }}{% else %}{{ customization.register_background_image_url }}{% endif %}');
-        background-size: cover;
-        background-position: center;
-        height: 100%;
-        position: fixed;
-        top: 0;
-        right: 0;
-    }
-
-    /* Tablet responsiveness fix */
-    @media (max-width: 1024px) {
-        /* Make input fields full-width in one column */
-        .form-side form {
-            display: flex;
-            flex-direction: column;
-            gap: 5px; /* optional spacing between inputs */
-        }
-
-        .form-side .row {
-            flex-direction: column !important;
-        }
-
-        .form-side .col,
-        .form-side .col-md-6,
-        .form-side .col-sm-6 {
-            width: 100% !important;
-            max-width: 100% !important;
-        }
-
-        /* Adjust overall layout */
-        .form-side {
-            width: 52% !important;
-            left: 0;
-            right: 0;
-            padding: 2.5rem;
-        }
-
-        /* Hide the image on medium and small screens */
-        .image-side {
-            width:48%;
-        }
-    }
-
-
-    @media (max-width: 768px) {
-
-        /* Responsive fix for agreement section */
-        .agreement-box {
-            width: 100%;
-            font-size: 14px;                 /* smaller font for mobile */
-            line-height: 1.4;
-            display: flex;
-            align-items: flex-start;
-            padding: 10px;
-            gap: 8px;
-            word-wrap: break-word;
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(5px);
-        }
-
-        .agreement-box .form-check {
-            display: flex;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 6px;
-            width: 100%;
-        }
-
-        .agreement-box .form-check-input {
-            margin-top: 3px;
-            transform: scale(1.1);          /* make checkbox slightly larger for touch devices */
-        }
-
-        .agreement-box label {
-            font-size: 14px;
-            line-height: 1.5;
-            flex: 1;
-            word-break: break-word;
-        }
-
-        .agreement-box a.sign-in-text {
-            text-decoration: underline;
-            white-space: normal;
-        }
-
-        .agreement-box a.sign-in-text:hover {
-            text-decoration: none;
-        }
-        
-        .container {
-            flex-direction: column;
-            position: relative;
-            height: 100vh; /* ensure full height for scroll behavior */
-            overflow: hidden;
-        }
-
-        /* Image goes behind the form */
-        .image-side {
-            position: fixed; /* fixed instead of absolute to stay in place while scrolling */
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            z-index: 0;
-            opacity: 0.45;
-        }
-
-        /* Form above image */
-        .form-side {
-            position: relative;
-            z-index: 1;
-            width: 100% !important;
-            height: 100vh; /* make form take full height */
-            padding: 3rem 2.5rem;
-            background: rgba(255, 255, 255, 0.64);
-            backdrop-filter: blur(55px);
-            align-items: center;
-            left: 0;
-            overflow-y: auto; /* enable scrolling */
-            overflow-x: hidden;
-        }
-
-        /* Stack inputs */
-        .form-side form {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            gap: 10px;
-        }
-
-        .form-side .row {
-            flex-direction: column !important;
-        }
-
-        .form-side .col,
-        .form-side .col-md-6,
-        .form-side .col-sm-6 {
-            width: 100% !important;
-            max-width: 100% !important;
-            
-        }
-
-        .form-side h2 {
-            font-size: 40px;
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-    }
-
-    /* Extra small devices (phones under 576px) */
-    @media (max-width: 575px) {
-        .form-side{
-            padding: 1.5rem;
-        }
-        .form-side h2 {
-            font-size: 35px;
-            line-height: 1.2;
-        }
-    }
-
-
-    .input-wrapper {
-        position: relative;
-    }
-
-    .input-wrapper input {
-        width: 100%;
-        padding-right: 40px; /* leave space for eye icon */
-    }
-
-    .input-wrapper .toggle-password {
-        position: absolute;
-        top: 50%;
-        right: 10px;
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: {{ customization.primary_color|default:'#0000EE' }};
-    }
-
-    .toast-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-    }
-
-    .toast {
-        background-color: #f44336;
-        color: white;
-        padding: 10px;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        display: none;
-        font-size: 14px;
-        width: 250px;
-    }
-
-    .toast.show {
-        display: block;
-        animation: fadeInOut 3s forwards;
-    }
-
-    @keyframes fadeInOut {
-        0% { opacity: 0; }
-        20% { opacity: 1; }
-        80% { opacity: 1; }
-        100% { opacity: 0; }
-    }
-
-    .agreement-box {
-        background-color: rgba(255, 255, 255, 0.63);
-        font-size: 14px;
-        line-height: 1.6;
-    }
-
-    .agreement-box .form-check-input {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-        /* Add these to ensure clickability */
-        margin-right: 8px;
-        position: relative;
-        z-index: 0;
-        pointer-events: auto;
-    }
-
-    .agreement-box .form-check-label {
-        cursor: pointer; /* Make the label clickable too */
-    }
-
-    .agreement-box a {
-        display: inline-block;
-        color: var(--primary-color);
-        transition: color 0.2s ease, text-decoration 0.2s ease;
-    }
-
-    /* Maintain the checkmark color when checked and hovered */
-    .agreement-box .form-check-input:checked {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-
-    .agreement-box .form-check-input:checked:hover {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-
-    /* Optional: smooth hover effect without hiding checkmark */
-    .agreement-box .form-check-input {
-        transition: all 0.2s ease;
-    }
     
-    /* Links inside the label hover normally */
-    .agreement-box a:hover {
-        color: var(--secondary-color);
-        text-decoration: underline;
-        font-weight: 800;
-    }
-
-        /* Disabled state for register button */
-    #registerBtn:disabled {
-        background-color: #ccc !important;
-        cursor: not-allowed;
-        opacity: 0.6;
-        border: none;
-    }
-
-    /* Normal enabled button */
-    #registerBtn {
-        transition: background-color 0.3s, opacity 0.3s;
-    }
-
-
-    /* Checkbox hover effect */
-    .form-check-input:hover {
-        cursor: pointer;
-        box-shadow: 0 0 5px rgba(0, 123, 255, 0.6);
-    }
-
-    /* Checkbox checked + hover */
-    .form-check-input:checked:hover {
-        box-shadow: 0 0 8px rgba(0, 200, 100, 0.8);
-    }
-
-
-        .modal-content {
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            overflow: hidden;
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            padding: 1.5rem 2rem;
-            position: relative;
-        }
-
-        .modal-header::before {
-            content: '';
+        body, html {
+                margin: 0;
+                height: 100%;
+                overflow: hidden;
+                {% if customization.register_background_type == 'solid' %}
+                    background-color: {{ customization.register_solid_color|default:"#ffffff" }};
+                {% elif customization.register_background_type == 'gradient' %}
+                     background: linear-gradient(
+                        {{ customization.register_gradient_direction|default:"to right" }},
+                        {{ customization.register_gradient_color_1|default:"#ffffff" }},
+                        {{ customization.register_gradient_color_2|default:"#000000" }}
+                        {% if customization.register_gradient_color_3 %}
+                            , {{ customization.register_gradient_color_3 }}
+                        {% endif %}
+                    );
+                {% elif customization.register_background_type == 'image' %}
+                    background-image: url("{{ customization.register_background_image_url }}");
+                    background-size: cover;
+                    background-position: center;
+                {% endif %}
+            }
+    
+    
+        .form-side {
+            left: 0;
+            width: 52%;
+            padding: 3rem 2rem 1.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
             position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
-            background-size: 300% 300%;
-            animation: gradientShift 3s ease infinite;
-        }
-
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .modal-title {
-            font-size: 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 700;
-            text-shadow: var(--text-shadow);
-            color: {{ customization.button_text_color|default:'#ffffff' }};
-            font-family: {{ customization.header_font_family|default:"Montserrat" }};
-        }
-
-        .btn-close {
-            filter: brightness(0) invert(1);
-            opacity: 0.8;
-            transition: all 0.2s ease;
-        }
-
-        .btn-close:hover {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
-        .modal-body {
-            padding: 2rem;
-            background: #fafbfc;
-            max-height: 60vh;
+            height: 100%;
             overflow-y: auto;
-            position: relative;
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(55px);
         }
-
-        .modal-body::-webkit-scrollbar {
-            width: 6px;
+    
+        .form-side::-webkit-scrollbar {
+            width: 8px;
         }
-
-        .modal-body::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 3px;
+    
+        .form-side::-webkit-scrollbar-track {
+            background: #f1f5f99a;
         }
-
-        .modal-body::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
+    
+        .form-side::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
         }
-
-        .modal-body::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+    
+        .form-side::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
         }
-
-        .terms-content {
-            font-weight: 600;
+    
+        .form-side h2 {
+            margin-bottom: 15px;
+            text-align: left;
+            line-height: 1;
+            font-family: "{{ customization.header_font_family|default:"Arial" }}";
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 50 %}50{% else %}{{ customization.header_font_size|default:24 }}{% endif %}px;
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}800{% else %}normal{% endif %};
+            font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
+        }
+    
+        .form-side input {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            margin-bottom: 2px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            font-weight: 500;
             color: {{ customization.body_font_color|default:"#000000" }};
             font-family: '{{ customization.body_font_family|default:"Arial" }}';
-            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}15{% endif %}px;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 15 %}15{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+            border-width: {{ customization.input_border_width|default:1 }}px; 
+            border-style: {{ customization.input_border_style|default:'solid' }};
+            border-color: {{ customization.primary_color|default:'#000000' }};
+            border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+    
         }
-
-        .terms-content h3 {
-            margin: 1.5rem 0 0.75rem 0;
-            border-left: 4px solid var(--primary-color);
-            background: linear-gradient(90deg, var(--secondary-color), transparent);
-            padding-top: 0.5rem;
-            left: 5px;
-            padding-bottom: 0.5rem;
-            font-weight: 700;
-            font-size: min({{ customization.header_font_size|default:15 }}px, 18px);
-            color: {{ customization.button_text_color|default:'#ffffff' }};
-            font-family: {{ customization.header_font_family|default:"Montserrat" }};
-        }
-
-        .terms-content h3:first-child {
-            margin-top: 0;
-        }
-
-        .terms-content p {
-            margin-bottom: 1rem;
-            text-align: justify;
-        }
-
-        .terms-content ul {
-            padding-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .terms-content li {
-            margin-bottom: 0.25rem;
-            position: relative;
-        }
-
-        .terms-content li::marker {
+    
+        .form-side input:hover, .form-side input:focus {
             color: {{ customization.body_font_color|default:"#000000" }};
+            border-color: {{ customization.secondary_color|default:'#000000' }};
+            outline: none;
         }
-
-        .modal-footer {
-            background: white;
-            border: none;
-            padding: .5rem 1.5rem;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .btn-secondary {
-            border: none;
-            padding: 0.5rem 1.5rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
-            font-family: {{ customization.header_font_family|default:"Montserrat" }};
-            background-color: {{ customization.primary_color|default:'#000000' }};
-            color: {{ customization.button_text_color|default:'#ffffff' }};
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-1px);
-            background-color: {{ customization.secondary_color|default:'#000000' }};
-            color: {{ customization.button_text_color|default:'#ffffff' }};
-        }
-
-        .section-icon {
-            margin-left: 15px;
-            margin-right: 10px;
-            color: {{ customization.button_text_color|default:'#ffffff' }};;
-            font-size: 0.9rem;
-        }
-
-        .fade-in {
-            animation: fadeInUp 0.5s ease-out;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Force visible checkmark on checkbox */
-        .agreement-box .form-check-input[type="checkbox"] {
-            appearance: none; /* remove default OS style */
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            width: 18px;
-            height: 18px;
-            border: 2px solid var(--primary-color);
-            border-radius: 4px;
-            position: relative;
-            cursor: pointer;
-            background-color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .agreement-box .form-check-input[type="checkbox"]:checked {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-
-        .agreement-box .form-check-input[type="checkbox"]:checked::after {
-            content: "✔";
-            color: #fff;
-            font-size: 12px;
-            line-height: 1;
-        }
-
-        .verify-note {
-            background-color: rgba(214, 214, 214, 0.41); /* soft blue tone */
-            border-left: 4px solid var(--primary-color);
-            font-weight:500;
-            color: {{ customization.body_font_color|default:"#000000" }};
+    
+        .form-side label {
+            font-weight: 600;
+            margin-bottom: 3px;
             font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
             font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16
             {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
-            line-height: 1.5;
-        }
-
-        .verify-note i {
-            color: var(--primary-color);
-            font-size: 18px;
-        }
-
-        .form-text {
-            font-weight:500;
             color: {{ customization.body_font_color|default:"#000000" }};
-            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
-            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 14 %}14
-            {% else %}{{ customization.body_font_size|default:12 }}{% endif %}px;
-            line-height: 1;
         }
-
-</style>
+    
+        .form-side button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 17px;
+            transition: all 0.3s ease;
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            background-color: {{ customization.primary_color|default:'#000000' }};
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+        }
+    
+        .form-side button:hover {
+            background-color: {{ customization.secondary_color|default:'#808080' }};
+        }
+    
+        .form-side a {
+            display: block;
+            text-align: center;
+            margin-top: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: {{ customization.header_font_family|default:"Arial" }};
+            color: {{ customization.primary_color|default:'#0000EE' }};
+        }
+    
+        .form-side a:hover .sign-in-text {
+            color: {{ customization.secondary_color|default:'#808080' }};
+            text-decoration: underline;
+            font-weight: bold;
+        }
+    
+        /* Image side styles */
+        .image-side {
+            width: 48%;
+            background-image: url('{% if customization.register_background_image %}{{ customization.register_background_image.url }}{% else %}{{ customization.register_background_image_url }}{% endif %}');
+            background-size: cover;
+            background-position: center;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            right: 0;
+        }
+    
+        /* Tablet responsiveness fix */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            /* Make input fields full-width in one column */
+            .form-side form {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+    
+            .form-side .row {
+                flex-direction: column !important;
+            }
+    
+            .form-side .col,
+            .form-side .col-md-6,
+            .form-side .col-sm-6 {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+    
+            /* Adjust overall layout */
+            .form-side {
+                width: 52% !important;
+                left: 0;
+                right: 0;
+                padding: 2.5rem;
+                padding-bottom: 2rem;
+            }
+    
+            .image-side {
+                width: 48%;
+            }
+        }
+    
+    
+        @media (max-width: 768px) {
+            body, html {
+                height: auto;
+                min-height: 100vh;
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+    
+            /* Responsive fix for agreement section */
+            .agreement-box {
+                width: 100%;
+                font-size: 14px;
+                line-height: 1.4;
+                display: flex;
+                align-items: flex-start;
+                padding: 10px;
+                gap: 8px;
+                word-wrap: break-word;
+                background: rgba(255, 255, 255, 0.75);
+                backdrop-filter: blur(5px);
+            }
+    
+            .agreement-box .form-check {
+                display: flex;
+                align-items: flex-start;
+                flex-wrap: wrap;
+                gap: 6px;
+                width: 100%;
+            }
+    
+            .agreement-box .form-check-input {
+                margin-top: 3px;
+                transform: scale(1.1);
+            }
+    
+            .agreement-box label {
+                font-size: 14px;
+                line-height: 1.5;
+                flex: 1;
+                word-break: break-word;
+            }
+    
+            .agreement-box a.sign-in-text {
+                text-decoration: underline;
+                white-space: normal;
+            }
+    
+            .agreement-box a.sign-in-text:hover {
+                text-decoration: none;
+            }
+            
+            .container {
+                flex-direction: column;
+                position: relative;
+                height: auto;
+                min-height: 100vh;
+                overflow: visible;
+            }
+    
+            /* Image goes behind the form */
+            .image-side {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-size: cover;
+                background-position: center;
+                z-index: 0;
+                opacity: 0.45;
+            }
+    
+            /* Form above image */
+            .form-side {
+                position: relative;
+                z-index: 1;
+                width: 100% !important;
+                height: auto;
+                min-height: 100vh;
+                padding: 3rem 2.5rem 4rem 2.5rem;
+                background: rgba(255, 255, 255, 0.64);
+                backdrop-filter: blur(55px);
+                align-items: center;
+                left: 0;
+                overflow-y: visible;
+                overflow-x: hidden;
+            }
+    
+            /* Stack inputs */
+            .form-side form {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+                padding-bottom: 2rem;
+            }
+    
+            .form-side .row {
+                flex-direction: column !important;
+            }
+    
+            .form-side .col,
+            .form-side .col-md-6,
+            .form-side .col-sm-6 {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+    
+            .form-side h2 {
+                font-size: 40px;
+                text-align: center;
+                margin-bottom: 1rem;
+            }
+    
+            /* Ensure "Already have account" link is visible with extra spacing */
+            .form-side > a:last-of-type {
+                margin-bottom: 3rem;
+                padding-bottom: 1.5rem;
+            }
+        }
+    
+        /* Extra small devices (phones under 576px) */
+        @media (max-width: 575px) {
+            .form-side {
+                padding: 1.5rem 1.5rem 3rem 1.5rem;
+            }
+            
+            .form-side h2 {
+                font-size: 35px;
+                line-height: 1.2;
+            }
+    
+            .form-side form {
+                padding-bottom: 2.5rem;
+            }
+    
+            /* Extra bottom spacing for very small screens */
+            .form-side > a:last-of-type {
+                margin-bottom: 4rem;
+                padding-bottom: 2rem;
+            }
+        }
+    
+        /* iOS Safari specific fix for viewport height */
+        @supports (-webkit-touch-callout: none) {
+            @media (max-width: 768px) {
+                body, html {
+                    min-height: -webkit-fill-available;
+                }
+                
+                .form-side {
+                    min-height: -webkit-fill-available;
+                    padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
+                }
+            }
+        }
+    
+        /* Android Chrome specific fix */
+        @media (max-width: 768px) {
+            .form-side {
+                padding-bottom: max(4rem, env(safe-area-inset-bottom));
+            }
+        }
+    
+    
+        .input-wrapper {
+            position: relative;
+        }
+    
+        .input-wrapper input {
+            width: 100%;
+            padding-right: 40px; /* leave space for eye icon */
+        }
+    
+        .input-wrapper .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: {{ customization.primary_color|default:'#0000EE' }};
+        }
+    
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+    
+        .toast {
+            background-color: #f44336;
+            color: white;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: none;
+            font-size: 14px;
+            width: 250px;
+        }
+    
+        .toast.show {
+            display: block;
+            animation: fadeInOut 3s forwards;
+        }
+    
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    
+        .agreement-box {
+            background-color: rgba(255, 255, 255, 0.63);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+    
+        .agreement-box .form-check-input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            /* Add these to ensure clickability */
+            margin-right: 8px;
+            position: relative;
+            z-index: 0;
+            pointer-events: auto;
+        }
+    
+        .agreement-box .form-check-label {
+            cursor: pointer; /* Make the label clickable too */
+        }
+    
+        .agreement-box a {
+            display: inline-block;
+            color: var(--primary-color);
+            transition: color 0.2s ease, text-decoration 0.2s ease;
+        }
+    
+        /* Maintain the checkmark color when checked and hovered */
+        .agreement-box .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+    
+        .agreement-box .form-check-input:checked:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+    
+        /* Optional: smooth hover effect without hiding checkmark */
+        .agreement-box .form-check-input {
+            transition: all 0.2s ease;
+        }
+        
+        /* Links inside the label hover normally */
+        .agreement-box a:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+            font-weight: 800;
+        }
+    
+            /* Disabled state for register button */
+        #registerBtn:disabled {
+            background-color: #ccc !important;
+            cursor: not-allowed;
+            opacity: 0.6;
+            border: none;
+        }
+    
+        /* Normal enabled button */
+        #registerBtn {
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+    
+    
+        /* Checkbox hover effect */
+        .form-check-input:hover {
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.6);
+        }
+    
+        /* Checkbox checked + hover */
+        .form-check-input:checked:hover {
+            box-shadow: 0 0 8px rgba(0, 200, 100, 0.8);
+        }
+    
+    
+            .modal-content {
+                border: none;
+                border-radius: 16px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                overflow: hidden;
+            }
+    
+            .modal-header {
+                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+                border: none;
+                padding: 1.5rem 2rem;
+                position: relative;
+            }
+    
+            .modal-header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+                background-size: 300% 300%;
+                animation: gradientShift 3s ease infinite;
+            }
+    
+            @keyframes gradientShift {
+                0%, 100% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+            }
+    
+            .modal-title {
+                font-size: 1.25rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-weight: 700;
+                text-shadow: var(--text-shadow);
+                color: {{ customization.button_text_color|default:'#ffffff' }};
+                font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            }
+    
+            .btn-close {
+                filter: brightness(0) invert(1);
+                opacity: 0.8;
+                transition: all 0.2s ease;
+            }
+    
+            .btn-close:hover {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+    
+            .modal-body {
+                padding: 2rem;
+                background: #fafbfc;
+                max-height: 60vh;
+                overflow-y: auto;
+                position: relative;
+            }
+    
+            .modal-body::-webkit-scrollbar {
+                width: 6px;
+            }
+    
+            .modal-body::-webkit-scrollbar-track {
+                background: #f1f5f9;
+                border-radius: 3px;
+            }
+    
+            .modal-body::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 3px;
+            }
+    
+            .modal-body::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
+            }
+    
+            .terms-content {
+                font-weight: 600;
+                color: {{ customization.body_font_color|default:"#000000" }};
+                font-family: '{{ customization.body_font_family|default:"Arial" }}';
+                font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}15{% endif %}px;
+            }
+    
+            .terms-content h3 {
+                margin: 1.5rem 0 0.75rem 0;
+                border-left: 4px solid var(--primary-color);
+                background: linear-gradient(90deg, var(--secondary-color), transparent);
+                padding-top: 0.5rem;
+                left: 5px;
+                padding-bottom: 0.5rem;
+                font-weight: 700;
+                font-size: min({{ customization.header_font_size|default:15 }}px, 18px);
+                color: {{ customization.button_text_color|default:'#ffffff' }};
+                font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            }
+    
+            .terms-content h3:first-child {
+                margin-top: 0;
+            }
+    
+            .terms-content p {
+                margin-bottom: 1rem;
+                text-align: justify;
+            }
+    
+            .terms-content ul {
+                padding-left: 1.5rem;
+                margin-bottom: 1rem;
+            }
+    
+            .terms-content li {
+                margin-bottom: 0.25rem;
+                position: relative;
+            }
+    
+            .terms-content li::marker {
+                color: {{ customization.body_font_color|default:"#000000" }};
+            }
+    
+            .modal-footer {
+                background: white;
+                border: none;
+                padding: .5rem 1.5rem;
+                border-top: 1px solid #e2e8f0;
+            }
+    
+            .btn-secondary {
+                border: none;
+                padding: 0.5rem 1.5rem;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+                font-family: {{ customization.header_font_family|default:"Montserrat" }};
+                background-color: {{ customization.primary_color|default:'#000000' }};
+                color: {{ customization.button_text_color|default:'#ffffff' }};
+            }
+    
+            .btn-secondary:hover {
+                transform: translateY(-1px);
+                background-color: {{ customization.secondary_color|default:'#000000' }};
+                color: {{ customization.button_text_color|default:'#ffffff' }};
+            }
+    
+            .section-icon {
+                margin-left: 15px;
+                margin-right: 10px;
+                color: {{ customization.button_text_color|default:'#ffffff' }};;
+                font-size: 0.9rem;
+            }
+    
+            .fade-in {
+                animation: fadeInUp 0.5s ease-out;
+            }
+    
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+    
+            /* Force visible checkmark on checkbox */
+            .agreement-box .form-check-input[type="checkbox"] {
+                appearance: none; /* remove default OS style */
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                width: 18px;
+                height: 18px;
+                border: 2px solid var(--primary-color);
+                border-radius: 4px;
+                position: relative;
+                cursor: pointer;
+                background-color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+    
+            .agreement-box .form-check-input[type="checkbox"]:checked {
+                background-color: var(--primary-color);
+                border-color: var(--primary-color);
+            }
+    
+            .agreement-box .form-check-input[type="checkbox"]:checked::after {
+                content: "✔";
+                color: #fff;
+                font-size: 12px;
+                line-height: 1;
+            }
+    
+            .verify-note {
+                background-color: rgba(214, 214, 214, 0.41); /* soft blue tone */
+                border-left: 4px solid var(--primary-color);
+                font-weight:500;
+                color: {{ customization.body_font_color|default:"#000000" }};
+                font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+                font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16
+                {% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+                line-height: 1.5;
+            }
+    
+            .verify-note i {
+                color: var(--primary-color);
+                font-size: 18px;
+            }
+    
+            .form-text {
+                font-weight:500;
+                color: {{ customization.body_font_color|default:"#000000" }};
+                font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+                font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 14 %}14
+                {% else %}{{ customization.body_font_size|default:12 }}{% endif %}px;
+                line-height: 1;
+            }
+    
+    </style>
 
 </head>
 <body>
@@ -944,10 +990,32 @@ toastr.options = {
 
     const agreementCheckbox = document.getElementById("agreementCheckbox");
     const registerBtn = document.getElementById("registerBtn");
+    const registerForm = document.querySelector("form");
 
     // Toggle button state when checkbox changes
     agreementCheckbox.addEventListener("change", function() {
         registerBtn.disabled = !this.checked;
+    });
+
+    // Prevent double submission on form submit
+    registerForm.addEventListener("submit", function(e) {
+        // Check if button is already disabled (form already submitted)
+        if (registerBtn.disabled && agreementCheckbox.checked) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Disable the button immediately
+        registerBtn.disabled = true;
+        registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registering...';
+        
+        // Optional: Re-enable after a timeout as fallback (in case of validation errors)
+        setTimeout(function() {
+            if (agreementCheckbox.checked) {
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = 'Register';
+            }
+        }, 5000); // Re-enable after 5 seconds if page hasn't redirected
     });
 
 
