@@ -77,12 +77,6 @@ class Products(models.Model):
     def __str__(self):
         return f"{self.name} - {self.variation_name}"
     
-    def save(self, *args, **kwargs):
-        if self.name:
-            self.name = self.name.title()
-        if self.variation_name:
-            self.variation_name = self.variation_name.title()
-        super().save(*args, **kwargs)
 
 class ArchivedProducts(models.Model):
     original_id = models.IntegerField()  # track original product ID
