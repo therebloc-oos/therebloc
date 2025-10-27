@@ -1459,7 +1459,7 @@
                                                     </td>
                                                     <td class="align-middle">{{ product.name}}</td>
                                                     <td class="align-middle">{{ items.0.category.name }}</td>
-                                                    <td class="align-middle"><span>None</span></td>
+                                                    <td class="align-middle">{{ product.variation_name}}</td>
                                                     <td class="align-middle">₱{{ product.price|floatformat:2 }}</td>
                                                     <td class="align-middle">
                                                         {% if product.track_stocks %}
