@@ -71,7 +71,7 @@
 
     .pos-toolbar-container {
         position: sticky;
-        top: 72px;
+        top: 73px;
         z-index: 1000;
         background: rgba(255,255,255,0.8);
         backdrop-filter: blur(20px);
@@ -80,7 +80,7 @@
         padding: 25px;
         border-bottom: 3px solid var(--primary-color);
         border-top: 3px solid var(--primary-color);
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
 
 
@@ -95,7 +95,6 @@
         box-shadow: var(--card-shadow, 0 4px 10px rgba(0, 0, 0, 0.1));
         display: flex;
         align-items: center;
-        gap: 0.5rem;
         font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
         color: {{ customization.button_text_color|default:'#ffffff' }};
         border-radius: {{ customization.button_rounded_corner|default:1 }}px;
@@ -107,6 +106,164 @@
         color: {{ customization.button_text_color|default:'#ffffff' }};
         box-shadow: var(--hover-shadow, 0 6px 14px rgba(0, 0, 0, 0.15));
     }
+
+    /* Base layout */
+    .toolbar-flex {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    /* Search and dropdown row */
+    .search-and-dropdown {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        gap: 0.75rem;
+    }
+
+    .search-wrapper {
+        flex: 1.5; /* make search wider */
+    }
+    .search-input {
+        width: 100%;
+    }
+
+    /* Category dropdown base */
+    .category-dropdown {
+        flex: 0.6;
+        min-width: 140px;
+    }
+
+    /* Dropdown button truncation */
+    #categoryDropdown {
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    /* Cart full width by default */
+    .cart-btn-container {
+        width: 100%;
+    }
+
+    /* 🔹 Large screens: all in one line */
+    @media (min-width: 992px) {
+        .toolbar-flex {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.2rem;
+        }
+
+        .search-and-dropdown {
+            flex: 1 1 auto;
+        }
+
+        .search-wrapper { flex: 0 0 80%; }
+        .category-dropdown { flex: 0 0 20%; }
+        .cart-btn-container { width: auto; flex: 0 0 auto; }
+    }
+
+    /* 🔹 Medium–small: search + dropdown inline, cart below full width */
+    @media (max-width: 991.98px) {
+        .toolbar-flex { flex-direction: column; }
+        .search-and-dropdown { flex-wrap: nowrap; }
+        .cart-btn-container { width: 100%; }
+    }
+
+    /* 🔍 Dropdown search input */
+    #categorySearchInput {
+        width: calc(100% - 1rem);
+        margin: 0.5rem;
+        padding: 0.4rem 0.75rem;
+        font-size: 14px;
+        border: 1px solid var(--primary-color);
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+    #categorySearchInput:focus {
+        outline: none;
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 3px var(--secondary-color);
+    }
+
+    /* Scrollable dropdown */
+    .category-dropdown .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color);
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+    }
+
+    /* Dropdown items */
+    .category-dropdown .dropdown-item {
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .category-dropdown .dropdown-item:hover {
+        background-color: var(--primary-color);
+        color: #fff;
+        opacity: 70%;
+    }
+    .category-dropdown .dropdown-item.active {
+        background-color: var(--secondary-color);
+        color: #fff;
+        font-weight: 600;
+    }
+
+    /* Dropdown button styling */
+    .category-dropdown .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: left;
+        padding: 0.75rem 1rem;
+        border-color: var(--primary-color);
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        border-width: {{ customization.input_border_width|default:1 }}px;
+        border-style: {{ customization.input_border_style|default:'solid' }};
+        border-radius: {{ customization.input_rounded_corner|default:1 }}px;
+        background-color: #fff;
+        transition: all 0.3s ease;
+    }
+    .category-dropdown .btn:hover,
+    .category-dropdown .btn:focus,
+    .category-dropdown .btn.show {
+        border-color: var(--secondary-color);
+        color: var(--secondary-color);
+        box-shadow: none;
+    }
+
+    /* Caret alignment */
+    .category-dropdown .dropdown-toggle {
+        position: relative;
+        text-align: left;
+        padding-right: 2rem;
+    }
+    .category-dropdown .dropdown-toggle::after {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    /* Scrollbar (WebKit only) */
+    .category-dropdown .dropdown-menu::-webkit-scrollbar {
+        width: 6px;
+    }
+    .category-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
+        background-color: var(--primary-color);
+        border-radius: 10px;
+    }
+    .category-dropdown .dropdown-menu::-webkit-scrollbar-track {
+        background-color: #f1f1f1;
+    }
+
 
     .search-input-group {
         position: relative;
@@ -138,42 +295,6 @@
         transform: translateY(-50%);
         color: var(--primary-color);
         z-index: 5;
-    }
-
-    #categoryButtons {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        margin-top: 5px;
-    }
-
-    #categoryButtons .btn {
-        background: transparent;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        color: var(--primary-color);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: pointer;
-        text-transform: uppercase;
-        letter-spacing: 0.025em;
-        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
-        font-family: {{ customization.body_font_family|default:"Arial" }};
-        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 14 %}{{ customization.body_font_size|default:10 }}{% else %}14{% endif %}px;
-    }
-
-    #categoryButtons .btn:hover {
-        border: 2px solid var(--secondary-color);
-        color: var(--secondary-color);
-        transform: translateY(-1px);
-    }
-
-    #categoryButtons .btn.active {
-        border-color: none; 
-        background:  linear-gradient(90deg, var(--primary-color), var(--secondary-color)); 
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Apply text shadow */
-        box-shadow: var(--shadow-md);
-        color: {{ customization.button_text_color|default:'#ffffff' }};
     }
 
     .product-stocks {
@@ -280,20 +401,12 @@
             grid-template-columns: repeat(4, 1fr); /* 2 items per row */
         }
 
-        #categoryButtons .btn {
-            padding: 4px 10px;
-            gap: 3px;
-            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 10 %}{{ customization.body_font_size|default:8 }}{% else %}10{% endif %}px;
-        }
-
         .cart-button {
             width: auto;
             padding: 8px 12px;
             font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 13 %}{{ customization.body_font_size|default:8 }}{% else %}13{% endif %}px;
         }
 
-
-        
     }
 
     @media (min-width: 1200px) { /* Extra-large screens */
@@ -474,31 +587,18 @@
         height: 100%;
     }
 
-    @media (min-width: 576px) {
-        .add-to-cart-btn {
-            font-size: 0.95rem;
-            padding: 0.55rem 1.2rem;
-        }
-    }
-
     @media (max-width: 768px) {
+        .container-fluid{
+            padding: 0 5px;
+        }
 
-        .add-to-cart-btn {
-            font-size: 1rem;
-            padding: 0.6rem 1.4rem;
-            width: auto;
+        .pos-toolbar-container{
+            padding: 15px;
         }
         .page-title {
             font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 32 %}{{ customization.header_font_size|default:20 }}{% else %}32{% endif %}px;
         }
         
-        .control-bar {
-            padding: 3px;
-        }
-        
-        .search-filters {
-            padding: 1rem;
-        }
         
         .order-type-selector {
             flex-direction: column;
@@ -726,30 +826,7 @@
         background: var(--accent-color);
         transition: left 0.5s;
     }
-   
-    /* ✅ Center category tabs when screen is narrow */
-    @media (max-width: 992px) {
-        #categoryButtons {
-            justify-content: center !important;
-            text-align: center;
-            gap: 6px;
-        }
 
-        #categoryButtons .btn {
-            flex: 0 1 auto;
-            text-align: center;
-        }
-    }
-
-    /* ✅ Make "View Cart" button responsive */
-    @media (max-width: 768px) {
-        .cart-button {
-            width: 100%;
-            justify-content: center;
-            font-size: 14px;
-            padding: 10px;
-        }
-    }
 
     .empty-state{
         opacity:0.6;
@@ -788,44 +865,92 @@
         
     }
 
+    /* 🔍 Category Dropdown Search Input */
+    #categorySearchInput {
+        width: calc(100% - 1rem);
+        margin: 0.5rem;
+        padding: 0.4rem 0.75rem;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    #categorySearchInput:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 3px var(--primary-color);
+    }
+
+    /* Make dropdown scrollable when many categories */
+    .category-dropdown .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+
+    /* Subtle hover effect for items */
+    .category-dropdown .dropdown-item:hover {
+        background-color: var(--primary-color);
+        color: #fff;
+    }
+
+
 </style>
 
 
 
 <div class="container-fluid">
     <div class="pos-toolbar-container">
-        <!-- Top Bar: Search Input + Cart Button -->
-        <div class="control-bar mb-3">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <!-- Search Input -->
-                <div class="flex-grow-1 me-3">
-                    <div class="search-input-group position-relative">
-                        <i class="fas fa-search search-icon position-absolute top-50 start-0 translate-middle-y ms-3"></i>
-                        <input type="text" class="form-control ps-5 search-input" id="searchInput" 
-                            placeholder="Search products..." oninput="filterProducts()">
-                    </div>
-                </div>
+    <div class="control-bar">
+        <div class="toolbar-flex">
 
-                <!-- View Cart Button -->
-                <a href="{% url cart_url %}" class="btn cart-button d-flex align-items-center gap-2">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span>View Cart (<span id="cartCount">{{ cart_count }}</span>)</span>
-                </a>
+        <!-- Search + Dropdown wrapper (keeps them together on md-sm and remains inline on lg) -->
+        <div class="search-and-dropdown">
+            <!-- Search Input -->
+            <div class="search-wrapper">
+            <div class="search-input-group position-relative">
+                <i class="fas fa-search search-icon position-absolute top-50 start-0 translate-middle-y ms-3"></i>
+                <input type="text" class="form-control ps-5 search-input" id="searchInput"
+                    placeholder="Search products..." oninput="filterProducts()">
             </div>
+            </div>
+
+            <!-- Category Dropdown -->
+            <div class="category-dropdown">
+
+                <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button"
+                        id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    All
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
+                    <li>
+                    <a class="dropdown-item active" data-category="" onclick="filterProductsByCategory('', this)">
+                        All
+                    </a>
+                    </li>
+                    {% for cat in categories %}
+                    <li>
+                    <a class="dropdown-item" data-category="{{ cat.name }}"
+                        onclick="filterProductsByCategory('{{ cat.name }}', this)">
+                        {{ cat.name }}
+                    </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>    
+
+        <!-- View Cart Button (placed as separate block; width controlled by CSS) -->
+        <div class="cart-btn-container">
+            <a href="{% url cart_url %}" class="btn cart-button w-100 d-flex justify-content-center align-items-center gap-2">
+            <i class="fas fa-shopping-cart"></i>
+            <span>View Cart (<span id="cartCount">{{ cart_count }}</span>)</span>
+            </a>
         </div>
 
-        <!-- Category Filter Buttons -->
-        <!-- Replace the Category Filter Buttons section with the following: -->
-        <div id="categoryButtons" class="d-flex flex-wrap gap-2">
-            <button class="btn btn-outline-secondary active" data-category="" onclick="filterProductsByCategory('', this)">
-                <i class="fas fa-th-large me-1"></i> All
-            </button>
-            {% for cat in categories %}
-                <button class="btn btn-outline-secondary" data-category="{{ cat.name }}" onclick="filterProductsByCategory('{{ cat.name }}', this)">
-                    <i class="fas fa-tag me-1"></i> {{ cat.name }}
-                </button>
-            {% endfor %}
         </div>
+    </div>
     </div>
 
     <div class="row g-2" id="productGrid">
@@ -857,7 +982,7 @@
             <!-- Info Section -->
             <div class="product-info d-flex flex-column justify-content-center">
                 <div class="product-name mb-0">
-                {{ product.name|title }}
+                {{ product.name}}
                 {% if product.show_stocks %}
                 <span class="product-stocks">(Stocks: {{ product.stocks }})</span>
                 {% endif %}
@@ -941,28 +1066,33 @@
 {{ all_products|json_script:"product-variations-data" }}
 
 <script>
-    // Called when clicking a category button to update the active state and trigger filtering.
-    function filterProductsByCategory(category, el) {
+     function filterProductsByCategory(category, el) {
         // Clear any existing search input
         document.getElementById('searchInput').value = '';
 
-        // Remove active class from all category buttons
-        document.querySelectorAll('#categoryButtons .btn').forEach(btn => {
-            btn.classList.remove('active');
+        // Remove active class from all dropdown items
+        document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(item => {
+            item.classList.remove('active');
         });
-        // Set the clicked button as active
+        // Set the clicked item as active
         el.classList.add('active');
 
-        // Perform filtering using the updated active state
+        // Update dropdown button text
+        const dropdownButton = document.getElementById('categoryDropdown');
+        dropdownButton.innerHTML = el.innerHTML;
+
+        updateDropdownText(el);
+
+        // Perform filtering
         filterProducts();
     }
 
     // Consolidated filtering function used by both search input and filterProductsByCategory()
     function filterProducts() {
         const searchValue = document.getElementById('searchInput').value.toLowerCase();
-        // Get the active category from its data attribute
-        const activeCategoryBtn = document.querySelector('#categoryButtons .btn.active');
-        const categoryValue = activeCategoryBtn ? activeCategoryBtn.getAttribute('data-category') : '';
+        // ✅ Fixed: Get the active dropdown item instead of button
+        const activeCategoryItem = document.querySelector('.dropdown-menu .dropdown-item.active');
+        const categoryValue = activeCategoryItem ? activeCategoryItem.getAttribute('data-category') : '';
 
         const cards = document.querySelectorAll('.product-card');
         let visibleCount = 0;
@@ -983,6 +1113,27 @@
 
         document.getElementById('emptyState').style.display = visibleCount === 0 ? 'block' : 'none';
     }
+
+    function updateDropdownText(el) {
+        const dropdownButton = document.getElementById('categoryDropdown');
+        const fullText = el.textContent.trim();
+
+        // Set full text as tooltip
+        dropdownButton.title = fullText;
+
+        // Determine max length based on screen width
+        const maxLength = window.innerWidth <= 576 ? 7 : 15;
+
+        // Truncate text if too long
+        const displayText =
+            fullText.length > maxLength
+                ? fullText.substring(0, maxLength) + '...'
+                : fullText;
+
+        dropdownButton.textContent = displayText;
+    }
+
+
 
     function selectOrderType(element, type) {
         document.querySelectorAll('.order-type-option').forEach(opt => opt.classList.remove('active'));
@@ -1230,5 +1381,41 @@
     }
 
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const dropdownMenu = document.querySelector(".category-dropdown .dropdown-menu");
+    const dropdownButton = document.getElementById("categoryDropdown");
+
+    if (!dropdownMenu) return;
+
+    // Create search box element
+    const searchBox = document.createElement("div");
+    searchBox.innerHTML = `
+        <input type="text" id="categorySearchInput" class="form-control form-control-sm mx-2 my-2" placeholder="Search category...">
+    `;
+    dropdownMenu.prepend(searchBox);
+
+    const searchInput = document.getElementById("categorySearchInput");
+
+    // Filter dropdown items
+    searchInput.addEventListener("input", function () {
+        const searchTerm = this.value.toLowerCase();
+        dropdownMenu.querySelectorAll(".dropdown-item").forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(searchTerm) ? "block" : "none";
+        });
+    });
+
+    // Optional: clear search when dropdown closes
+    dropdownButton.addEventListener("hide.bs.dropdown", function () {
+        searchInput.value = "";
+        dropdownMenu.querySelectorAll(".dropdown-item").forEach(item => {
+            item.style.display = "block";
+        });
+    });
+});
+</script>
+
 
 {% endblock %}
