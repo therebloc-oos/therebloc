@@ -487,6 +487,9 @@
             width: 100%;
             padding: 0.75rem 1rem;
             background-color: #fff;
+            border-color: var(--primary-color);
+            border-width: {{ customization.input_border_width|default:1 }}px; 
+            border-style: {{ customization.input_border_style|default:'solid' }};
             color: {{ customization.body_font_color|default:"#000" }};
             font-family: '{{ customization.body_font_family|default:"Arial" }}';
             font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
