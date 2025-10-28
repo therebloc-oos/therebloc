@@ -162,8 +162,83 @@ def route_home(request):
         return redirect('deliveryrider_home')
 
     # ⬅️ If not logged in, show login page
-    return redirect('login')
+    return redirect('landing_page')
 
+def landing_page(request):
+    business = BusinessDetails.objects.first()
+    customization = get_or_create_customization()
+    # Fetch all products to handle real-time updates
+    products = Products.objects.select_related('category').all()
+    categories = ProductCategory.objects.all()
+
+    # Group products by name
+    grouped = defaultdict(list)
+    for p in products:
+        grouped[p.name].append(p)
+
+    unique_products = []
+    best_seller_products = []
+    for name, group in grouped.items():
+        # Only consider available variations with stock
+        available_variations = [
+            p for p in group 
+            if p.available and (not p.track_stocks or p.stocks > 0)
+        ]
+        
+        # Skip if no available variations
+        if not available_variations:
+            continue
+            
+        min_price = min(p.price for p in available_variations)
+        max_price = max(p.price for p in available_variations)
+        representative = available_variations[0]
+
+        price_range = (
+            f"₱{min_price:.2f}"
+            if min_price == max_price
+            else f"₱{min_price:.2f} - ₱{max_price:.2f}"
+        )
+
+        product_data = {
+            'name': name,
+            'price_range': price_range,
+            'category': representative.category.name if representative.category else "Uncategorized",
+            'image': representative.image if representative.image else None,
+            'stocks': sum(p.stocks for p in available_variations),
+            'track_stocks': representative.track_stocks,
+            'sold_count': representative.sold_count,
+        }
+
+        unique_products.append(product_data)
+
+        # Add to best sellers only if sold_count >= 3
+        if representative.sold_count >= 3:
+            best_seller_products.append(product_data)
+
+    # Sort best sellers by sold_count and take top 3
+    best_seller_products = sorted(best_seller_products, key=lambda x: x['sold_count'], reverse=True)[:3]
+
+    # Format times to HH:MM:SS (ignore microseconds)
+    current_time = datetime.now().strftime("%H:%M:%S")
+    opening_time = business.opening_time.strftime("%H:%M:%S")
+    closing_time = business.closing_time.strftime("%H:%M:%S")
+
+    return render(request, 'MSMEOrderingWebApp/landing_page.html', {
+        'products': unique_products,
+        'categories': categories,
+        'all_products': list(products.values('name', 'variation_name', 'price', 'stocks', 'track_stocks', 'description')),
+        'customization': customization,
+        'best_seller_products': best_seller_products,
+        'business': business,
+        'show_best_sellers': customization.show_best_sellers,
+        'best_sellers_title': customization.best_sellers_title,
+        'best_sellers_description': customization.best_sellers_description,
+        'dynamic_description': customization.dynamic_description,
+        'current_time': current_time,
+        'opening_time': opening_time,
+        'closing_time': closing_time,
+    })
+	
 def print_receipt(order, orders):
     try:
         p = Usb(0x0483, 0x5840, timeout=0, in_ep=0x82, out_ep=0x04)
