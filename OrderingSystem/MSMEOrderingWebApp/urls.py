@@ -90,5 +90,6 @@ urlpatterns = [
     path("toggle-shop-status/", views.toggle_shop_status, name="toggle_shop_status"),
     path('pos/update-customer-name/', views.update_pos_customer_name, name='update_pos_customer_name'),
     path("reprint_receipt/", views.reprint_receipt, name="reprint_receipt"),
+    path('get-product-status/', views.get_product_status, name='get_product_status'),
+    path('get-product-details/', views.get_product_details, name='get_product_details'),
 ]
-
