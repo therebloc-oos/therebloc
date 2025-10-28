@@ -2627,9 +2627,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 shouldBeVisible = false;
             }
 
-            const isCurrentlyVisible = card.style.display !== 'none';
+            // Check if product was hidden by real-time updates (not by filters)
+            const isHiddenBySystem = card.hasAttribute('data-hidden-by-system');
+            const isCurrentlyVisible = !isHiddenBySystem;
 
             if (!shouldBeVisible && isCurrentlyVisible) {
+                card.setAttribute('data-hidden-by-system', 'true');
                 card.style.transition = 'opacity 0.3s ease-in-out';
                 card.style.opacity = '0';
                 setTimeout(() => {
@@ -2639,6 +2642,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 300);
             } else if (shouldBeVisible && !isCurrentlyVisible) {
                 // Product is restocked or made available again
+                card.removeAttribute('data-hidden-by-system');
                 card.style.display = '';
                 card.style.transition = 'opacity 0.3s ease-in-out';
                 card.style.opacity = '0';
