@@ -3720,6 +3720,7 @@ def edit_product_price(request):
 
         return redirect('inventory')
 
+@login_required_session(allowed_roles=['owner'])
 @require_POST
 def delete_product(request, product_id):
     product = get_object_or_404(Products, id=product_id)
