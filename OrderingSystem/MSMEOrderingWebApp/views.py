@@ -5422,47 +5422,44 @@ def update_cart(request, cart_id):
 
 def generate_order_code(order_type):
     if order_type == 'delivery':
-        prefix = 'DG'
-        combined_types = ['delivery', 'pickup']  # share count
+        prefix = 'DL'
     elif order_type == 'pickup':
-        prefix = 'PG'
-        combined_types = ['delivery', 'pickup']  # share count
+        prefix = 'PU'
     elif order_type == 'walkin':
-        prefix = 'WG'
-        combined_types = ['walkin']  # separate count
+        prefix = 'WI'
     else:
         prefix = 'XX'
-        combined_types = [order_type]
 
-    # Get current time in local timezone (server's timezone - Philippines)
+    # Get business opening time
+    business = BusinessDetails.objects.first()  # adjust if multiple businesses
+    opening_time = business.opening_time  # stored as time (e.g. 08:00:00)
+
     now = timezone.localtime()  # current local datetime
+    today_opening = datetime.combine(now.date(), opening_time, tzinfo=now.tzinfo)
 
-    # Get current month abbreviation (e.g., OCT, NOV, DEC)
-    month_abbr = now.strftime('%b').upper()
+    # If before opening today, use yesterday’s opening for reset reference
+    if now < today_opening:
+        reset_reference = today_opening - timezone.timedelta(days=1)
+    else:
+        reset_reference = today_opening
 
-    # Build prefix with month (e.g., DGOCT, PGNOV)
-    full_prefix = f"{prefix}{month_abbr}"
-
-    # Get first day of current month for reset reference
-    first_day_of_month = datetime.combine(
-        now.date().replace(day=1),
-        datetime.min.time(),
-        tzinfo=now.tzinfo
-    )
-
-    # ✅ Get latest order shared between delivery and pickup (or walkin)
+    # Get latest order for this type since reset_reference
     last_order = Checkout.objects.filter(
-        order_type__in=combined_types,
-        created_at__gte=first_day_of_month
+        order_type=order_type,
+        created_at__gte=reset_reference
     ).order_by('-created_at').first()
 
-    if last_order and last_order.order_code[-3:].isdigit():
-        last_number = int(last_order.order_code[-3:])
+    if last_order and last_order.order_code.startswith(prefix):
+        try:
+            # Extract numeric part
+            last_number = int(last_order.order_code.replace(prefix, ''))
+        except ValueError:
+            last_number = 0
     else:
         last_number = 0
 
     next_number = last_number + 1
-    return f"{full_prefix}{str(next_number).zfill(3)}"
+    return f"{prefix}{str(next_number).zfill(3)}"
 
 from django.urls import reverse
 
