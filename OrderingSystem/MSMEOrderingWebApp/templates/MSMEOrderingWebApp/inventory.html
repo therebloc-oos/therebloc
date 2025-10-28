@@ -965,7 +965,45 @@
             display: none;
         }
     }
-    
+
+    /* Slim dropdown styling */
+    .slim-dropdown {
+        padding: 4px 0 !important;
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    .dropdown-item-slim {
+        padding: 4px 10px !important;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .dropdown-item-slim:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Smaller delete button */
+    .btn-delete-slim {
+        padding: 2px 6px !important;
+        font-size: 12px !important;
+        border-radius: 4px !important;
+        line-height: 1 !important;
+    }
+
+    /* Make icon smaller */
+    .btn-delete-slim i {
+        font-size: 11px;
+    }
+
+    /* Category text */
+    .category-name {
+        flex-grow: 1;
+        font-weight: 500;
+        color: #333;
+    }
+
     
     </style>
 <div>
@@ -1044,21 +1082,42 @@
                                     <label for="product_category" class="form-label">
                                         <i class="fas fa-tags"></i> Product Category
                                     </label>
-                                    <select id="product_category" name="product_category" class="form-select" 
-                                            required onchange="checkAddNewCategory()">
-                                        <option value="">-- Select Category --</option>
-                                        {% for category in categories %}
-                                            <option value="{{ category.id }}"
-                                                {% if form_data.product_category == category.id|stringformat:"s" %}selected{% endif %}>
-                                                {{ category.name }}
-                                            </option>
-                                        {% endfor %}
-                                        <option value="add_new"
-                                            {% if form_data.product_category == 'add_new' %}selected{% endif %}>
-                                            ➕ Add New Category
-                                        </option>
-                                    </select>
+
+                                    <div class="dropdown w-100">
+                                        <button class="form-select text-start d-flex justify-content-between align-items-center"
+                                                type="button"
+                                                id="categoryDropdown"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false">
+                                            <span id="selectedCategoryText">-- Select Category --</span>
+                                            <i class="fas fa-chevron-down ms-2"></i>
+                                        </button>
+
+                                        <ul class="dropdown-menu w-100 slim-dropdown" aria-labelledby="categoryDropdown" id="categoryList">
+                                            {% for category in categories %}
+                                                <li class="d-flex justify-content-between align-items-center dropdown-item-slim">
+                                                    <span class="category-name" data-id="{{ category.id }}">{{ category.name }}</span>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-danger btn-delete-slim"
+                                                            title="Delete category"
+                                                            onclick="deleteCategory({{ category.id }}, '{{ category.name }}')">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </li>
+                                            {% endfor %}
+                                            <li><hr class="dropdown-divider my-1"></li>
+                                            <li>
+                                                <button class="dropdown-item text-success py-2" type="button" onclick="openAddCategoryModal()">
+                                                    <i class="fas fa-plus-circle me-2"></i> Add New Category
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <input type="hidden" name="product_category" id="selectedCategoryId" required>
                                 </div>
+
+
 
                                 <div class="col-12 col-md-12 col-lg-6" id="default_stocks_section">
                                     <label for="product_stocks" class="form-label">
@@ -2170,6 +2229,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Handle selecting category from dropdown
+    document.querySelectorAll(".category-name").forEach(item => {
+        item.addEventListener("click", function () {
+            const categoryId = this.dataset.id;
+            const categoryName = this.textContent.trim();
+
+            document.getElementById("selectedCategoryId").value = categoryId;
+            document.getElementById("selectedCategoryText").textContent = categoryName;
+        });
+    });
+});
+
+function deleteCategory(categoryId, categoryName) {
+    if (!confirm(`Are you sure you want to delete category "${categoryName}"?`)) return;
+
+    fetch(`/delete_category/${categoryId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.error);
+        }
+    })
+    .catch(err => {
+        console.error("Error deleting category:", err);
+        alert("Something went wrong. Please try again.");
+    });
+}
+
+function openAddCategoryModal() {
+    document.getElementById('addCategoryModal').style.display = 'block';
+    document.getElementById('modalOverlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
 </script>
 
 <script>
