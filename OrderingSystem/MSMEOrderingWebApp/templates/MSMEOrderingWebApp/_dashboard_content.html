@@ -1547,7 +1547,6 @@
                 </div>
 
 
-
                 <!-- Completed Orders Tab -->
                 <div id="completed" class="tab-content">
                     <div class="search-filter-wrapper">
@@ -1598,7 +1597,18 @@
                                         {% endfor %}
                                     </td>
                                     <td>₱{{ group.total_price|floatformat:2 }}</td>
-                                    <td style="text-align: center;">{{ group.first.payment_method|upper }}</td>
+                                    <td class="text-center">
+                                        {{ group.first.payment_method|upper }}
+                                        {% if group.first.payment_method|lower == "online" and group.first.proof_of_payment %}
+                                            <br>
+                                            <button class="btn-sm-modern btn-info-modern mt-2"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#proofModal"
+                                                    data-img-url="{{ group.first.proof_of_payment.url }}">
+                                                <i class="fas fa-image"></i> View Proof
+                                            </button>
+                                        {% endif %}
+                                    </td>
                                     <td class="text-center">
                                         <button class="btn-sm-modern btn-info-modern" onclick="printOrder('{{ group.order_code }}')">
                                             <i class="fas fa-print"></i> Reprint Receipt
@@ -1702,6 +1712,23 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- Proof of Payment Modal -->
+<div class="modal fade" id="proofModal" tabindex="-1" aria-labelledby="proofModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="proofModalLabel">
+                    <i class="fas fa-receipt me-2"></i> Proof of Payment
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <img id="proofImage" src="" alt="Proof of Payment" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -2305,6 +2332,17 @@ const statusColors = {
         if (overlay) overlay.style.display = 'none';
     }
 
+    document.addEventListener('DOMContentLoaded', function() {
+        const proofModal = document.getElementById('proofModal');
+        const proofImage = document.getElementById('proofImage');
+
+        proofModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const imgUrl = button.getAttribute('data-img-url');
+            proofImage.src = imgUrl;
+        });
+    });
+
 </script>
 
 <script>
@@ -2360,5 +2398,7 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+
 </script>
 {% endblock %}
