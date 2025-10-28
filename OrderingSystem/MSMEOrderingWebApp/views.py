@@ -3768,7 +3768,7 @@ def delete_product(request, product_id):
         product.delete()
         messages.success(request, "Product archived and deleted successfully.")
         return redirect('inventory')
-		
+
 @login_required_session(allowed_roles=['owner'])
 @require_POST
 def toggle_availability(request, product_id):
@@ -3803,10 +3803,9 @@ def toggle_availability(request, product_id):
         messages.success(request, f'Product "{product.name}" is now {state}.')  # ✅ Fixed quotes
         return redirect('inventory')
 
-
-
 from django.db.models import Sum
 from decimal import Decimal
+
 
 @login_required_session(allowed_roles=['owner'])
 def pos(request):
@@ -4152,6 +4151,8 @@ def pos_place_order(request):
                 'order_code': order_code,
                 'first_name': first_name,
                 'last_name': last_name,
+				'contact_number': latest_cart.contact_number if latest_cart and latest_cart.contact_number else "N/A",
+				'address': latest_cart.address if latest_cart and latest_cart.address else "In-store",
                 'business_name': business_name,
                 'store_address': store_address,
                 'payment_method': payment_method,
@@ -5003,12 +5004,15 @@ def business_notifications(request):
         'customization': customization,
         'title': 'Notifications'
     })
-	
+
+from django.views.decorators.http import require_http_methods
+
 @login_required_session(allowed_roles=['customer'])
 def customer_home(request):
     business = BusinessDetails.objects.first()
     customization = get_or_create_customization()
-    products = Products.objects.select_related('category').filter(available=True)
+    # Fetch all products to handle real-time updates
+    products = Products.objects.select_related('category').all()
     categories = ProductCategory.objects.all()
 
     # Group products by name
@@ -5019,9 +5023,19 @@ def customer_home(request):
     unique_products = []
     best_seller_products = []
     for name, group in grouped.items():
-        min_price = min(p.price for p in group)
-        max_price = max(p.price for p in group)
-        representative = group[0]
+        # Only consider available variations with stock
+        available_variations = [
+            p for p in group 
+            if p.available and (not p.track_stocks or p.stocks > 0)
+        ]
+        
+        # Skip if no available variations
+        if not available_variations:
+            continue
+            
+        min_price = min(p.price for p in available_variations)
+        max_price = max(p.price for p in available_variations)
+        representative = available_variations[0]
 
         price_range = (
             f"₱{min_price:.2f}"
@@ -5034,18 +5048,18 @@ def customer_home(request):
             'price_range': price_range,
             'category': representative.category.name if representative.category else "Uncategorized",
             'image': representative.image if representative.image else None,
-            'stocks': sum(p.stocks for p in group),
+            'stocks': sum(p.stocks for p in available_variations),
             'track_stocks': representative.track_stocks,
-            'sold_count': representative.sold_count,  # ✅ keep sold_count here
+            'sold_count': representative.sold_count,
         }
 
         unique_products.append(product_data)
 
-        # ✅ Add to best sellers only if sold_count >= 3
+        # Add to best sellers only if sold_count >= 3
         if representative.sold_count >= 3:
             best_seller_products.append(product_data)
 
-    # ✅ Sort best sellers by sold_count and take top 3
+    # Sort best sellers by sold_count and take top 3
     best_seller_products = sorted(best_seller_products, key=lambda x: x['sold_count'], reverse=True)[:3]
 
     # Format times to HH:MM:SS (ignore microseconds)
@@ -5068,6 +5082,146 @@ def customer_home(request):
         'opening_time': opening_time,
         'closing_time': closing_time,
     })
+
+@require_http_methods(["GET"])
+def get_product_status(request):
+    """
+    Returns the availability and stock status of all products and their variations.
+    Used for real-time product visibility updates on the homepage.
+    """
+    try:
+        # Get all products with proper prefetching
+        products = Products.objects.select_related('category').all()
+        
+        # Group by product name to handle variations
+        grouped = defaultdict(list)
+        for p in products:
+            grouped[p.name].append(p)
+        
+        product_status = []
+        
+        for name, variations in grouped.items():
+            # Get status for each variation
+            variation_details = []
+            
+            for variation in variations:
+                # Check if this specific variation is available
+                is_variation_available = variation.available
+                
+                # If tracking stocks, also check stock level
+                if variation.track_stocks and variation.stocks <= 0:
+                    is_variation_available = False
+                
+                variation_details.append({
+                    'variation_name': variation.variation_name or 'default',
+                    'available': is_variation_available,
+                    'stocks': variation.stocks,
+                    'track_stocks': variation.track_stocks,
+                })
+            
+            # Product is available if ANY variation is available
+            any_variation_available = any(v['available'] for v in variation_details)
+            
+            # Calculate total stocks across all available variations
+            total_stocks = sum(
+                v['stocks'] for v in variation_details 
+                if v['available']
+            )
+            
+            # Check if any variation tracks stocks
+            tracks_stocks = any(v['track_stocks'] for v in variation_details)
+            
+            product_status.append({
+                'name': name,
+                'available': any_variation_available,
+                'stocks': total_stocks,
+                'track_stocks': tracks_stocks,
+                'variations': variation_details,  # Include individual variation status
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'products': product_status,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        import traceback
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+def get_product_details(request):
+    """
+    Returns full details of a specific product for dynamic card creation.
+    """
+    try:
+        product_name = request.GET.get('name')
+        if not product_name:
+            return JsonResponse({
+                'success': False,
+                'error': 'Product name is required'
+            }, status=400)
+        
+        # Get all variations of this product
+        products = Products.objects.filter(name=product_name).select_related('category')
+        
+        if not products.exists():
+            return JsonResponse({
+                'success': False,
+                'error': 'Product not found'
+            }, status=404)
+        
+        # Get available variations with stock
+        available_variations = [
+            p for p in products 
+            if p.available and (not p.track_stocks or p.stocks > 0)
+        ]
+        
+        if not available_variations:
+            return JsonResponse({
+                'success': False,
+                'error': 'No available variations'
+            }, status=404)
+        
+        # Calculate price range
+        prices = [p.price for p in available_variations]
+        min_price = min(prices)
+        max_price = max(prices)
+        
+        price_range = (
+            f"₱{min_price:.2f}"
+            if min_price == max_price
+            else f"₱{min_price:.2f} - ₱{max_price:.2f}"
+        )
+        
+        representative = available_variations[0]
+        
+        product_data = {
+            'name': product_name,
+            'price_range': price_range,
+            'category': representative.category.name if representative.category else "Uncategorized",
+            'image': representative.image.url if representative.image else None,
+            'stocks': sum(p.stocks for p in available_variations),
+            'track_stocks': representative.track_stocks,
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'product': product_data
+        })
+        
+    except Exception as e:
+        import traceback
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }, status=500)
 
 @login_required_session(allowed_roles=['cashier', 'rider'])
 def staff_profile(request):
@@ -5268,44 +5422,47 @@ def update_cart(request, cart_id):
 
 def generate_order_code(order_type):
     if order_type == 'delivery':
-        prefix = 'DL'
+        prefix = 'DG'
+        combined_types = ['delivery', 'pickup']  # share count
     elif order_type == 'pickup':
-        prefix = 'PU'
+        prefix = 'PG'
+        combined_types = ['delivery', 'pickup']  # share count
     elif order_type == 'walkin':
-        prefix = 'WI'
+        prefix = 'WG'
+        combined_types = ['walkin']  # separate count
     else:
         prefix = 'XX'
+        combined_types = [order_type]
 
-    # Get business opening time
-    business = BusinessDetails.objects.first()  # adjust if multiple businesses
-    opening_time = business.opening_time  # stored as time (e.g. 08:00:00)
-
+    # Get current time in local timezone (server's timezone - Philippines)
     now = timezone.localtime()  # current local datetime
-    today_opening = datetime.combine(now.date(), opening_time, tzinfo=now.tzinfo)
 
-    # If before opening today, use yesterday’s opening for reset reference
-    if now < today_opening:
-        reset_reference = today_opening - timezone.timedelta(days=1)
-    else:
-        reset_reference = today_opening
+    # Get current month abbreviation (e.g., OCT, NOV, DEC)
+    month_abbr = now.strftime('%b').upper()
 
-    # Get latest order for this type since reset_reference
+    # Build prefix with month (e.g., DGOCT, PGNOV)
+    full_prefix = f"{prefix}{month_abbr}"
+
+    # Get first day of current month for reset reference
+    first_day_of_month = datetime.combine(
+        now.date().replace(day=1),
+        datetime.min.time(),
+        tzinfo=now.tzinfo
+    )
+
+    # ✅ Get latest order shared between delivery and pickup (or walkin)
     last_order = Checkout.objects.filter(
-        order_type=order_type,
-        created_at__gte=reset_reference
+        order_type__in=combined_types,
+        created_at__gte=first_day_of_month
     ).order_by('-created_at').first()
 
-    if last_order and last_order.order_code.startswith(prefix):
-        try:
-            # Extract numeric part
-            last_number = int(last_order.order_code.replace(prefix, ''))
-        except ValueError:
-            last_number = 0
+    if last_order and last_order.order_code[-3:].isdigit():
+        last_number = int(last_order.order_code[-3:])
     else:
         last_number = 0
 
     next_number = last_number + 1
-    return f"{prefix}{str(next_number).zfill(3)}"
+    return f"{full_prefix}{str(next_number).zfill(3)}"
 
 from django.urls import reverse
 
