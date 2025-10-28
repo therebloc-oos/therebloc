@@ -3564,18 +3564,20 @@ def inventory(request):
 
 @login_required_session(allowed_roles=['owner'])
 def edit_product_price(request):
-    if request.method == 'POST':
-        product_id = request.POST.get('product_id')
-        new_price = request.POST.get('new_price')
-        new_stocks = request.POST.get('new_stocks')
-        new_description = request.POST.get('new_description')
-        new_name = request.POST.get('new_name')
-        new_variation = request.POST.get('new_variation')  # ✅ NEW FIELD
-
+    # Check if it's an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
         try:
+            data = json.loads(request.body)
+            product_id = data.get('product_id')
+            new_price = data.get('new_price')
+            new_stocks = data.get('new_stocks')
+            new_description = data.get('new_description')
+            new_name = data.get('new_name')
+            new_variation = data.get('new_variation')
+
             product = Products.objects.get(id=product_id)
 
-            # ✅ Variation name change
+            # Track variation changes
             if new_variation is not None and str(product.variation_name) != str(new_variation):
                 ProductEditHistory.objects.create(
                     product=product,
@@ -3585,6 +3587,7 @@ def edit_product_price(request):
                 )
                 product.variation_name = new_variation
 
+            # Track name changes
             if new_name is not None and str(product.name) != str(new_name):
                 ProductEditHistory.objects.create(
                     product=product,
@@ -3594,6 +3597,7 @@ def edit_product_price(request):
                 )
                 product.name = new_name
 
+            # Track price changes
             if new_price is not None and str(product.price) != str(new_price):
                 ProductEditHistory.objects.create(
                     product=product,
@@ -3603,6 +3607,7 @@ def edit_product_price(request):
                 )
                 product.price = new_price
 
+            # Track stocks changes
             if new_stocks is not None and str(product.stocks) != str(new_stocks):
                 ProductEditHistory.objects.create(
                     product=product,
@@ -3612,6 +3617,7 @@ def edit_product_price(request):
                 )
                 product.stocks = new_stocks
 
+            # Track description changes
             if new_description is not None and str(product.description or "") != str(new_description):
                 ProductEditHistory.objects.create(
                     product=product,
@@ -3622,49 +3628,184 @@ def edit_product_price(request):
                 product.description = new_description
 
             product.save()
-            messages.success(request, "Product updated successfully.")
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Product updated successfully.',
+                'product': {
+                    'id': product.id,
+                    'name': product.name,
+                    'price': str(product.price),
+                    'stocks': product.stocks,
+                    'description': product.description or '',
+                    'variation_name': product.variation_name,
+                    'track_stocks': product.track_stocks
+                }
+            })
 
         except Products.DoesNotExist:
-            messages.error(request, "Product not found.")
+            return JsonResponse({
+                'success': False,
+                'error': 'Product not found.'
+            }, status=404)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+    else:
+        # Fallback for non-AJAX requests
+        if request.method == 'POST':
+            product_id = request.POST.get('product_id')
+            new_price = request.POST.get('new_price')
+            new_stocks = request.POST.get('new_stocks')
+            new_description = request.POST.get('new_description')
+            new_name = request.POST.get('new_name')
+            new_variation = request.POST.get('new_variation')  # ✅ Added
 
-    return redirect('inventory')
+            try:
+                product = Products.objects.get(id=product_id)
 
-@login_required_session(allowed_roles=['owner'])
+                # ✅ Track variation changes
+                if new_variation is not None and str(product.variation_name) != str(new_variation):
+                    ProductEditHistory.objects.create(
+                        product=product,
+                        field="variation_name",
+                        old_value=product.variation_name,
+                        new_value=new_variation,
+                    )
+                    product.variation_name = new_variation
+
+                if new_name is not None and str(product.name) != str(new_name):
+                    ProductEditHistory.objects.create(
+                        product=product,
+                        field="name",
+                        old_value=product.name,
+                        new_value=new_name,
+                    )
+                    product.name = new_name
+
+                if new_price is not None and str(product.price) != str(new_price):
+                    ProductEditHistory.objects.create(
+                        product=product,
+                        field="price",
+                        old_value=product.price,
+                        new_value=new_price,
+                    )
+                    product.price = new_price
+
+                if new_stocks is not None and str(product.stocks) != str(new_stocks):
+                    ProductEditHistory.objects.create(
+                        product=product,
+                        field="stocks",
+                        old_value=product.stocks,
+                        new_value=new_stocks,
+                    )
+                    product.stocks = new_stocks
+
+                if new_description is not None and str(product.description or "") != str(new_description):
+                    ProductEditHistory.objects.create(
+                        product=product,
+                        field="description",
+                        old_value=product.description or "",
+                        new_value=new_description,
+                    )
+                    product.description = new_description
+
+                product.save()
+                messages.success(request, "Product updated successfully.")
+
+            except Products.DoesNotExist:
+                messages.error(request, "Product not found.")
+
+        return redirect('inventory')
+
+@require_POST
 def delete_product(request, product_id):
     product = get_object_or_404(Products, id=product_id)
+    
+    # Check if it's an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+        try:
+            product_name = product.name
+            
+            # Save selected fields to ArchivedProducts
+            ArchivedProducts.objects.create(
+                original_id=product.id,
+                category=product.category,
+                name=product.name,
+                variation_name=product.variation_name,
+                price=product.price,
+                stocks=product.stocks,
+                sold_count=product.sold_count,
+            )
 
-    # Save selected fields to ArchivedProducts
-    ArchivedProducts.objects.create(
-        original_id=product.id,
-        category=product.category,
-        name=product.name,
-        variation_name=product.variation_name,
-        price=product.price,
-        stocks=product.stocks,
-        sold_count=product.sold_count,
-    )
+            # Delete from Products
+            product.delete()
 
-    # Delete from Products
-    product.delete()
-
-    messages.success(request, "Product archived and deleted successfully.")
-    return redirect('inventory')
-
+            return JsonResponse({
+                'success': True,
+                'message': f'Product "{product_name}" archived and deleted successfully.'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+    else:
+        # Fallback for non-AJAX requests
+        ArchivedProducts.objects.create(
+            original_id=product.id,
+            category=product.category,
+            name=product.name,
+            variation_name=product.variation_name,
+            price=product.price,
+            stocks=product.stocks,
+            sold_count=product.sold_count,
+        )
+        
+        product.delete()
+        messages.success(request, "Product archived and deleted successfully.")
+        return redirect('inventory')
+		
 @login_required_session(allowed_roles=['owner'])
+@require_POST
 def toggle_availability(request, product_id):
     product = get_object_or_404(Products, id=product_id)
-    if request.method == 'POST':
+    
+    # Check if it's an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+        try:
+            # Parse JSON body
+            data = json.loads(request.body)
+            product.available = data.get('available', False)
+            product.save()
+            
+            state = "available" if product.available else "unavailable"
+            
+            return JsonResponse({
+                'success': True,
+                'available': product.available,
+                'message': f'Product "{product.name}" is now {state}.'  # ✅ Fixed quotes
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+    else:
+        # Fallback for non-AJAX requests
         product.available = not product.available
         product.save()
-
-        # Show a toast (Django messages)
+        
         state = "available" if product.available else "unavailable"
-        messages.success(request, f"Product “{product.name}” is now {state}.")
-    return redirect('inventory')
+        messages.success(request, f'Product "{product.name}" is now {state}.')  # ✅ Fixed quotes
+        return redirect('inventory')
+
+
 
 from django.db.models import Sum
 from decimal import Decimal
-
 
 @login_required_session(allowed_roles=['owner'])
 def pos(request):
