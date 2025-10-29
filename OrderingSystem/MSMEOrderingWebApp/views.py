@@ -5564,6 +5564,9 @@ def customer_cart(request):
         
         subtotal = sum(item.price for item in cart_items)
         customization = get_or_create_customization()
+
+        # Closed dates already saved as list of strings
+        closed_dates = business.closed_dates if business.closed_dates else []
         
         return render(request, 'MSMEOrderingWebApp/customer_cart.html', {
             'cart_items': cart_items,
@@ -5571,6 +5574,7 @@ def customer_cart(request):
             'customization': customization,
             'business': business,
             'user_email': user.email,
+            'closed_dates': closed_dates,
         })
     else:
         return redirect('login')
