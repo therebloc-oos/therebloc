@@ -1474,17 +1474,102 @@
 
     </style>
 
+    <!-- Add this CSS for styling -->
+<style>
+    .closed-date-badge {
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+    }
+    
+    .closed-date-badge .btn-close {
+        padding: 0;
+        width: 12px;
+        height: 12px;
+        opacity: 0.8;
+    }
+    
+    .closed-date-badge .btn-close:hover {
+        opacity: 1;
+    }
+    
+    #closedDatesContainer {
+        min-height: 50px;
+    }
+    </style>
+
 </head>
 <body>
 <div class="main-container">
     <form method="POST" action="{% url 'settings' %}" enctype="multipart/form-data" id="settingsForm">
         {% csrf_token %}
 
-        <!-- 🔘 Close/Open Shop Button -->
-        <div class="d-flex justify-content-start mb-2">
+        <!-- Add this right after the Close/Open Shop button -->
+        <div class="d-flex justify-content-start mb-2 gap-2">
             <button type="button" class="save-button btn-warning" id="toggleShopBtn">
                 {% if business.force_closed %}Open Shop{% else %}Close Shop{% endif %}
             </button>
+            
+            <!-- NEW: Closed at Button -->
+            <button type="button" class="save-button btn-info" id="closedDatesBtn" data-bs-toggle="modal" data-bs-target="#closedDatesModal">
+                <i class="fas fa-calendar-times"></i> Closed at...
+            </button>
+        </div>
+
+        <!-- Closed Dates Modal (Add before closing </body> tag) -->
+        <div class="modal fade" id="closedDatesModal" tabindex="-1" aria-labelledby="closedDatesLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="closedDatesLabel">
+                            <i class="fas fa-calendar-times me-2"></i>
+                            Manage Closed Dates
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted mb-3">
+                            <i class="fas fa-info-circle"></i> Select dates when your business will be closed. 
+                            Customers won't be able to schedule orders on these dates.
+                        </p>
+                        
+                        <!-- Date Picker -->
+                        <div class="mb-3">
+                            <label for="closedDatePicker" class="form-label fw-bold">Select Closed Date:</label>
+                            <input type="date" id="closedDatePicker" class="form-control">
+                        </div>
+                        
+                        <button type="button" class="btn btn-primary" id="addClosedDateBtn">
+                            <i class="fas fa-plus"></i> Add Closed Date
+                        </button>
+                        
+                        <hr class="my-4">
+                        
+                        <!-- List of Closed Dates -->
+                        <div id="closedDatesList">
+                            <h6 class="fw-bold mb-3">Currently Closed Dates:</h6>
+                            <div id="closedDatesContainer" class="d-flex flex-wrap gap-2">
+                                <!-- Closed dates will be dynamically added here -->
+                                {% if business.closed_dates %}
+                                    {% for date in business.closed_dates %}
+                                        <div class="badge bg-danger p-2 closed-date-badge" data-date="{{ date }}">
+                                            <i class="fas fa-calendar-times"></i> {{ date }}
+                                            <button type="button" class="btn-close btn-close-white btn-sm ms-2" 
+                                                    onclick="removeClosedDate('{{ date }}')"></button>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted" id="noClosedDatesMsg">No closed dates set.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Business Profile Card -->
@@ -2856,6 +2941,130 @@
         });
     });
 
+</script>
+
+<!-- JavaScript for Closed Dates Management -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const closedDatePicker = document.getElementById("closedDatePicker");
+    const addClosedDateBtn = document.getElementById("addClosedDateBtn");
+    const closedDatesContainer = document.getElementById("closedDatesContainer");
+    const noClosedDatesMsg = document.getElementById("noClosedDatesMsg");
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    closedDatePicker.min = today;
+    
+    // Add closed date
+    addClosedDateBtn.addEventListener("click", function() {
+        const selectedDate = closedDatePicker.value;
+        
+        if (!selectedDate) {
+            showToast("Please select a date first.", "warning");
+            return;
+        }
+        
+        // Check if date already exists
+        const existingDates = Array.from(document.querySelectorAll('.closed-date-badge'))
+            .map(badge => badge.dataset.date);
+        
+        if (existingDates.includes(selectedDate)) {
+            showToast("This date is already marked as closed.", "warning");
+            return;
+        }
+        
+        // Send to server
+        fetch("{% url 'add_closed_date' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({ date: selectedDate })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                addClosedDateBadge(selectedDate);
+                closedDatePicker.value = "";
+                showToast("Closed date added successfully!", "success");
+                
+                // Hide "no dates" message
+                if (noClosedDatesMsg) {
+                    noClosedDatesMsg.style.display = 'none';
+                }
+            } else {
+                showToast(data.error || "Failed to add closed date.", "danger");
+            }
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            showToast("Failed to add closed date. Please try again.", "danger");
+        });
+    });
+    
+    function addClosedDateBadge(date) {
+        const badge = document.createElement("div");
+        badge.className = "badge bg-danger p-2 closed-date-badge";
+        badge.dataset.date = date;
+        badge.innerHTML = `
+            <i class="fas fa-calendar-times"></i> ${date}
+            <button type="button" class="btn-close btn-close-white btn-sm ms-2" 
+                    onclick="removeClosedDate('${date}')"></button>
+        `;
+        closedDatesContainer.appendChild(badge);
+    }
+    
+    // Make removeClosedDate global
+    window.removeClosedDate = function(date) {
+        if (!confirm(`Remove ${date} from closed dates?`)) return;
+        
+        fetch("{% url 'remove_closed_date' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({ date: date })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const badge = document.querySelector(`.closed-date-badge[data-date="${date}"]`);
+                if (badge) badge.remove();
+                
+                showToast("Closed date removed successfully!", "success");
+                
+                // Show "no dates" message if no more dates
+                const remainingBadges = document.querySelectorAll('.closed-date-badge');
+                if (remainingBadges.length === 0 && noClosedDatesMsg) {
+                    noClosedDatesMsg.style.display = 'block';
+                }
+            } else {
+                showToast(data.error || "Failed to remove closed date.", "danger");
+            }
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            showToast("Failed to remove closed date. Please try again.", "danger");
+        });
+    };
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
 </script>
     
 {% endblock %}
