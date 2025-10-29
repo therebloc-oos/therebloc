@@ -94,4 +94,6 @@ urlpatterns = [
     path('get-product-status/', views.get_product_status, name='get_product_status'),
     path('get-product-details/', views.get_product_details, name='get_product_details'),
     path('delete_category/<int:category_id>/', views.delete_category, name='delete_category'),
+    path('add-closed-date/', views.add_closed_date, name='add_closed_date'),
+    path('remove-closed-date/', views.remove_closed_date, name='remove_closed_date'),
 ]
