@@ -858,6 +858,46 @@
             border-radius: {{ customization.input_rounded_corner|default:1 }}px;
         }
 
+        /* Browse Products Button (styled with customization variables) */
+        .browse-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(
+                90deg,
+                {{ customization.primary_color|default:'#000000' }},
+                {{ customization.secondary_color|default:'#808080' }}
+            );
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+            padding: 10px 16px;
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 1100;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+        }
+
+        .browse-btn i {
+            font-size: 16px;
+        }
+
+        .browse-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            background: linear-gradient(
+                90deg,
+                {{ customization.secondary_color|default:'#808080' }},
+                {{ customization.primary_color|default:'#000000' }}
+            );
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+        }
+
 
     </style>
 
@@ -885,6 +925,10 @@
     </div>
 {% endif %}
 
+<!-- Browse Available Products Button -->
+<a href="{% url 'landing_page' %}" class="browse-btn">
+    <i class="fa fa-search"></i> Browse Available Products
+</a>
 
 <div class="bg-image">
     <div class="login-container">
