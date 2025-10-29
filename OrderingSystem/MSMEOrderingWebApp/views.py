@@ -1998,7 +1998,7 @@ def login_view(request):
 	
 def logout_view(request):
     request.session.flush()  # Clears all session data
-    return redirect('login')
+    return redirect('landing_page')
 
 def verify_email(request):
     token = request.GET.get('token')
