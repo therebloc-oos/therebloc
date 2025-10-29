@@ -1195,7 +1195,7 @@
                     </button>
                     {% for category in categories %}
                         <button class="tab-btn" onclick="filterProductsByCategory('{{ category.id }}', this)">
-                            <i class="fas fa-tag me-2"></i>{{ category.name|upper }}
+                            <i class="fas fa-tag me-2"></i>{{ category.name}}
                         </button>
                     {% endfor %}
                 </div>
@@ -1248,17 +1248,17 @@
                                                                         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
                                                                     ">
                                                                         <span style="font-size: 1.5rem; font-weight: 700; color: #fff;">
-                                                                            {{ product.name|first|upper }}
+                                                                            {{ product.name}}
                                                                         </span>
                                                                     </div>
                                                                 {% endif %}
                                                             </div>
                                                         </td>
 
-                                                        <td rowspan="{{ items|length }}" class="align-middle" style="background-color: #f0f0f0de;">{{ group.grouper|title }}</td>
-                                                        <td rowspan="{{ items|length }}" class="align-middle" style="background-color: #f0f0f0de;">{{ items.0.category.name|title }}</td>
+                                                        <td rowspan="{{ items|length }}" class="align-middle" style="background-color: #f0f0f0de;">{{ group.grouper}}</td>
+                                                        <td rowspan="{{ items|length }}" class="align-middle" style="background-color: #f0f0f0de;">{{ items.0.category.name}}</td>
                                                     {% endif %}
-                                                    <td class="align-middle" style="background-color: #f0f0f0ff;">{{ product.variation_name|title }}</td>
+                                                    <td class="align-middle" style="background-color: #f0f0f0ff;">{{ product.variation_name}}</td>
                                                     <td class="align-middle product-price" style="background-color: #f0f0f0ff;">₱{{ product.price|floatformat:2 }}</td>
                                                     <td class="align-middle" style="background-color: #f0f0f0ff;">
                                                         {% if product.track_stocks %}
@@ -1332,15 +1332,15 @@
                                                                     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
                                                                 ">
                                                                     <span style="font-size: 1.5rem; font-weight: 700; color: #fff;">
-                                                                        {{ product.name|first|upper }}
+                                                                        {{ product.name}}
                                                                     </span>
                                                                 </div>
                                                             {% endif %}
                                                         </div>
                                                     </td>
-                                                    <td class="align-middle">{{ product.name|title }}</td>
+                                                    <td class="align-middle">{{ product.name}}</td>
                                                     <td class="align-middle">{{ items.0.category.name }}</td>
-                                                    <td class="align-middle"><span>None</span></td>
+                                                    <td class="align-middle">{{ product.variation_name}}</td>
                                                     <td class="align-middle">₱{{ product.price|floatformat:2 }}</td>
                                                     <td class="align-middle">
                                                         {% if product.track_stocks %}
