@@ -266,11 +266,10 @@
         }
 
         .banner-text h1 {
-            margin-bottom: 1rem;
-            line-height: 1.2;
-            color: white;
+            margin-bottom: 5px;
             text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
             animation: slideInDown 1s ease-out;
+            color: {{customization.button_text_color|default:"#ffffff"}};
             font-family: "{{ customization.header_font_family|default:"Arial" }}";
             font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' > 50 %}50{% else %}{{ customization.header_font_size|default:36 }}{% endif %}px;
             font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}700{% else %}600{% endif %};
@@ -432,7 +431,7 @@
             font-weight: {% if customization.header_font_style == 'bold' or customization.header_font_style == 'bolditalic' %}900{% else %}normal{% endif %};
             font-style: {% if customization.header_font_style == 'italic' or customization.header_font_style == 'bolditalic' %}italic{% else %}normal{% endif %};
             line-height: 1.2;
-            margin-bottom: 0.5rem;
+            margin-bottom: 5px;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -473,7 +472,7 @@
         }
 
         .mission:hover, .vision:hover {
-            transform: translateY(-5px);
+            transform: translateY(-2px);
             box-shadow: 0 6px 20px var(--accent-color);
         }
 
@@ -618,7 +617,7 @@
         }
 
         .product-card .card:hover {
-            transform: scale(1.02);
+            transform: scale(1.01);
             box-shadow: 0 0 12px rgba(0,0,0,0.15);
         }
 
@@ -1879,32 +1878,32 @@
 
         /* --- Login Notice Modal --- */
         #loginNoticeModal {
-        display: none;
-        position: fixed;
-        z-index: 2000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(5px);
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
         }
 
         #loginNoticeModal.show {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         #loginNoticeModal .modal-content {
-        background: #fff;
-        border-radius: 12px;
-        overflow: hidden;
-        max-width: 400px;
-        width: 90%;
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-        animation: slideIn 0.3s ease;
-        text-align: center;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+            text-align: center;
         }
 
         @keyframes slideIn {
@@ -1914,72 +1913,75 @@
 
         /* 🔴 Red Header Bar */
         .modal-header-top {
-        background: linear-gradient(90deg, #b91c1c, #ef4444);
-        height: 12px;
-        width: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            height: 12px;
+            width: 100%;
         }
 
         /* ⚠️ Icon and Title */
         .modal-icon {
-        font-size: 50px;
-        color: #b91c1c;
-        margin-top: 1.2rem;
+            font-size: 50px;
+            color: #b91c1c;
+            margin-top: 1.2rem;
         }
 
         .modal-title {
-        font-size: 22px;
-        font-weight: 800;
-        text-transform: uppercase;
-        margin: 10px 0 15px 0;
-        color: #111;
-        font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            font-weight: 800;
+            text-transform: uppercase;
+            margin: 10px 0 15px 0;
+            color: {{ customization.header_font_color|default:"#000000" }};
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            font-size: {% if customization.header_font_size and customization.header_font_size|add:'0' <= 30 %}{{ customization.header_font_size|default:20 }}{% else %}30{% endif %}px;
+
         }
 
         /* 📜 Message Text */
         .modal-body p {
-        font-size: 15px;
-        color: #333;
-        line-height: 1.6;
-        margin: 0 1rem 20px 1rem;
-        font-family: {{ customization.body_font_family|default:"Montserrat" }};
+            line-height: 1.6;
+            margin: 0 0.75rem 15px 0.75rem;
+            font-weight: 600;
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 16 %}{{ customization.body_font_size|default:12 }}{% else %}16{% endif %}px;
+            color: {{ customization.body_font_color|default:"#000000" }};
+            font-family: {{ customization.body_font_family|default:"Montserrat" }};
         }
 
         /* 🟢🔵 Buttons (stacked vertically) */
         .modal-footer {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        gap: 12px; /* space between buttons */
-        padding: 1.5rem;
-        border-top: 1px solid #eee;
-        margin-top: 10px; /* space above the buttons */
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            gap: 12px; /* space between buttons */
+            padding: 1rem;
+            border-top: 1px solid #eee;
+            margin-top: 10px; /* space above the buttons */
         }
 
         .modal-btn {
-        flex: 1;
-        text-align: center;
-        padding: 10px 16px;
-        border-radius: {{ customization.button_rounded_corner|default:4 }}px;
-        font-weight: 600;
-        text-decoration: none;
-        font-family: {{ customization.header_font_family|default:"Montserrat" }};
-        transition: all 0.3s ease;
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
+            flex: 1;
+            line-height: 1.3x
+            text-align: center;
+            padding: 10px 16px;
+            border-radius: {{ customization.button_rounded_corner|default:4 }}px;
+            font-weight: 600;
+            text-decoration: none;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            transition: all 0.3s ease;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
         }
 
         .modal-btn i {
-        font-size: 16px;
+            font-size: 16px;
         }
 
         /* 🎨 Buttons follow your customization theme */
         .login-btn {
         background: linear-gradient(
             90deg,
-            {{ customization.primary_color|default:'#3b82f6' }},
-            {{ customization.secondary_color|default:'#1d4ed8' }}
+            {{ customization.primary_color|default:'#111111ff' }},
+            {{ customization.secondary_color|default:'#080808ff' }}
         );
         color: {{ customization.button_text_color|default:'#ffffff' }};
         }
@@ -2013,10 +2015,11 @@
         <div class="nav-links" id="nav-links">
             <a href="{% url 'home' %}">Home</a>
             <a href="#about">About</a>
-            <a href="#productGrid">Products</a>
+            <a href="#bestsellerGrid">Products</a>
             <a href="#help">Help</a>
             <a href="#contact">Contact</a>     
             <a href="{% url 'login' %}">Log In</a>
+            <a href="{% url 'register_user' %}">Register</a>
             </div>
         </div>
     </nav>
@@ -2032,20 +2035,6 @@
                     <div class="banner-content">
                         <div class="banner-text">
                             <h1>Welcome to {% if business %}{{ business.business_name }}!{% else %}Our Store{% endif %}</h1>
-                            <p>
-                                {% if business.start_day and business.end_day and business.opening_time and business.closing_time %}
-                                    We are open every {{ business.start_day }} to {{ business.end_day }} from {{ business.opening_time|date:"h:i A" }} to {{ business.closing_time|date:"h:i A" }}.
-                                {% else %}
-                                    Discover amazing products at unbeatable prices
-                                {% endif %}
-                            </p>
-                            <p>
-                                {% if dynamic_description %}
-                                    {{ dynamic_description }}
-                                {% else %}
-                                    Shop with us today and find what you love!
-                                {% endif %}
-                            </p>
                             <button class="btn banner-cta" onclick="scrollToSearch()">
                                 <i class="fas fa-search me-2"></i>Start Shopping
                             </button>
@@ -2090,25 +2079,34 @@
             </div>
         </div>
 
+        {% if business.business_name or business.business_description or business.start_day %}
         <div>
             <!-- About Us Section -->
             <section id="about" class="about-section animate-on-scroll">
                 <div class="about-content">
                     
                     <!-- Text Section -->
-                    <div class="about-text">
+                    <div class="about-text animate-on-scroll">
                         <h2>About Us</h2>
-                        <h4 class="business-name">{{ business.business_name }}</h4>
+                        {% if business.business_name %}
+                        <h4 class="business-name animate-on-scroll">{{ business.business_name }}</h4>
+                        {% endif %}
+
+                        {% if business.start_day and business.end_day and business.opening_time and business.closing_time %}
+                        <p>
+                            We are open every {{ business.start_day }} to {{ business.end_day }} 
+                            from {{ business.opening_time|date:"h:i A" }} to {{ business.closing_time|date:"h:i A" }}.
+                        </p>
+                        {% endif %}
 
                         {% if business.business_description %}
-                            <p>{{ business.business_description }}</p>
-                        {% else %}
-                            <p>Welcome to {{ business.business_name }}! We are dedicated to providing high-quality products and services that bring value, innovation, and satisfaction to our customers. Our goal is to continuously improve and deliver exceptional experiences that meet your needs.</p>
+                        <p>{{ business.business_description }}</p>
                         {% endif %}
                     </div>
 
                     <!-- Mission & Vision Section -->
-                    <div class="mission-vision-grid">
+                    {% if business.business_mission or business.business_vision %}
+                    <div class="mission-vision-grid animate-on-scroll">
                         {% if business.business_mission %}
                         <div class="mission">
                             <h4>Our Mission</h4>
@@ -2117,29 +2115,64 @@
                         {% endif %}
 
                         {% if business.business_vision %}
-                        <div class="vision">
+                        <div class="vision animate-on-scroll">
                             <h4>Our Vision</h4>
                             <p>{{ business.business_vision }}</p>
                         </div>
                         {% endif %}
                     </div>
+                    {% endif %}
 
                 </div>
             </section>
         </div>
+        {% endif %}
+
+
+
+        <section class="help-section animate-on-scroll" id="help">
+            <div class="help-container animate-on-scroll">
+                <h2>How to Order</h2>
+                <p class="help-subtitle animate-on-scroll">Get started in just a few simple steps</p>
+                <div class="help-steps">
+                    <div class="step animate-on-scroll">
+                        <div class="step-number">1</div>
+                        <p><strong>Create Your Account</strong><br>
+                        Sign up on the website and verify your email to get started.
+                        Note: Use a valid and active email. If the verification email doesn’t appear within a few minutes, check your Spam or Junk folder.</p>
+                    </div>
+                    <div class="step animate-on-scroll">
+                        <div class="step-number">2</div>
+                        <p><strong>Browse & Place Your Order</strong><br>
+                        Explore products using the search or sort features, add your chosen items to the cart, select your delivery or pickup time, and complete your payment. If paying online, upload your receipt as proof of payment before checking out.</p>
+                    </div>
+                    <div class="step animate-on-scroll">
+                        <div class="step-number">3</div>
+                        <p><strong>Order Updates</strong><br>
+                        Stay updated with your order status through the website notifications and email updates.</p>
+                    </div>
+                    <div class="step animate-on-scroll">
+                        <div class="step-number">4</div>
+                        <p><strong>Receive & Review</strong><br>
+                        Once your order arrives or is picked up, enjoy your purchase and share your experience by leaving a review!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
 
         <!-- Best Seller Section -->
         {% if customization.show_best_sellers %}
         <div class="bestseller-section animate-on-scroll">
-            <div class="section-header text-center mb-2">
-                <h2 class="bestseller-title">
+            <div class="section-header text-center mb-2  animate-on-scroll">
+                <h2 class="bestseller-title animate-on-scroll">
                     <i class="fas fa-trophy me-1"></i>{{ customization.best_sellers_title|default:"Best Sellers" }}
                 </h2>
-                <p class="bestseller-subtitle">{{ best_sellers_description|default:"Our most popular products loved by customers" }}</p>
+                <p class="bestseller-subtitle animate-on-scroll">{{ best_sellers_description|default:"Our most popular products loved by customers" }}</p>
             </div>
 
             <!-- Best Seller Products Grid (same style as product grid) -->
-            <div class="row" id="bestsellerGrid">
+            <div class="row animate-on-scroll" id="bestsellerGrid">
                 {% for product in best_seller_products %}
                 <!-- ✅ Only show if stocks > 0 when tracking stocks -->
                 {% if not product.track_stocks or product.stocks > 0 %}
@@ -2192,8 +2225,8 @@
                 {% endif %}
                 {% empty %}
                 <div class="col-12">
-                    <div class="empty-state">
-                        <i class="fas fa-star fa-2x empty-icon"></i>
+                    <div class="empty-state animate-on-scroll">
+                        <i class="fas fa-star fa-2x empty-icon animate-on-scroll"></i>
                         <h5>No bestsellers available</h5>
                         <p>Please check back later.</p>
                     </div>
@@ -2282,11 +2315,11 @@
         </div>
 
         <!-- Products Grid -->
-        <div class="row animate" id="productGrid">
+        <div class="row animate-on-scroll" id="productGrid">
             {% for product in products %}
             <!-- ✅ Only show if stocks > 0 when tracking stocks -->
             {% if not product.track_stocks or product.stocks > 0 %}
-            <div class="col-6 col-md-4 col-xl-3 g-2 product-card fade-in" data-name="{{ product.name|lower }}" data-category="{{ product.category }}">
+            <div class="col-6 col-md-4 col-xl-3 g-2 product-card animate-on-scroll" data-name="{{ product.name|lower }}" data-category="{{ product.category }}">
                 <div class="card">
                     {% if product.image %}
                     <div class="card-img-container ratio ratio-1x1">
@@ -2347,37 +2380,6 @@
                 <i class="fas fa-refresh me-2"></i>Clear Filters
             </button>
         </div>
-
-        <section class="help-section animate-on-scroll" id="help">
-            <div class="help-container">
-                <h2>How to Order</h2>
-                <p class="help-subtitle">Get started in just a few simple steps</p>
-                <div class="help-steps">
-                    <div class="step">
-                        <div class="step-number">1</div>
-                        <p><strong>Create Your Account</strong><br>
-                        Sign up on the website and verify your email to get started.
-                        Note: Use a valid and active email. If the verification email doesn’t appear within a few minutes, check your Spam or Junk folder.</p>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">2</div>
-                        <p><strong>Browse & Place Your Order</strong><br>
-                        Explore products using the search or sort features, add your chosen items to the cart, select your delivery or pickup time, and complete your payment. If paying online, upload your receipt as proof of payment before checking out.</p>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">3</div>
-                        <p><strong>Order Updates</strong><br>
-                        Stay updated with your order status through the website notifications and email updates.</p>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">4</div>
-                        <p><strong>Receive & Review</strong><br>
-                        Once your order arrives or is picked up, enjoy your purchase and share your experience by leaving a review!</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
     
         {% if messages %}
         <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
@@ -2488,6 +2490,7 @@
             }
         });
 
+        /*
         document.addEventListener("DOMContentLoaded", () => {
             const elements = document.querySelectorAll(".animate-on-scroll");
 
@@ -2505,6 +2508,8 @@
 
             elements.forEach(el => observer.observe(el));
         });
+        */
+        /*
         document.addEventListener("DOMContentLoaded", () => {
             const steps = document.querySelectorAll(".step");
 
@@ -2518,39 +2523,7 @@
 
             steps.forEach(step => observer.observe(step));
         });
-        document.addEventListener("DOMContentLoaded", () => {
-            const searchSection = document.querySelector(".search-section");
-            const helpSection = document.querySelector("#help");
-
-            if (!searchSection || !helpSection) return;
-
-            let isHidden = false;
-            let lastScrollY = window.scrollY;
-            let timeout;
-
-            window.addEventListener("scroll", () => {
-                const helpTop = helpSection.getBoundingClientRect().top;
-                const triggerOffset = 150; // adjust how early it hides
-
-                // Clear previous timer for smoother animation timing
-                clearTimeout(timeout);
-
-                if (helpTop <= triggerOffset && !isHidden) {
-                    // Fade out when reaching the help section
-                    searchSection.classList.add("hidden");
-                    isHidden = true;
-                } 
-                else if (helpTop > triggerOffset && isHidden) {
-                    // Add small delay for smooth fade-in when scrolling up
-                    timeout = setTimeout(() => {
-                        searchSection.classList.remove("hidden");
-                        isHidden = false;
-                    }, 200); // adjust delay for fade-in (200–400ms works best)
-                }
-
-                lastScrollY = window.scrollY;
-            });
-        });
+        */
 
         const toggle = document.getElementById('menu-toggle');
         const navLinks = document.getElementById('nav-links');
@@ -2597,8 +2570,8 @@
         // Apply title casing to product names in both main grid and best seller section
         document.querySelectorAll('.product-card .card-title').forEach(el => {
             el.textContent = toTitleCase(el.textContent);
+            });
         });
-    });
 
         // Global variables
         let slideInterval;
