@@ -153,9 +153,18 @@ class BusinessDetails(models.Model):
     payment_methods = models.JSONField(default=list, blank=True)
 
     specific_onsite_service = models.TextField(blank=True, null=True)
+    
     # Delivery fee settings
     base_fare = models.FloatField(default=50.0)
     additional_fare_per_km = models.FloatField(default=10.0)
+
+    # Closed dates field - stores list of dates when business is closed
+    closed_dates = models.JSONField(
+        blank=True,
+        null=True,
+        default=list,
+        help_text="List of dates when the business is closed (format: YYYY-MM-DD)"
+    )
 
     def __str__(self):
         return self.business_name
@@ -169,6 +178,32 @@ class BusinessDetails(models.Model):
         else:
             extra_km = distance_km - 1
             return self.base_fare + (extra_km * self.additional_fare_per_km)
+
+    def is_closed_on_date(self, date):
+        """
+        Check if business is closed on a specific date
+        
+        Args:
+            date: Can be a date object, datetime object, or string in YYYY-MM-DD format
+            
+        Returns:
+            bool: True if business is closed on the given date, False otherwise
+        """
+        if not self.closed_dates:
+            return False
+        
+        # Convert date to string format for comparison
+        from datetime import date as date_type, datetime
+        
+        if isinstance(date, datetime):
+            date_str = date.date().isoformat()
+        elif isinstance(date, date_type):
+            date_str = date.isoformat()
+        else:
+            date_str = str(date)
+        
+        # Check if date is in the closed_dates list
+        return date_str in self.closed_dates
 
 class SocialMedia(models.Model):
     business = models.ForeignKey("BusinessDetails", on_delete=models.CASCADE, related_name="social_media")
