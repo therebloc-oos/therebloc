@@ -2315,7 +2315,7 @@
         </div>
 
         <!-- Products Grid -->
-        <div class="row animate-on-scroll" id="productGrid">
+        <div class="row" id="productGrid">
             {% for product in products %}
             <!-- ✅ Only show if stocks > 0 when tracking stocks -->
             {% if not product.track_stocks or product.stocks > 0 %}
