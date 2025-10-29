@@ -750,11 +750,11 @@
             width: 100%;
             padding: 12px 40px 12px 12px; /* Right padding for icon space */
             margin-bottom: 5px;
-            border-radius: var(--border-radius);
             font-size: 14px;
             transition: all 0.3s ease;
             border-width: {{ customization.input_border_width|default:1 }}px; 
-            border-style: solid;
+            border-style: {{ customization.input_border_style|default:'solid' }};
+            border-radius: {{ customization.input_rounded_corner|default:1 }}px;            
             box-sizing: border-box;
         }
 
@@ -877,7 +877,7 @@
             align-items: center;
             gap: 8px;
             font-size: 14px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 10px var(--primary-color);
             transition: all 0.3s ease;
             z-index: 1100;
             font-family: {{ customization.header_font_family|default:"Montserrat" }};
@@ -889,7 +889,7 @@
 
         .browse-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 15px var(--secondary-color);
             background: linear-gradient(
                 90deg,
                 {{ customization.secondary_color|default:'#808080' }},
