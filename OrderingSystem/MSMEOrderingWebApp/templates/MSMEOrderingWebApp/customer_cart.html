@@ -1286,7 +1286,8 @@
 
 <!-- Bootstrap Bundle with Popper (required for modal functionality) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script>
 
@@ -1474,7 +1475,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 const userEmail = "{{ user_email|escapejs }}";
 const deliveryFeeSocketCustomer = new WebSocket(
-    `wss://${window.location.host}/ws/delivery-fee/customer/?email=${encodeURIComponent(userEmail)}`
+    `ws://${window.location.host}/ws/delivery-fee/customer/?email=${encodeURIComponent(userEmail)}`
 );
 
 deliveryFeeSocketCustomer.onopen = () => console.log("[Customer JS] WebSocket connected");
@@ -2016,6 +2017,38 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             hiddenScheduledDate.value = "";
         }
+    });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const closedDates = {{ closed_dates|safe }};  // ["2025-10-30", "2025-10-31", "2025-11-01"]
+
+    flatpickr("#scheduled_date", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        minDate: "today",
+        disable: closedDates
+    });
+
+    const orderScheduled = document.getElementById('order_scheduled');
+    const schedulePicker = document.getElementById('schedulePicker');
+    const orderNowMessage = document.getElementById('orderNowMessage');
+
+    function toggleSchedulePicker() {
+        if (orderScheduled.checked) {
+            schedulePicker.style.display = 'block';
+            orderNowMessage.style.display = 'none';
+        } else {
+            schedulePicker.style.display = 'none';
+            orderNowMessage.style.display = 'block';
+        }
+    }
+
+    toggleSchedulePicker();
+    document.querySelectorAll('input[name="order_time"]').forEach(radio => {
+        radio.addEventListener('change', toggleSchedulePicker);
     });
 });
 </script>
