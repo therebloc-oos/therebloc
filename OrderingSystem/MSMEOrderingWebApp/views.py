@@ -55,6 +55,108 @@ from django.db.models import F
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings as django_settings
 from django.contrib.auth.hashers import make_password
+from django.views.decorators.http import require_http_methods
+
+@login_required_session(allowed_roles=['owner'])
+@require_POST
+def add_closed_date(request):
+    """Add a closed date for the business"""
+    try:
+        print("SESSION DATA:", list(request.session.items()))  # debug line
+
+        data = json.loads(request.body)
+        date_str = data.get('date')
+        
+        if not date_str:
+            return JsonResponse({'success': False, 'error': 'Date is required'})
+        
+        # Validate date format
+        try:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return JsonResponse({'success': False, 'error': 'Invalid date format'})
+        
+        # ✅ Get business using owner_id from session
+        owner_id = request.session.get('owner_id')
+        if not owner_id:
+            return JsonResponse({'success': False, 'error': 'Session expired or not logged in.'})
+
+        business = BusinessDetails.objects.filter(id=owner_id).first()
+        if not business:
+            return JsonResponse({'success': False, 'error': 'Business not found.'})
+        
+        # Convert field to list
+        if not business.closed_dates:
+            closed_dates = []
+        elif isinstance(business.closed_dates, str):
+            closed_dates = [d.strip() for d in business.closed_dates.split(',') if d.strip()]
+        else:
+            closed_dates = list(business.closed_dates)
+        
+        # Add new date if not already present
+        if date_str not in closed_dates:
+            closed_dates.append(date_str)
+            business.closed_dates = closed_dates  # ✅ JSONField supports lists
+            business.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Closed date added successfully',
+                'closed_dates': closed_dates
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Date already exists'})
+            
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+@login_required_session(allowed_roles=['owner'])
+@require_POST
+def remove_closed_date(request):
+    """Remove a closed date from the business"""
+    try:
+        print("SESSION DATA:", list(request.session.items()))  # for debugging
+
+        data = json.loads(request.body)
+        date_str = data.get('date')
+        
+        if not date_str:
+            return JsonResponse({'success': False, 'error': 'Date is required'})
+        
+        # ✅ Get business using owner_id from session
+        owner_id = request.session.get('owner_id')
+        if not owner_id:
+            return JsonResponse({'success': False, 'error': 'Session expired or not logged in.'})
+        
+        business = BusinessDetails.objects.filter(id=owner_id).first()
+        if not business:
+            return JsonResponse({'success': False, 'error': 'Business not found.'})
+        
+        # Convert field to list
+        if not business.closed_dates:
+            closed_dates = []
+        elif isinstance(business.closed_dates, str):
+            closed_dates = [d.strip() for d in business.closed_dates.split(',') if d.strip()]
+        else:
+            closed_dates = list(business.closed_dates)
+        
+        # ✅ Remove the date
+        if date_str in closed_dates:
+            closed_dates.remove(date_str)
+            business.closed_dates = closed_dates  # ✅ keep as list (since JSONField)
+            business.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Closed date removed successfully',
+                'closed_dates': closed_dates
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Date not found'})
+            
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 def reprint_receipt(request):
     if request.method == "POST":
@@ -5101,8 +5203,6 @@ def business_notifications(request):
         'customization': customization,
         'title': 'Notifications'
     })
-
-from django.views.decorators.http import require_http_methods
 
 @login_required_session(allowed_roles=['customer'])
 def customer_home(request):
