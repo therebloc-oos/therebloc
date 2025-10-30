@@ -1485,7 +1485,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 const userEmail = "{{ user_email|escapejs }}";
 const deliveryFeeSocketCustomer = new WebSocket(
-    `ws://${window.location.host}/ws/delivery-fee/customer/?email=${encodeURIComponent(userEmail)}`
+    `wss://${window.location.host}/ws/delivery-fee/customer/?email=${encodeURIComponent(userEmail)}`
 );
 
 deliveryFeeSocketCustomer.onopen = () => console.log("[Customer JS] WebSocket connected");
