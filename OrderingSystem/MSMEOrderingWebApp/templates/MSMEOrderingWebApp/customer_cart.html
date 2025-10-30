@@ -1433,6 +1433,16 @@
   window.addEventListener('beforeunload', () => clearInterval(minUpdater));
 })();
 
+document.addEventListener("DOMContentLoaded", function() {
+    // Ensure the button is disabled on load
+    updatePlaceOrderButtonState();
+
+    // Recheck when order type changes
+    document.querySelectorAll('input[name="order_type"]').forEach(radio => {
+        radio.addEventListener('change', updatePlaceOrderButtonState);
+    });
+});
+
 // === CLEAR LOCAL STORAGE ONLY ON HOMEPAGE ===
 document.addEventListener("DOMContentLoaded", function() {
     const currentPath = window.location.pathname.toLowerCase();
