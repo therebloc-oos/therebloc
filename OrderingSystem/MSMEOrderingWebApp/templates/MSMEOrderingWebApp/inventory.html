@@ -2512,96 +2512,99 @@ document.addEventListener('DOMContentLoaded', function() {
                     modal.hide();
                     toastr.success(data.message);
                     
-                    // Find the specific row for this product
+                    // Find the EXACT row for this specific product ID
                     const allRows = document.querySelectorAll('.product-row');
                     allRows.forEach(row => {
+                        // Find the edit button that contains this exact product ID
                         const editBtn = row.querySelector(`[onclick*="'${productId}'"]`);
-                        if (editBtn) {
-                            const cells = Array.from(row.querySelectorAll('td'));
-                            
-                            // Update Product Name (only for rows with rowspan - grouped products)
-                            const nameCell = cells.find(cell => cell.textContent.trim().toLowerCase() === productName.toLowerCase() || 
-                                                                cell.hasAttribute('rowspan'));
-                            if (nameCell && nameCell.hasAttribute('rowspan')) {
-                                // This is a grouped product with variations
-                                nameCell.textContent = productName.charAt(0).toUpperCase() + productName.slice(1);
-                            } else {
-                                // Single product - name is in second cell
-                                if (cells[1] && !cells[1].querySelector('img') && !cells[1].querySelector('div')) {
-                                    cells[1].textContent = productName.charAt(0).toUpperCase() + productName.slice(1);
-                                }
-                            }
-
-                            // Update Variation Name
-                            cells.forEach((cell, index) => {
-                                const text = cell.textContent.trim();
-                                // Variation cell: no input, no button, no price symbol, not "Available/Unavailable"
-                                if (!cell.querySelector('input') && 
-                                    !cell.querySelector('button') && 
-                                    !cell.querySelector('.form-check') &&
-                                    !cell.querySelector('img') &&
-                                    !text.includes('₱') &&
-                                    !text.includes('/') &&
-                                    !text.includes('•') &&
-                                    !text.toLowerCase().includes('available') &&
-                                    !text.toLowerCase().includes('not tracked') &&
-                                    cell.getAttribute('style')?.includes('background-color: #f0f0f0ff')) {
-                                    // Check if this is actually the variation cell (usually index 3 for grouped, or index 3 for single)
-                                    if (index === 3 || (cells.length > 4 && text !== productName && !text.match(/^\d+$/))) {
-                                        cell.textContent = (productVariation || 'None').charAt(0).toUpperCase() + 
-                                                          (productVariation || 'None').slice(1);
-                                    }
+                        if (!editBtn) return; // Skip if this isn't the right row
+                        
+                        const cells = Array.from(row.querySelectorAll('td'));
+                        
+                        // Determine if this is the first row with rowspan (has image/name cells)
+                        const hasRowspan = row.querySelector('td[rowspan]') !== null;
+                        
+                        // Update Product Name (only for rows with rowspan - grouped products)
+                        if (hasRowspan) {
+                            cells.forEach(cell => {
+                                if (cell.hasAttribute('rowspan') && 
+                                    !cell.querySelector('img') && 
+                                    !cell.querySelector('div[style*="background"]')) {
+                                    cell.textContent = productName.charAt(0).toUpperCase() + productName.slice(1);
                                 }
                             });
-
-                            // Update Price - target cells with product-price class or containing ₱
-                            const priceCell = row.querySelector('.product-price');
-                            if (priceCell) {
-                                priceCell.textContent = `₱${parseFloat(productPrice).toFixed(2)}`;
-                            } else {
-                                // Fallback: find cell with ₱ symbol
-                                cells.forEach(cell => {
-                                    if (cell.textContent.includes('₱') && !cell.querySelector('input')) {
-                                        cell.textContent = `₱${parseFloat(productPrice).toFixed(2)}`;
-                                    }
-                                });
+                        } else {
+                            // For single products or non-first variation rows
+                            if (cells[1] && !cells[1].querySelector('img') && 
+                                !cells[1].querySelector('div') && 
+                                !cells[1].hasAttribute('rowspan') &&
+                                !cells[1].querySelector('.form-check')) {
+                                cells[1].textContent = productName.charAt(0).toUpperCase() + productName.slice(1);
                             }
+                        }
 
+                        // Find cells by their content/class, not by index
+                        // This works regardless of rowspan
+                        cells.forEach((cell, index) => {
+                            const text = cell.textContent.trim();
+                            const hasInput = cell.querySelector('input');
+                            const hasButton = cell.querySelector('button') || cell.querySelector('a');
+                            const hasFormCheck = cell.querySelector('.form-check');
+                            const hasImage = cell.querySelector('img');
+                            const hasRowspanAttr = cell.hasAttribute('rowspan');
+                            
+                            // Update Variation Name
+                            if (!hasInput && !hasButton && !hasFormCheck && !hasImage && 
+                                !hasRowspanAttr && !text.includes('₱') && 
+                                !text.includes('/') && !text.includes('•') &&
+                                !text.toLowerCase().includes('available') &&
+                                !text.toLowerCase().includes('not tracked') &&
+                                !text.match(/^\d+$/) && // Not just a number (stock)
+                                text.toLowerCase() !== productName.toLowerCase() && // Not the product name
+                                cell.getAttribute('style')?.includes('background-color: #f0f0f0ff')) {
+                                
+                                // This is likely the variation cell
+                                const prevCell = cells[index - 1];
+                                if (prevCell && (prevCell.hasAttribute('rowspan') || 
+                                    prevCell.textContent.trim().toLowerCase() === productName.toLowerCase())) {
+                                    cell.textContent = (productVariation || 'None').charAt(0).toUpperCase() + 
+                                                      (productVariation || 'None').slice(1);
+                                }
+                            }
+                            
+                            // Update Price
+                            if (cell.classList.contains('product-price') || 
+                                (text.includes('₱') && !hasInput && !hasButton)) {
+                                cell.textContent = `₱${parseFloat(productPrice).toFixed(2)}`;
+                            }
+                            
                             // Update Stocks
-                            if (data.product.track_stocks) {
-                                cells.forEach((cell, index) => {
-                                    const text = cell.textContent.trim();
-                                    // Stock cell: contains only numbers or "Not tracked"
-                                    if (!cell.querySelector('input') &&
-                                        !cell.querySelector('button') &&
-                                        !cell.querySelector('.form-check') &&
-                                        !text.includes('₱') &&
-                                        !text.includes('/') &&
-                                        !text.includes('•') &&
-                                        !text.toLowerCase().includes('available') &&
-                                        (text.match(/^\d+$/) || text.toLowerCase().includes('not tracked'))) {
-                                        // This is likely the stock cell
-                                        if (index > 3) { // Stocks come after variation
-                                            cell.textContent = productStocks;
-                                            return; // Exit after updating
-                                        }
-                                    }
-                                });
+                            if (data.product.track_stocks && !hasInput && !hasButton && 
+                                !hasFormCheck && !text.includes('₱') && 
+                                !text.includes('/') && !text.includes('•') &&
+                                !text.toLowerCase().includes('available') &&
+                                (text.match(/^\d+$/) || text.toLowerCase().includes('not tracked'))) {
+                                
+                                // Check if the next cell is the availability toggle (to confirm this is stock cell)
+                                const nextCell = cells[index + 1];
+                                if (nextCell && nextCell.querySelector('.form-check-input')) {
+                                    cell.textContent = productStocks;
+                                }
                             }
+                        });
 
-                            // Update edit button onclick with proper escaping
-                            const editButton = row.querySelector('.btn-outline-primary');
-                            if (editButton) {
-                                const variationName = (data.product.variation_name || '').replace(/'/g, "\\'");
-                                const trackStocks = data.product.track_stocks;
-                                const description = (data.product.description || '').replace(/`/g, '\\`').replace(/'/g, "\\'");
-                                const escapedName = productName.replace(/'/g, "\\'");
+                        // Update edit button onclick with proper escaping
+                        const editButton = row.querySelector('.btn-outline-primary');
+                        if (editButton) {
+                            const variationName = (data.product.variation_name || '').replace(/'/g, "\\'");
+                            const trackStocks = data.product.track_stocks;
+                            const description = (data.product.description || '').replace(/`/g, '\\`').replace(/'/g, "\\'");
+                            const escapedName = productName.replace(/'/g, "\\'");
 
-                                editButton.setAttribute(
-                                    'onclick', 
-                                    `openEditModal('${productId}', '${productPrice}', '${variationName}', '${escapedName}', 'product', '${productStocks}', '${trackStocks}', \`${description}\`)`
-                                );
-                            }
+                            editButton.setAttribute(
+                                'onclick', 
+                                `openEditModal('${productId}', '${productPrice}', '${variationName}', '${escapedName}', 'product', '${productStocks}', '${trackStocks}', \`${description}\`)`
+                            );
                         }
                     });
                 } else {
@@ -2615,5 +2618,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-</script>    
+</script>   
 {% endblock %}
