@@ -1468,6 +1468,8 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.removeItem("delivery_fee_received");
         localStorage.removeItem("delivery_fee_timer_expiry");
         console.log("[Checkout] Cleared localStorage for order data");
+        localStorage.removeItem("scheduled_date");
+        localStorage.removeItem("order_time"); 
     }
 
     // Initial validation
