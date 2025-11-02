@@ -2381,6 +2381,748 @@ def dashboard(request):
 
     return render(request, 'MSMEOrderingWebApp/dashboard.html', context)
 
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+from openpyxl.utils import get_column_letter
+
+def sales_report_excel(request):
+    report_type = request.GET.get("report_type")
+    date_filter = request.GET.get("date_filter")
+
+    orders = Checkout.objects.all()
+    period_label = ""
+
+    # --- DATE FILTERING ---
+    if date_filter == "daily":
+        daily_date = request.GET.get("daily_date")
+        if daily_date:
+            start = make_aware(datetime.strptime(daily_date, "%Y-%m-%d"))
+            end = start + timedelta(days=1)
+            orders = orders.filter(created_at__range=(start, end))
+            period_label = f"Daily Report for {start.strftime('%B %d, %Y')}"
+
+    elif date_filter == "weekly":
+        weekly_date = request.GET.get("weekly_date")
+        if weekly_date:
+            year, week = weekly_date.split("-W")
+            start = datetime.strptime(f"{year}-W{week}-1", "%Y-W%W-%w")
+            end = start + timedelta(weeks=1)
+            start, end = make_aware(start), make_aware(end)
+            orders = orders.filter(created_at__range=(start, end))
+            period_label = f"Weekly Report ({start.strftime('%b %d, %Y')} - {end.strftime('%b %d, %Y')})"
+
+    elif date_filter == "monthly":
+        monthly_date = request.GET.get("monthly_date")
+        if monthly_date:
+            start = make_aware(datetime.strptime(monthly_date, "%Y-%m"))
+            end = make_aware(datetime(start.year + (start.month // 12), (start.month % 12) + 1, 1))
+            orders = orders.filter(created_at__range=(start, end))
+            period_label = f"Monthly Report for {start.strftime('%B %Y')}"
+
+    elif date_filter == "custom":
+        custom_start = request.GET.get("custom_start")
+        custom_end = request.GET.get("custom_end")
+        if custom_start and custom_end:
+            start = make_aware(datetime.strptime(custom_start, "%Y-%m-%d"))
+            end = make_aware(datetime.strptime(custom_end, "%Y-%m-%d")) + timedelta(days=1)
+            orders = orders.filter(created_at__range=(start, end))
+            period_label = f"Custom Report ({start.strftime('%b %d, %Y')} - {(end - timedelta(days=1)).strftime('%b %d, %Y')})"
+
+    # === Workbook Setup ===
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"{report_type.capitalize()} Report"
+
+    # === Common Styles ===
+    bold = Font(bold=True)
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="800000", end_color="800000", fill_type="solid")
+    gray_italic = Font(color="808080", italic=True)
+    border = Border(
+        left=Side(style="thin", color="808080"),
+        right=Side(style="thin", color="808080"),
+        top=Side(style="thin", color="808080"),
+        bottom=Side(style="thin", color="808080")
+    )
+
+    def add_title(title):
+        ws.append([title])
+        ws.merge_cells(start_row=ws.max_row, start_column=1, end_row=ws.max_row, end_column=6)
+        cell = ws.cell(ws.max_row, 1)
+        cell.font = Font(size=14, bold=True)
+        cell.alignment = Alignment(horizontal="center")
+        ws.append([])
+
+    def add_subtitle(text):
+        ws.append([text])
+        ws.merge_cells(start_row=ws.max_row, start_column=1, end_row=ws.max_row, end_column=6)
+        cell = ws.cell(ws.max_row, 1)
+        cell.font = Font(size=11, italic=True, color="666666")
+        cell.alignment = Alignment(horizontal="center")
+        ws.append([])
+
+    def add_table_header(headers):
+        ws.append(headers)
+        for cell in ws[ws.max_row]:
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+            cell.border = border
+
+    def add_data_row(values):
+        ws.append(values)
+        for cell in ws[ws.max_row]:
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+            cell.border = border
+
+    # === Build Report per Type ===
+    add_title(f"{report_type.upper()} REPORT")
+    if period_label:
+        add_subtitle(period_label)
+
+    if report_type == "sales":
+        _generate_sales_excel(ws, orders, add_table_header, add_data_row)
+    elif report_type == "orders":
+        _generate_orders_excel(ws, orders, add_table_header, add_data_row)
+    elif report_type == "inventory":
+        _generate_inventory_excel(ws, add_table_header, add_data_row)
+    elif report_type == "top_products":
+        _generate_top_products_excel(ws, add_table_header, add_data_row)
+
+    # === Auto column width ===
+    for i, col in enumerate(ws.columns, start=1):
+        max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+        ws.column_dimensions[get_column_letter(i)].width = max_length + 3
+
+    # === Return as Excel file ===
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"{report_type}_report_{datetime.now().strftime('%Y%m%d')}.xlsx"
+    return HttpResponse(
+        output,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+def _generate_sales_excel(ws, orders, add_table_header, add_data_row):
+    from collections import defaultdict
+    from openpyxl.styles import Font, Alignment
+
+    gray_italic = Font(color="808080", italic=True)
+    center = Alignment(horizontal="center")
+
+
+
+    # ✅ Only completed orders
+    completed_orders = orders.filter(status__iexact="completed").order_by("created_at")
+
+    # ===== GROUP ORDERS =====
+    grouped_orders = defaultdict(list)
+    for order in completed_orders:
+        grouped_orders[(order.order_code, str(order.group_id))].append(order)
+
+    # ===== METRICS =====
+    total_revenue = sum(float(order.price) for order in completed_orders)
+    total_orders = len(grouped_orders)
+    total_items = sum(order.quantity for order in completed_orders)
+    avg_order_value = total_revenue / total_orders if total_orders > 0 else 0
+
+    metrics = [
+        ["Metric", "Value"],
+        ["Total Sales", f"Php {total_revenue:,.2f}"],
+        ["Total Orders", str(total_orders)],
+        ["Average Order Value", f"Php {avg_order_value:,.2f}"],
+        ["Items Sold", str(total_items)],
+    ]
+
+    for row in metrics:
+        add_data_row(row)
+    ws.append([])
+
+    # ===== SALES SUMMARY =====
+    ws.append(["SALES SUMMARY"])
+    ws.cell(ws.max_row, 1).font = Font(bold=True, size=12)
+    ws.append(["This table lists all completed orders within the selected period."])
+    ws.cell(ws.max_row, 1).font = gray_italic
+    ws.append([])
+
+    add_table_header(["Customer", "Date & Time", "Order Code", "Ordered Items", "Order Value"])
+
+    for (order_code, group_id), items in grouped_orders.items():
+        first_order = items[0]
+        customer_name = f"{first_order.first_name} {first_order.last_name}"
+        date_time = first_order.created_at.strftime("%Y-%m-%d %H:%M") if first_order.created_at else ""
+        ordered_items = ", ".join([f"{o.product_name} (x{o.quantity})" for o in items])
+        total_value = sum(float(o.price) for o in items)
+
+        add_data_row([customer_name, date_time, order_code, ordered_items, f"Php {total_value:,.2f}"])
+
+    ws.append([])
+
+    # ===== REVENUE BY PAYMENT METHOD =====
+    ws.append(["REVENUE BY PAYMENT METHOD"])
+    ws.cell(ws.max_row, 1).font = Font(bold=True, size=12)
+    ws.append([])
+
+    payment_summary = defaultdict(float)
+    for order in completed_orders:
+        payment_summary[order.payment_method] += float(order.price)
+
+    if payment_summary:
+        add_table_header(["Payment Method", "Total Sales"])
+        for method, total in payment_summary.items():
+            add_data_row([method.title(), f"Php {total:,.2f}"])
+
+        ws.append([])
+        sorted_methods = sorted(payment_summary.items(), key=lambda x: x[1], reverse=True)
+        top_method, top_value = sorted_methods[0]
+        total_payment_sales = sum(payment_summary.values())
+        top_pct = (top_value / total_payment_sales * 100) if total_payment_sales > 0 else 0
+
+        explanation = (
+            f"The leading payment method is {top_method.title()}, accounting for Php {top_value:,.2f} "
+            f"({top_pct:.1f}%) of total revenue."
+        )
+        ws.append([explanation])
+        ws.cell(ws.max_row, 1).font = gray_italic
+        ws.cell(ws.max_row, 1).alignment = center
+        ws.append([])
+
+    # ===== REVENUE BY ORDER TYPE =====
+    ws.append(["REVENUE BY ORDER TYPE"])
+    ws.cell(ws.max_row, 1).font = Font(bold=True, size=12)
+    ws.append([])
+
+    order_type_summary = defaultdict(float)
+    for order in completed_orders:
+        if order.order_type:
+            order_type_summary[order.order_type] += float(order.price)
+
+    if order_type_summary:
+        add_table_header(["Order Type", "Total Sales"])
+        for otype, total in order_type_summary.items():
+            add_data_row([otype.title(), f"Php {total:,.2f}"])
+
+        ws.append([])
+        sorted_types = sorted(order_type_summary.items(), key=lambda x: x[1], reverse=True)
+        top_type, top_value = sorted_types[0]
+        total_type_sales = sum(order_type_summary.values())
+        top_pct = (top_value / total_type_sales * 100) if total_type_sales > 0 else 0
+
+        explanation = (
+            f"The majority of sales come from {top_type.title()} orders, generating Php {top_value:,.2f} "
+            f"({top_pct:.1f}%)."
+        )
+        ws.append([explanation])
+        ws.cell(ws.max_row, 1).font = gray_italic
+        ws.cell(ws.max_row, 1).alignment = center
+        ws.append([])
+
+    # ===== PRODUCT PERFORMANCE =====
+    ws.append(["PRODUCT PERFORMANCE BREAKDOWN"])
+    ws.cell(ws.max_row, 1).font = Font(bold=True, size=12)
+    ws.append([])
+
+    product_sales = defaultdict(lambda: {"quantity": 0, "revenue": 0, "unit_price": 0})
+    for order in completed_orders:
+        variation = getattr(order, "variation_name", None)
+        key = f"{order.product_name} - {variation}" if variation and variation.lower() != "default" else order.product_name
+        product_sales[key]["quantity"] += order.quantity
+        product_sales[key]["revenue"] += float(order.price)
+        product_sales[key]["unit_price"] = float(order.price) / order.quantity if order.quantity > 0 else 0
+
+    add_table_header(["Rank", "Product", "Unit Price", "Units Sold", "% of Sales"])
+    total_sales = sum(p["revenue"] for p in product_sales.values())
+    ranked = sorted(product_sales.items(), key=lambda x: x[1]["revenue"], reverse=True)
+
+    for i, (prod, data) in enumerate(ranked, 1):
+        pct = (data["revenue"] / total_sales * 100) if total_sales > 0 else 0
+        add_data_row([
+            str(i),
+            prod[:40] + "..." if len(prod) > 40 else prod,
+            f"Php {data['unit_price']:,.2f}",
+            str(data["quantity"]),
+            f"{pct:.1f}%",
+        ])
+
+    if ranked:
+        best_product, best_data = ranked[0]
+        best_pct = (best_data["revenue"] / total_sales * 100) if total_sales > 0 else 0
+        explanation = (
+            f"The top-performing product is {best_product}, selling {best_data['quantity']} units "
+            f"and contributing Php {best_data['revenue']:,.2f} ({best_pct:.1f}% of total sales)."
+        )
+        ws.append([])
+        ws.append([explanation])
+        ws.cell(ws.max_row, 1).font = gray_italic
+        ws.cell(ws.max_row, 1).alignment = center
+        ws.append([])
+
+    # ===== TOP CUSTOMERS =====
+    ws.append(["TOP CUSTOMERS BY REVENUE"])
+    ws.cell(ws.max_row, 1).font = Font(bold=True, size=12)
+    ws.append([])
+
+    customer_sales = defaultdict(lambda: {"orders": 0, "revenue": 0})
+    for (order_code, group_id), items in grouped_orders.items():
+        first_order = items[0]
+        key = f"{first_order.first_name} {first_order.last_name}"
+        customer_sales[key]["orders"] += 1
+        customer_sales[key]["revenue"] += sum(float(o.price) for o in items)
+
+    add_table_header(["Customer", "Times Ordered", "Total Revenue"])
+    for cust, data in sorted(customer_sales.items(), key=lambda x: x[1]["revenue"], reverse=True)[:10]:
+        add_data_row([cust, str(data["orders"]), f"Php {data['revenue']:,.2f}"])
+
+
+def _generate_orders_excel(ws, orders, add_table_header, add_data_row):
+    from collections import defaultdict
+    from openpyxl.styles import Font, Alignment
+
+    gray_italic = Font(color="808080", italic=True)
+    center = Alignment(horizontal="center")
+    bold = Font(bold=True, size=12)
+
+    # === GROUP ORDERS ===
+    grouped_orders = defaultdict(list)
+    for order in orders:
+        order_code = getattr(order, "order_code", "N/A")
+        group_id = str(getattr(order, "group_id", ""))
+        grouped_orders[(order_code, group_id)].append(order)
+
+    total_orders = len(grouped_orders)
+
+    def normalize(status):
+        return (status or "").strip().lower()
+
+    # === STATUS COUNTS ===
+    completed_statuses = {"completed"}
+    ongoing_statuses = {"accepted", "preparing", "packed", "out for delivery", "ready for pickup", "pending"}
+    rejected_statuses = {"rejected"}
+    void_statuses = {"void"}
+
+    completed = sum(1 for o in orders if normalize(getattr(o, "status", "")) in completed_statuses)
+    ongoing = sum(1 for o in orders if normalize(getattr(o, "status", "")) in ongoing_statuses)
+    rejected = sum(1 for o in orders if normalize(getattr(o, "status", "")) in rejected_statuses)
+    voided = sum(1 for o in orders if normalize(getattr(o, "status", "")) in void_statuses)
+
+    # === PAYMENT METHODS + ORDER TYPES ===
+    payment_methods = defaultdict(int)
+    order_types = defaultdict(int)
+
+    for o in orders:
+        if getattr(o, "payment_method", None):
+            payment_methods[getattr(o, "payment_method", "").title()] += 1
+        if getattr(o, "order_type", None):
+            order_types[getattr(o, "order_type", "").title()] += 1
+
+    # === SUMMARY SECTION ===
+    ws.append(["ORDER STATUS SUMMARY"])
+    ws.cell(ws.max_row, 1).font = bold
+    ws.append([])
+
+    add_table_header(["Status", "Orders", "Percentage"])
+    if total_orders > 0:
+        rows = [
+            ["Completed", completed, f"{completed / total_orders * 100:.1f}%"],
+            ["Voided", voided, f"{voided / total_orders * 100:.1f}%"],
+            ["Rejected", rejected, f"{rejected / total_orders * 100:.1f}%"],
+            ["Ongoing", ongoing, f"{ongoing / total_orders * 100:.1f}%"],
+            ["Total", total_orders, "100%"],
+        ]
+    else:
+        rows = [["No orders found", "-", "-"]]
+
+    for r in rows:
+        add_data_row(r)
+    ws.append([])
+
+    # === PAYMENT METHODS SECTION ===
+    ws.append(["PAYMENT METHODS"])
+    ws.cell(ws.max_row, 1).font = bold
+    ws.append([])
+    add_table_header(["Payment Method", "Orders", "Percentage"])
+
+    if payment_methods:
+        for method, count in sorted(payment_methods.items(), key=lambda x: x[1], reverse=True):
+            pct = (count / total_orders * 100) if total_orders > 0 else 0
+            add_data_row([method, count, f"{pct:.1f}%"])
+    else:
+        add_data_row(["No payment data", "-", "-"])
+    ws.append([])
+
+    # === ORDER TYPES SECTION ===
+    ws.append(["ORDER TYPES"])
+    ws.cell(ws.max_row, 1).font = bold
+    ws.append([])
+    add_table_header(["Order Type", "Orders", "Percentage"])
+
+    if order_types:
+        for otype, count in sorted(order_types.items(), key=lambda x: x[1], reverse=True):
+            pct = (count / total_orders * 100) if total_orders > 0 else 0
+            add_data_row([otype, count, f"{pct:.1f}%"])
+    else:
+        add_data_row(["No order type data", "-", "-"])
+    ws.append([])
+
+    # === DETAILED ORDER LIST ===
+    ws.append(["ORDER DETAILS"])
+    ws.cell(ws.max_row, 1).font = bold
+    ws.append([])
+    add_table_header(["Date & Time", "Order Code", "Customer", "Total Items", "Status", "Payment Method"])
+
+    for (order_code, group_id), items in grouped_orders.items():
+        first = items[0]
+        date_time = getattr(first, "created_at", None)
+        date_time = date_time.strftime("%Y-%m-%d %H:%M") if date_time else ""
+        customer = f"{getattr(first, 'first_name', '')} {getattr(first, 'last_name', '')}".strip() or "Unknown"
+        payment = (getattr(first, "payment_method", "N/A") or "N/A").title()
+        status = (getattr(first, "status", "N/A") or "N/A").title()
+
+        add_data_row([
+            date_time,
+            order_code,
+            customer,
+            str(len(items)),
+            status,
+            payment,
+        ])
+
+    ws.append([])
+
+    # === EXPLANATION SECTION (MERGED CELLS) ===
+    explanation = (
+        "This report summarizes all orders within the selected period, "
+        "including their current statuses, payment method distribution, "
+        "and order types. The detailed list above provides customer-level "
+        "insight for each transaction."
+    )
+
+    num_columns = 6  # Number of columns in the ORDER DETAILS table
+    explanation_row = ws.max_row + 1
+    ws.merge_cells(start_row=explanation_row, start_column=1, end_row=explanation_row, end_column=num_columns)
+    cell = ws.cell(row=explanation_row, column=1)
+    cell.value = explanation
+    cell.font = gray_italic
+    cell.alignment = Alignment(horizontal="center", wrap_text=True)
+
+    from openpyxl.styles import Font, Alignment
+    gray_italic = Font(color="808080", italic=True)
+    center = Alignment(horizontal="center")
+
+    products = Products.objects.all().order_by("category__name", "name")
+
+    ws.append(["INVENTORY STOCK REPORT"])
+    ws.cell(ws.max_row, 1).font = Font(bold=True, size=12)
+    ws.append([])
+
+    add_table_header(["Product", "Variation", "Unit Price", "Stock Level", "Category"])
+
+    tracked = 0
+    untracked = 0
+    low_stock = []
+
+    for product in products:
+        stock_text = str(product.stocks) if product.track_stocks else "Not Tracked"
+        if product.track_stocks:
+            tracked += 1
+            if product.stocks < 5:
+                low_stock.append(product.name)
+        else:
+            untracked += 1
+
+        add_data_row([
+            product.name,
+            product.variation_name or "Standard",
+            f"Php {product.price:,.2f}",
+            stock_text,
+            product.category.name if product.category else "N/A",
+        ])
+
+    ws.append([])
+    ws.append([f"Tracked Products: {tracked} | Untracked: {untracked}"])
+    ws.cell(ws.max_row, 1).font = gray_italic
+    ws.append([])
+
+    if low_stock:
+        ws.append(["⚠️ Low Stock Alerts: " + ", ".join(low_stock)])
+        ws.cell(ws.max_row, 1).font = gray_italic
+        ws.cell(ws.max_row, 1).alignment = center
+
+def _generate_inventory_excel(ws, add_table_header, add_data_row):
+    from openpyxl.styles import Font, Alignment
+    gray_italic = Font(color="808080", italic=True)
+    center = Alignment(horizontal="center", vertical="center")
+
+    products = Products.objects.all().order_by("category__name", "name")
+
+    # === INVENTORY SUMMARY ===
+    total_products = products.values("name", "category").distinct().count()
+    tracked_products = products.filter(track_stocks=True)
+    untracked_products = products.filter(track_stocks=False).values("name", "category").distinct().count()
+    out_of_stock = tracked_products.filter(stocks=0).count()
+    low_stock = tracked_products.filter(stocks__lte=5, stocks__gt=0).count()
+    normal_stock = tracked_products.filter(stocks__gt=5).count()
+
+    ws.append(["INVENTORY SUMMARY"])
+    ws.cell(ws.max_row, 1).font = Font(bold=True)
+    ws.append([])
+
+    summary_data = [
+        ["Total Products", total_products],
+        ["Tracked Products", tracked_products.values("name", "category").distinct().count()],
+        ["Untracked Products", untracked_products],
+        ["Out of Stock (variations)", out_of_stock],
+        ["Low Stock (≤5, variations)", low_stock],
+        ["Normal Stock (variations)", normal_stock],
+    ]
+    for row in summary_data:
+        add_data_row(row)
+        for col in range(2, len(row) + 1):  # only align numeric/value cells
+            ws.cell(ws.max_row, col).alignment = center
+    ws.append([])
+
+    # === ITEMS NEEDING ATTENTION ===
+    critical_items = tracked_products.filter(stocks__lte=5).order_by("stocks")
+    if critical_items.exists():
+        ws.append(["ITEMS NEEDING ATTENTION"])
+        ws.cell(ws.max_row, 1).font = Font(bold=True)
+        ws.append([])
+
+        add_table_header(["Product", "Variation", "Unit Price", "Current Stock", "Status", "Last Edited"])
+        for product in critical_items[:15]:
+            status = "OUT OF STOCK" if product.stocks == 0 else "LOW STOCK"
+            last_edited = product.last_updated.strftime("%m/%d/%y • %I:%M %p")
+            row = [
+                product.name[:40] + "..." if len(product.name) > 40 else product.name,
+                product.variation_name or "Standard",
+                f"Php {product.price:,.2f}",
+                str(product.stocks),
+                status,
+                last_edited,
+            ]
+            add_data_row(row)
+            for col in range(3, len(row) + 1):  # center numeric/time/status columns
+                ws.cell(ws.max_row, col).alignment = center
+        ws.append([])
+
+    # === COMPLETE INVENTORY ===
+    ws.append(["COMPLETE INVENTORY"])
+    ws.cell(ws.max_row, 1).font = Font(bold=True)
+    ws.append([])
+
+    categories = ProductCategory.objects.all().order_by("name")
+    for category in categories:
+        category_products = products.filter(category=category).order_by("name")
+        unique_count = category_products.values("name").distinct().count()
+        if unique_count == 0:
+            continue
+
+        ws.append([f"{category.name} ({unique_count} Items)"])
+        ws.cell(ws.max_row, 1).font = Font(bold=True, italic=True)
+        ws.append([])
+
+        add_table_header(["Product", "Variation", "Unit Price", "Added At", "Sold Count", "Stock Level", "Last Edited"])
+        for product in category_products:
+            stock_info = str(product.stocks) if product.track_stocks else "Not Tracked"
+            last_edited = product.last_updated.strftime("%m/%d/%y • %I:%M %p")
+            row = [
+                product.name[:40] + "..." if len(product.name) > 40 else product.name,
+                product.variation_name or "Standard",
+                f"Php {product.price:,.2f}",
+                product.created_at.strftime("%m/%d/%y"),
+                str(product.sold_count),
+                stock_info,
+                last_edited,
+            ]
+            add_data_row(row)
+            for col in range(3, len(row) + 1):  # center only numeric/date/status cells
+                ws.cell(ws.max_row, col).alignment = center
+        ws.append([])
+
+    # === LOW STOCK ALERTS ===
+    low_stock_names = [p.name for p in tracked_products.filter(stocks__lte=5)]
+    if low_stock_names:
+        ws.append(["⚠️ Low Stock Alerts: " + ", ".join(low_stock_names)])
+        ws.cell(ws.max_row, 1).font = gray_italic
+        ws.append([])
+
+    # === TOP-SELLING PRODUCTS REPORT ===
+    products = Products.objects.all().order_by("-sold_count")
+    ws.append(["TOP-SELLING PRODUCTS REPORT"])
+    ws.cell(ws.max_row, 1).font = Font(bold=True, size=12)
+    ws.append([])
+
+    add_table_header(["Rank", "Product", "Units Sold", "Price", "Category", "Last Edited"])
+    for i, product in enumerate(products, start=1):
+        last_edited = product.last_updated.strftime("%m/%d/%y • %I:%M %p")
+        row = [
+            str(i),
+            product.name,
+            str(product.sold_count),
+            f"Php {product.price:,.2f}",
+            product.category.name if product.category else "N/A",
+            last_edited,
+        ]
+        add_data_row(row)
+        for col in range(3, len(row) + 1):  # center numeric/date columns
+            ws.cell(ws.max_row, col).alignment = center
+    ws.append([])
+
+    if products.exists():
+        top = products.first()
+        ws.append([
+            f"The best-selling product is {top.name}, with {top.sold_count} units sold at Php {top.price:,.2f} each."
+        ])
+        ws.cell(ws.max_row, 1).font = gray_italic
+    ws.append([])
+
+    # === EDIT HISTORY (Recent) ===
+    from .models import ProductEditHistory
+    history = ProductEditHistory.objects.all().order_by("-updated_at")[:50]
+    if history.exists():
+        ws.append(["EDIT HISTORY (Recent)"])
+        ws.cell(ws.max_row, 1).font = Font(bold=True)
+        ws.append([])
+
+        add_table_header(["Product", "Field", "Old Value", "New Value", "Updated At"])
+        for record in history:
+            row = [
+                record.product.name[:35] + "..." if len(record.product.name) > 35 else record.product.name,
+                record.field.capitalize(),
+                str(record.old_value),
+                str(record.new_value),
+                record.updated_at.strftime("%m/%d/%y • %I:%M %p"),
+            ]
+            add_data_row(row)
+            for col in range(3, len(row) + 1):  # center changed values and timestamp
+                ws.cell(ws.max_row, col).alignment = center
+        ws.append([])
+
+    # === ARCHIVED PRODUCTS ===
+    from .models import ArchivedProducts
+    archived = ArchivedProducts.objects.all().order_by("-archived_at")
+    if archived.exists():
+        ws.append(["ARCHIVED PRODUCTS"])
+        ws.cell(ws.max_row, 1).font = Font(bold=True)
+        ws.append([])
+
+        add_table_header(["Product", "Variation", "Category", "Price", "Archived At"])
+        for p in archived[:50]:
+            row = [
+                p.name[:30] + "..." if len(p.name) > 30 else p.name,
+                p.variation_name or "Standard",
+                p.category.name if p.category else "N/A",
+                f"Php {p.price:,.2f}",
+                p.archived_at.strftime("%m/%d/%y • %I:%M %p"),
+            ]
+            add_data_row(row)
+            for col in range(4, len(row) + 1):  # center price & date columns
+                ws.cell(ws.max_row, col).alignment = center
+        ws.append([])
+
+
+def _generate_top_products_excel(ws, add_table_header, add_data_row, orders):
+    from openpyxl.styles import Font, Alignment
+    from collections import defaultdict
+
+    gray_italic = Font(color="808080", italic=True)
+    center = Alignment(horizontal="center")
+
+    # ✅ Fetch all products from catalog
+    products = Products.objects.all()
+    total_products = products.count()  # all products in catalog
+
+    # ✅ Only completed orders
+    completed_orders = orders.filter(status__iexact="completed")
+
+    # Calculate product sales
+    product_sales = defaultdict(int)  # key=product name, value=units sold
+    for order in completed_orders:
+        key = order.product_name
+        variation = getattr(order, "variation_name", None)
+        if variation and variation.lower() != "default":
+            key = f"{order.product_name} - {variation}"
+        product_sales[key] += order.quantity
+
+    products_with_sales = sum(1 for qty in product_sales.values() if qty > 0)
+    total_units_sold = sum(product_sales.values())
+
+    # === PRODUCT PERFORMANCE SUMMARY ===
+    ws.append(["PRODUCT PERFORMANCE SUMMARY"])
+    ws.cell(ws.max_row, 1).font = Font(bold=True)
+    ws.append([])
+
+    summary_data = [
+        ["Total Products", total_products],
+        ["Products with Sales", products_with_sales],
+        ["Total Units Sold", total_units_sold]
+    ]
+    if products_with_sales > 0:
+        summary_data.append(["Average per Product", f"{(total_units_sold/products_with_sales):.1f} units"])
+    else:
+        summary_data.append(["Average per Product", "No sales data available"])
+
+    add_table_header(["Metric", "Value"])
+    for row in summary_data:
+        add_data_row(row)
+    ws.append([])
+
+    # === TOP 10 PRODUCTS ===
+    if products_with_sales > 0:
+        ws.append(["TOP 10 PRODUCTS"])
+        ws.cell(ws.max_row, 1).font = Font(bold=True)
+        ws.append([])
+
+        top_products = sorted(product_sales.items(), key=lambda x: x[1], reverse=True)[:10]
+        add_table_header(["Rank", "Product", "Units Sold"])
+        for i, (name, qty) in enumerate(top_products, 1):
+            add_data_row([
+                i,
+                name[:35] + "…" if len(name) > 35 else name,
+                qty
+            ])
+        ws.append([])
+
+    # === PERFORMANCE CATEGORIES ===
+    ws.append(["PERFORMANCE CATEGORIES"])
+    ws.cell(ws.max_row, 1).font = Font(bold=True)
+    ws.append([])
+
+    high_performers = sum(1 for qty in product_sales.values() if qty >= 50)
+    medium_performers = sum(1 for qty in product_sales.values() if 10 <= qty <= 49)
+    low_performers = sum(1 for qty in product_sales.values() if 1 <= qty <= 9)
+    no_sales = total_products - (high_performers + medium_performers + low_performers)
+
+    add_table_header(["Category", "Count", "Action Needed"])
+    category_data = [
+        ["High Performers (50+ units)", high_performers, "Maintain inventory"],
+        ["Medium Performers (10-49)", medium_performers, "Promote more"],
+        ["Low Performers (1-9)", low_performers, "Review pricing/marketing"],
+        ["No Sales", no_sales, "Consider discontinuing"]
+    ]
+    for row in category_data:
+        add_data_row(row)
+    ws.append([])
+
+    # === Low Sales Explanation ===
+    explanation = ""
+    if high_performers > (medium_performers + low_performers + no_sales):
+        explanation = "High-performing products dominate overall sales, suggesting strong market favorites."
+    elif no_sales > (high_performers + medium_performers + low_performers):
+        explanation = "A large portion of products recorded no sales, indicating potential issues in demand, visibility, or pricing."
+    else:
+        explanation = "Sales are spread across categories, showing both strong performers and areas needing improvement."
+    
+    ws.append([explanation])
+    ws.cell(ws.max_row, 1).font = gray_italic
+    ws.cell(ws.max_row, 1).alignment = center
+    ws.append([])
+
+
 def sales_report_pdf(request):
     report_type = request.GET.get("report_type")
     date_filter = request.GET.get("date_filter")
@@ -2476,7 +3218,7 @@ def sales_report_pdf(request):
     elif report_type == "inventory":
         story += _generate_inventory_report(period_label, styles)
     elif report_type == "top_products":
-        story += _generate_products_report(period_label, styles)
+        story += _generate_products_report(orders, period_label, styles)
 
     # --- Build PDF ---
     doc.build(story)
@@ -2638,11 +3380,49 @@ def _get_report_styles():
     return custom_styles
 
 def _generate_no_data_pdf():
-    """Generate PDF for no data scenarios"""
+    """Generate a styled PDF for no data scenarios (matches other reports)"""
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter)
-    styles = getSampleStyleSheet()
-    story = [Paragraph("No data available for the selected period", styles["Title"])]
+    styles = _get_report_styles()
+    
+    # Business info for header
+    business = BusinessDetails.objects.first()
+    logo_path = business.logo.path if business and business.logo else None
+    header_table = _build_report_header(
+        logo_path=logo_path,
+        business_name=business.business_name if business else "Business Name",
+        address=business.store_address if business else "Address",
+        email=business.email_address if business else "Email",
+        contact=business.contact_number if business else "Contact",
+        styles=styles
+    )
+
+    # Use BaseDocTemplate to match other PDFs
+    doc = BaseDocTemplate(buffer, pagesize=letter,
+                          topMargin=0, bottomMargin=50, leftMargin=0, rightMargin=0)
+
+    # Frame for body content
+    body_frame = Frame(
+        50,  # left margin
+        50,  # bottom margin
+        doc.width - 100,
+        doc.height - header_table.wrap(doc.width, 0)[1] - 20,
+        id='body'
+    )
+
+    # Draw header on every page
+    def draw_header(canvas, doc):
+        w, h = header_table.wrap(doc.width + doc.leftMargin + doc.rightMargin, 0)
+        header_table.drawOn(canvas, 0, doc.pagesize[1] - h)
+
+    # Page template
+    template = PageTemplate(id='with_header', frames=[body_frame], onPage=draw_header)
+    doc.addPageTemplates([template])
+
+    # Build story
+    story = []
+    story.append(Spacer(1, 100))
+    story.append(Paragraph("No data available for the selected period", styles['title']))
+
     doc.build(story)
     buffer.seek(0)
     return HttpResponse(buffer, content_type="application/pdf", headers={
@@ -3455,7 +4235,7 @@ import matplotlib.pyplot as plt
 from reportlab.platypus import Image, Table, TableStyle, Paragraph, Spacer
 import io
 
-def _generate_products_report(period_label, styles):
+def _generate_products_report(orders, period_label, styles):
     """Generate enhanced top products report with tables, charts, and explanations"""
     story = []
     story.append(Paragraph("TOP PRODUCTS REPORT", styles['title']))
@@ -3463,22 +4243,33 @@ def _generate_products_report(period_label, styles):
     if period_label:
         story.append(Paragraph(period_label, styles['subtitle']))
 
-    products = Products.objects.all().order_by("-sold_count")
-    total_products = products.count()
-    products_with_sales = products.filter(sold_count__gt=0).count()
-    total_units_sold = sum(product.sold_count for product in products)
+    # ✅ Only completed orders
+    completed_orders = orders.filter(status__iexact="completed")
 
-    # ----------------- SUMMARY -----------------
-# ----------------- PRODUCT PERFORMANCE SUMMARY -----------------
+    # ✅ Fetch all products
+    products = Products.objects.all()
+    total_products = products.count()  # total products in catalog
+
+    # Calculate product sales from completed orders
+    product_sales = defaultdict(lambda: {"quantity": 0, "revenue": 0})
+    for order in completed_orders:
+        key = order.product_name
+        variation = getattr(order, "variation_name", None)
+        if variation and variation.lower() != "default":
+            key = f"{order.product_name} - {variation}"
+        product_sales[key]["quantity"] += order.quantity
+        product_sales[key]["revenue"] += float(order.price)
+
+    products_with_sales = sum(1 for p in product_sales.values() if p["quantity"] > 0)
+    total_units_sold = sum(p["quantity"] for p in product_sales.values())
+
+    # ----------------- PRODUCT PERFORMANCE SUMMARY -----------------
     story.append(Paragraph("PRODUCT PERFORMANCE SUMMARY", styles['heading']))
-
-    # ---- Table version of summary ----
     summary_data = [
         ["Total Products", f"{total_products:,}"],
         ["Products with Sales", f"{products_with_sales:,}"],
         ["Total Units Sold", f"{total_units_sold:,}"]
     ]
-
     if products_with_sales > 0:
         summary_data.append(["Average per Product", f"{(total_units_sold/products_with_sales):.1f} units"])
     else:
@@ -3493,11 +4284,9 @@ def _generate_products_report(period_label, styles):
     plt.figure(figsize=(5,4))
     bars = ["Total Products", "With Sales", "Units Sold"]
     values = [total_products, products_with_sales, total_units_sold]
-
     plt.bar(bars, values, color=["#607D8B", "#4CAF50", "#2196F3"])
     plt.title("Products & Sales Overview")
     plt.ylabel("Count")
-
     buf = io.BytesIO()
     plt.savefig(buf, format="png", bbox_inches="tight")
     plt.close()
@@ -3514,19 +4303,17 @@ def _generate_products_report(period_label, styles):
         explanation = "More than half of the products achieved sales, with healthy market engagement."
     else:
         explanation = "Less than half of the products recorded sales, highlighting opportunities for marketing or product adjustments."
-
     story.append(Paragraph(explanation, styles['summary']))
     story.append(Spacer(1, 20))
-
 
     # ----------------- TOP 10 PRODUCTS (TABLE + CHART) -----------------
     if products_with_sales > 0:
         story.append(Paragraph("TOP 10 PRODUCTS", styles['heading']))
+        ranked_products = sorted(product_sales.items(), key=lambda x: x[1]["quantity"], reverse=True)[:10]
 
-        top_products = products[:10]
         table_data = [["Rank", "Product", "Units Sold"]]
-        for i, p in enumerate(top_products, 1):
-            table_data.append([str(i), p.name[:35] + "…" if len(p.name) > 35 else p.name, str(p.sold_count)])
+        for i, (name, data) in enumerate(ranked_products, 1):
+            table_data.append([str(i), name[:35] + "…" if len(name) > 35 else name, str(data["quantity"])])
 
         table = Table(table_data, colWidths=[40, 200, 100])
         table.setStyle(_get_table_style())
@@ -3534,11 +4321,11 @@ def _generate_products_report(period_label, styles):
         story.append(Spacer(1, 10))
 
         # Bar Chart
-        labels = [p.name[:15] + "…" if len(p.name) > 15 else p.name for p in top_products]
-        counts = [p.sold_count for p in top_products]
+        labels = [name[:15] + "…" if len(name) > 15 else name for name, _ in ranked_products]
+        counts = [data["quantity"] for _, data in ranked_products]
 
         plt.figure(figsize=(6, 4))
-        plt.barh(labels, counts)
+        plt.barh(labels, counts, color="#4CAF50")
         plt.xlabel("Units Sold")
         plt.title("Top 10 Products by Units Sold")
         plt.gca().invert_yaxis()
@@ -3550,21 +4337,21 @@ def _generate_products_report(period_label, styles):
         story.append(Spacer(1, 10))
 
         # Explanation
-        if counts[0] >= counts[1] * 2:
+        if len(counts) > 1 and counts[0] >= counts[1] * 2:
             explanation = f"The top product ({labels[0]}) significantly outperformed others, selling over twice as much as the next product."
-        elif counts[0] == counts[-1]:
+        elif len(set(counts)) == 1:
             explanation = "All top 10 products sold at nearly the same level, indicating a balanced demand."
         else:
             explanation = f"The top products show varied performance, with {labels[0]} leading at {counts[0]} units."
         story.append(Paragraph(explanation, styles['summary']))
         story.append(Spacer(1, 20))
 
-    # ----------------- PERFORMANCE CATEGORIES (TABLE + PIE) -----------------
+    # ----------------- PERFORMANCE CATEGORIES -----------------
     story.append(Paragraph("PERFORMANCE CATEGORIES", styles['heading']))
-    high_performers = products.filter(sold_count__gte=50).count()
-    medium_performers = products.filter(sold_count__range=(10, 49)).count()
-    low_performers = products.filter(sold_count__range=(1, 9)).count()
-    no_sales = products.filter(sold_count=0).count()
+    high_performers = sum(1 for p in product_sales.values() if p["quantity"] >= 50)
+    medium_performers = sum(1 for p in product_sales.values() if 10 <= p["quantity"] <= 49)
+    low_performers = sum(1 for p in product_sales.values() if 1 <= p["quantity"] <= 9)
+    no_sales = total_products - (high_performers + medium_performers + low_performers)
 
     category_data = [
         ["Category", "Count", "Action Needed"],
@@ -3577,7 +4364,6 @@ def _generate_products_report(period_label, styles):
     category_table.setStyle(_get_table_style())
     story.append(category_table)
     story.append(Spacer(1, 10))
-
 
     # Explanation
     if high_performers > (medium_performers + low_performers + no_sales):
