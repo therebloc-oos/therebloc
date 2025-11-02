@@ -1654,6 +1654,15 @@
                                 </select>
                             </div>
 
+                             <!-- File Type -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">File Type</label>
+                                <select class="form-select" id="fileTypeSelect" required>
+                                <option value="pdf">📄 PDF</option>
+                                <option value="excel">📊 Excel</option>
+                                </select>
+                            </div>
+
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Time Period</label>
                                 <div class="row g-2">
@@ -2035,37 +2044,65 @@ const statusColors = {
     }
 
     // Date Filter Logic
+    document.addEventListener("DOMContentLoaded", function () {
+        const reportForm = document.getElementById("reportForm");
+
+        reportForm.insertBefore(typeSelector, reportForm.querySelector("button[type='submit']"));
+
+        // Handle submission and redirect to the correct view
+        reportForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(reportForm);
+            const format = formData.get("report_format");
+
+            // Determine correct URL
+            let url =
+                format === "excel"
+                    ? "{% url 'sales_report_excel' %}"
+                    : "{% url 'sales_report_pdf' %}";
+
+            // Build full query string (preserve selected options)
+            const params = new URLSearchParams(formData).toString();
+
+            // Redirect to correct endpoint with parameters
+            window.location.href = `${url}?${params}`;
+        });
+    });
+
     document.addEventListener('DOMContentLoaded', function () {
         const container = document.getElementById('dateInputContainer');
         const filterRadios = document.querySelectorAll('input[name="date_filter"]');
         const submitBtn = document.querySelector('#reportForm button[type="submit"]');
+        const fileTypeSelect = document.getElementById('fileTypeSelect'); // ✅ New line
+        const form = document.getElementById('reportForm'); // ✅ New line
 
         function renderDateInputs(type) {
             let html = '';
             if (type === 'daily') {
-                html = `<input type="date" name="daily_date" class="form-control">`;
+                html = `<input type="date" name="daily_date" class="form-control" required>`;
             } 
             else if (type === 'weekly') {
-                html = `<input type="week" name="weekly_date" class="form-control">`;
+                html = `<input type="week" name="weekly_date" class="form-control" required>`;
             } 
             else if (type === 'monthly') {
-                html = `<input type="month" name="monthly_date" class="form-control">`;
+                html = `<input type="month" name="monthly_date" class="form-control" required>`;
             } 
             else if (type === 'custom') {
                 html = `
                     <div class="row g-2">
                         <div class="col-6">
-                            <input type="date" name="custom_start" class="form-control" placeholder="Start Date">
+                            <input type="date" name="custom_start" class="form-control" required>
                         </div>
                         <div class="col-6">
-                            <input type="date" name="custom_end" class="form-control" placeholder="End Date">
+                            <input type="date" name="custom_end" class="form-control" required>
                         </div>
                     </div>
                 `;
             }
             container.innerHTML = html;
 
-            // re-attach listeners to new inputs
+            // Re-attach listeners to new inputs
             container.querySelectorAll("input").forEach(inp => {
                 inp.addEventListener("input", validateForm);
             });
@@ -2088,11 +2125,9 @@ const statusColors = {
         // Disable button by default
         submitBtn.disabled = true;
 
-        // Initial render (monthly by default kasi naka-checked)
+        // Initial render (monthly by default)
         const defaultRadio = document.querySelector('input[name="date_filter"]:checked');
-        if (defaultRadio) {
-            renderDateInputs(defaultRadio.value);
-        }
+        if (defaultRadio) renderDateInputs(defaultRadio.value);
 
         filterRadios.forEach(radio => {
             radio.addEventListener('change', function () {
@@ -2100,7 +2135,22 @@ const statusColors = {
             });
         });
 
-        // Search functionality
+        // ✅ Handle PDF / Excel submission logic
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const fileType = fileTypeSelect.value;
+            const data = new FormData(form);
+            const params = new URLSearchParams(data).toString();
+
+            const url = fileType === 'excel'
+                ? "{% url 'sales_report_excel' %}"
+                : "{% url 'sales_report_pdf' %}";
+
+            window.location.href = `${url}?${params}`;
+        });
+
+        // Search functionality (kept from your original code)
         function setupSearch(inputId, tableId) {
             const searchInput = document.getElementById(inputId);
             if (searchInput) {
@@ -2398,7 +2448,6 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-
 
 </script>
 {% endblock %}
