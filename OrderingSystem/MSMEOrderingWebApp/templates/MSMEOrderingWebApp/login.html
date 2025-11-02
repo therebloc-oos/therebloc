@@ -862,7 +862,8 @@
         .browse-btn {
             position: fixed;
             bottom: 30px;
-            left: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             background: linear-gradient(
                 90deg,
                 {{ customization.primary_color|default:'#000000' }},
@@ -888,7 +889,6 @@
         }
 
         .browse-btn:hover {
-            transform: translateY(-2px);
             box-shadow: 0 8px 15px var(--secondary-color);
             background: linear-gradient(
                 90deg,
@@ -897,7 +897,6 @@
             );
             color: {{ customization.button_text_color|default:'#ffffff' }};
         }
-
 
     </style>
 
