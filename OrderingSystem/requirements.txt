@@ -54,3 +54,4 @@ channels-redis
 psycopg2-binary
 uvicorn[standard]
 whitenoise
+openpyxl
