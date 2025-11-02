@@ -1441,6 +1441,18 @@ document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll('input[name="order_type"]').forEach(radio => {
         radio.addEventListener('change', updatePlaceOrderButtonState);
     });
+
+    // ✅ ADD: Recheck when order time changes
+    document.querySelectorAll('input[name="order_time"]').forEach(radio => {
+        radio.addEventListener('change', updatePlaceOrderButtonState);
+    });
+
+    // ✅ ADD: Recheck when scheduled date changes
+    const scheduledDateInput = document.getElementById('scheduled_date');
+    if (scheduledDateInput) {
+        scheduledDateInput.addEventListener('change', updatePlaceOrderButtonState);
+        scheduledDateInput.addEventListener('input', updatePlaceOrderButtonState);
+    }
 });
 
 // === CLEAR LOCAL STORAGE ONLY ON HOMEPAGE ===
@@ -1511,11 +1523,13 @@ function getCookie(name) {
 function updatePlaceOrderButtonState() {
     const placeOrderBtn = document.querySelector('form button.checkout-btn');
     const selectedOrderType = document.querySelector('input[name="order_type"]:checked');
+    const selectedOrderTime = document.querySelector('input[name="order_time"]:checked');
+    const scheduledDateInput = document.getElementById('scheduled_date');
     const deliveryFeeInput = document.getElementById('delivery_fee_input');
-    const deliveryFee = deliveryFeeInput ? parseFloat(deliveryFeeInput.value) || 0 : 0;
 
     if (!placeOrderBtn) return;
 
+    // 1. Check if order type is selected
     if (!selectedOrderType) {
         placeOrderBtn.disabled = true;
         placeOrderBtn.title = "Please select an order type first.";
@@ -1523,29 +1537,55 @@ function updatePlaceOrderButtonState() {
         return;
     }
 
+    // 2. Check if order time is selected (if scheduled option exists)
+    const orderTimeSection = document.getElementById('order_now');
+    if (orderTimeSection && !selectedOrderTime) {
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.title = "Please select an order time.";
+        placeOrderBtn.classList.add('disabled-btn');
+        return;
+    }
+
+    // 3. If scheduled is selected, check if date is selected and valid
+    const scheduledRadio = document.getElementById('order_scheduled');
+    if (scheduledRadio && scheduledRadio.checked) {
+        if (!scheduledDateInput.value) {
+            placeOrderBtn.disabled = true;
+            placeOrderBtn.title = "Please select a date and time for your scheduled order.";
+            placeOrderBtn.classList.add('disabled-btn');
+            return;
+        }
+
+        // Validate the selected date is at least 1 hour from now
+        const selectedDate = new Date(scheduledDateInput.value);
+        const now = new Date();
+        const minDate = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour from now
+
+        if (selectedDate < minDate) {
+            placeOrderBtn.disabled = true;
+            placeOrderBtn.title = "Please select a time at least 1 hour from now.";
+            placeOrderBtn.classList.add('disabled-btn');
+            return;
+        }
+    }
+
+    // 4. Check delivery fee for delivery orders
     if (selectedOrderType.value === 'delivery') {
         const hasFeeResponse = localStorage.getItem("delivery_fee_received") === "true";
     
         if (!hasFeeResponse) {
-            // No response yet, keep disabled
             placeOrderBtn.disabled = true;
             placeOrderBtn.title = "Please request and receive delivery fee before placing order.";
             placeOrderBtn.classList.add('disabled-btn');
-        } else {
-            // Response received, allow even if fee is 0
-            placeOrderBtn.disabled = false;
-            placeOrderBtn.title = "";
-            placeOrderBtn.classList.remove('disabled-btn');
+            return;
         }
     }
 
-    else if (selectedOrderType.value === 'pickup') {
-        placeOrderBtn.disabled = false;
-        placeOrderBtn.title = "";
-        placeOrderBtn.classList.remove('disabled-btn');
-    }
+    // 5. All validations passed - enable button
+    placeOrderBtn.disabled = false;
+    placeOrderBtn.title = "";
+    placeOrderBtn.classList.remove('disabled-btn');
 }
-
 
 // === TIMER HELPER ===
 let deliveryFeeTimer = null;
@@ -1765,6 +1805,8 @@ function handleOrderTypeChange() {
 
     pickupRadio.addEventListener('change', () => {
         updateStoreAddressVisibility();
+        
+        // Clear delivery fee from display but DON'T remove from localStorage
         document.getElementById('delivery_fee_input').value = 0;
         const feeContainer = document.getElementById('delivery-fee-container');
         if (feeContainer) feeContainer.remove();
@@ -1775,15 +1817,54 @@ function handleOrderTypeChange() {
         document.getElementById('total').textContent = subtotal.toFixed(2);
 
         localStorage.setItem('order_type', 'pickup');
-        localStorage.removeItem('delivery_fee');
+        // DON'T remove delivery_fee and delivery_fee_received from localStorage
+        // so they can be restored when switching back to delivery
 
         updatePlaceOrderButtonState();
     });
 
     deliveryRadio.addEventListener('change', () => {
+        updateStoreAddressVisibility();
+        
+        // Check if there's a saved delivery fee
+        const savedDeliveryFee = localStorage.getItem('delivery_fee');
+        const hasFeeResponse = localStorage.getItem("delivery_fee_received") === "true";
+        
         showDeliveryFeeRequest();
         initDeliveryFeeInputListener();
         localStorage.setItem('order_type', 'delivery');
+        
+        // Restore the delivery fee if it exists
+        if (savedDeliveryFee && hasFeeResponse) {
+            const fee = parseFloat(savedDeliveryFee);
+            
+            // Update the delivery fee input
+            const deliveryFeeInput = document.getElementById('delivery_fee_input');
+            if (deliveryFeeInput) {
+                deliveryFeeInput.value = fee;
+            }
+            
+            // Show and update the delivery fee row
+            const feeRow = document.getElementById('delivery-fee-row');
+            const feeDisplay = document.getElementById('delivery-fee-display');
+            if (feeRow && feeDisplay) {
+                feeRow.style.display = 'flex';
+                feeDisplay.textContent = fee.toFixed(2);
+            }
+            
+            // Update the total
+            const subtotal = parseFloat(document.getElementById('subtotal').textContent);
+            document.getElementById('total').textContent = (subtotal + fee).toFixed(2);
+            
+            // Hide the request button and loading, since fee is already received
+            const requestBtn = document.getElementById('request-delivery-fee-btn');
+            const loadingElem = document.getElementById('delivery-fee-loading');
+            if (requestBtn) requestBtn.style.display = 'none';
+            if (loadingElem) loadingElem.style.display = 'none';
+            
+            console.log('Restored delivery fee:', fee);
+        }
+        
         updatePlaceOrderButtonState();
     });
 
@@ -1890,19 +1971,32 @@ function initDeleteButtons() {
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
+
             const productName = this.closest('.cart-item').querySelector('.product-name').textContent;
             formToDelete = this.closest('form');
 
             document.getElementById('product-to-remove').textContent = `"${productName}"`;
+
             const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
             modal.show();
 
-            document.getElementById('confirmDeleteBtn').onclick = function () {
-                if (formToDelete) formToDelete.submit();
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+            confirmBtn.onclick = function () {
+                if (formToDelete) {
+                    // ✅ Disable the remove button so it can’t be clicked twice
+                    const deleteBtn = formToDelete.querySelector('.delete-btn');
+                    deleteBtn.disabled = true;
+                    deleteBtn.classList.add('disabled'); // optional styling
+                    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+                    
+                    formToDelete.submit();
+                }
             };
         });
     });
 }
+
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', function() {
@@ -1952,6 +2046,79 @@ document.addEventListener('DOMContentLoaded', function() {
                     showDeliveryFeeRequest();
                 }
             }
+        }
+    }
+
+    updatePlaceOrderButtonState();
+});
+
+// === SAVE SCHEDULED DATE TO LOCALSTORAGE ===
+document.addEventListener("DOMContentLoaded", function() {
+    const scheduledDateInput = document.getElementById('scheduled_date');
+    const orderScheduled = document.getElementById('order_scheduled');
+    const orderNow = document.getElementById('order_now');
+
+    // Save scheduled date when it changes
+    if (scheduledDateInput) {
+        scheduledDateInput.addEventListener('change', function() {
+            if (this.value) {
+                localStorage.setItem('scheduled_date', this.value);
+                console.log('Saved scheduled date:', this.value);
+            }
+        });
+
+        scheduledDateInput.addEventListener('input', function() {
+            if (this.value) {
+                localStorage.setItem('scheduled_date', this.value);
+            }
+        });
+    }
+
+    // Save order time selection
+    if (orderScheduled) {
+        orderScheduled.addEventListener('change', function() {
+            if (this.checked) {
+                localStorage.setItem('order_time', 'scheduled');
+            }
+        });
+    }
+
+    if (orderNow) {
+        orderNow.addEventListener('change', function() {
+            if (this.checked) {
+                localStorage.setItem('order_time', 'now');
+                localStorage.removeItem('scheduled_date');
+            }
+        });
+    }
+
+    // === RESTORE SCHEDULED DATE ON PAGE LOAD ===
+    const savedOrderTime = localStorage.getItem('order_time');
+    const savedScheduledDate = localStorage.getItem('scheduled_date');
+
+    // Restore order time selection
+    if (savedOrderTime === 'scheduled' && orderScheduled) {
+        orderScheduled.checked = true;
+        document.getElementById('schedulePicker').style.display = 'block';
+        document.getElementById('orderNowMessage').style.display = 'none';
+    } else if (savedOrderTime === 'now' && orderNow) {
+        orderNow.checked = true;
+        document.getElementById('schedulePicker').style.display = 'none';
+        document.getElementById('orderNowMessage').style.display = 'block';
+    }
+
+    // Restore scheduled date
+    if (savedScheduledDate && scheduledDateInput && savedOrderTime === 'scheduled') {
+        scheduledDateInput.value = savedScheduledDate;
+        console.log('Restored scheduled date:', savedScheduledDate);
+        
+        // Trigger validation
+        const event = new Event('input', { bubbles: true });
+        scheduledDateInput.dispatchEvent(event);
+        
+        // If using Flatpickr, set its value too
+        if (window.flatpickrInstance) {
+            window.flatpickrInstance.setDate(savedScheduledDate);
         }
     }
 
@@ -2037,14 +2204,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const scheduledDateInput = document.getElementById('scheduled_date');
     
     if (scheduledDateInput) {
-        // Initialize Flatpickr with proper datetime-local format
-        const flatpickrInstance = flatpickr("#scheduled_date", {
+        // Store instance globally for restoration
+        window.flatpickrInstance = flatpickr("#scheduled_date", {
             enableTime: true,
-            dateFormat: "Y-m-d\\TH:i",  // ✅ Matches datetime-local format
-            time_24hr: true,
+            dateFormat: "Y-m-d h:i K",
+            time_24hr: false,
             minDate: "today",
             disable: closedDates,
-            // ✅ Update the input value when date is selected
             onChange: function(selectedDates, dateStr, instance) {
                 if (selectedDates.length > 0) {
                     const date = selectedDates[0];
@@ -2054,31 +2220,74 @@ document.addEventListener('DOMContentLoaded', function() {
                     const hours = String(date.getHours()).padStart(2, '0');
                     const minutes = String(date.getMinutes()).padStart(2, '0');
                     
-                    // Set value in datetime-local format
-                    scheduledDateInput.value = ${year}-${month}-${day}T${hours}:${minutes};
+                    const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+                    scheduledDateInput.value = formattedDate;
                     
-                    // ✅ Trigger validation (your existing code will handle this)
+                    // Save to localStorage
+                    localStorage.setItem('scheduled_date', formattedDate);
+                    console.log("Flatpickr date selected and saved:", formattedDate);
+                    
                     const event = new Event('input', { bubbles: true });
                     scheduledDateInput.dispatchEvent(event);
                     
-                    console.log("Flatpickr date selected:", scheduledDateInput.value);
+                    updatePlaceOrderButtonState();
                 }
+            }
+        });
+
+        // Restore saved date to Flatpickr after initialization
+        const savedDate = localStorage.getItem('scheduled_date');
+        const savedOrderTime = localStorage.getItem('order_time');
+        if (savedDate && savedOrderTime === 'scheduled') {
+            window.flatpickrInstance.setDate(savedDate);
+            console.log('Restored scheduled date to Flatpickr:', savedDate);
+        }
+    }
+
+    const orderScheduled = document.getElementById('order_scheduled');
+    const orderNow = document.getElementById('order_now');
+    const schedulePicker = document.getElementById('schedulePicker');
+    const orderNowMessage = document.getElementById('orderNowMessage');
+
+    // Save order time selection when changed
+    if (orderScheduled) {
+        orderScheduled.addEventListener('change', function() {
+            if (this.checked) {
+                localStorage.setItem('order_time', 'scheduled');
             }
         });
     }
 
-    const orderScheduled = document.getElementById('order_scheduled');
-    const schedulePicker = document.getElementById('schedulePicker');
-    const orderNowMessage = document.getElementById('orderNowMessage');
+    if (orderNow) {
+        orderNow.addEventListener('change', function() {
+            if (this.checked) {
+                localStorage.setItem('order_time', 'now');
+                localStorage.removeItem('scheduled_date'); // Clear when switching to "now"
+            }
+        });
+    }
+
+    // Restore order time selection on page load
+    const savedOrderTime = localStorage.getItem('order_time');
+    if (savedOrderTime === 'scheduled' && orderScheduled) {
+        orderScheduled.checked = true;
+        if (schedulePicker) schedulePicker.style.display = 'block';
+        if (orderNowMessage) orderNowMessage.style.display = 'none';
+    } else if (savedOrderTime === 'now' && orderNow) {
+        orderNow.checked = true;
+        if (schedulePicker) schedulePicker.style.display = 'none';
+        if (orderNowMessage) orderNowMessage.style.display = 'block';
+    }
 
     function toggleSchedulePicker() {
         if (orderScheduled && orderScheduled.checked) {
-            schedulePicker.style.display = 'block';
-            orderNowMessage.style.display = 'none';
+            if (schedulePicker) schedulePicker.style.display = 'block';
+            if (orderNowMessage) orderNowMessage.style.display = 'none';
         } else {
-            schedulePicker.style.display = 'none';
-            orderNowMessage.style.display = 'block';
+            if (schedulePicker) schedulePicker.style.display = 'none';
+            if (orderNowMessage) orderNowMessage.style.display = 'block';
         }
+        updatePlaceOrderButtonState();
     }
 
     toggleSchedulePicker();
