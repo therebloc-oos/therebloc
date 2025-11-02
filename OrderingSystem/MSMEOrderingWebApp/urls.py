@@ -96,4 +96,5 @@ urlpatterns = [
     path('delete_category/<int:category_id>/', views.delete_category, name='delete_category'),
     path('add-closed-date/', views.add_closed_date, name='add_closed_date'),
     path('remove-closed-date/', views.remove_closed_date, name='remove_closed_date'),
+    path("generate-sales-report-excel/", views.sales_report_excel, name="sales_report_excel"),
 ]
