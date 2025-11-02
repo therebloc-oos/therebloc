@@ -2033,21 +2033,46 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const closedDates = {{ closed_dates|safe }};  // ["2025-10-30", "2025-10-31", "2025-11-01"]
-
-    flatpickr("#scheduled_date", {
-        enableTime: true,
-        dateFormat: "Y-m-d H:i",
-        minDate: "today",
-        disable: closedDates
-    });
+    const closedDates = {{ closed_dates|safe }};
+    const scheduledDateInput = document.getElementById('scheduled_date');
+    
+    if (scheduledDateInput) {
+        // Initialize Flatpickr with proper datetime-local format
+        const flatpickrInstance = flatpickr("#scheduled_date", {
+            enableTime: true,
+            dateFormat: "Y-m-d\\TH:i",  // ✅ Matches datetime-local format
+            time_24hr: true,
+            minDate: "today",
+            disable: closedDates,
+            // ✅ Update the input value when date is selected
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    const date = selectedDates[0];
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    
+                    // Set value in datetime-local format
+                    scheduledDateInput.value = ${year}-${month}-${day}T${hours}:${minutes};
+                    
+                    // ✅ Trigger validation (your existing code will handle this)
+                    const event = new Event('input', { bubbles: true });
+                    scheduledDateInput.dispatchEvent(event);
+                    
+                    console.log("Flatpickr date selected:", scheduledDateInput.value);
+                }
+            }
+        });
+    }
 
     const orderScheduled = document.getElementById('order_scheduled');
     const schedulePicker = document.getElementById('schedulePicker');
     const orderNowMessage = document.getElementById('orderNowMessage');
 
     function toggleSchedulePicker() {
-        if (orderScheduled.checked) {
+        if (orderScheduled && orderScheduled.checked) {
             schedulePicker.style.display = 'block';
             orderNowMessage.style.display = 'none';
         } else {
