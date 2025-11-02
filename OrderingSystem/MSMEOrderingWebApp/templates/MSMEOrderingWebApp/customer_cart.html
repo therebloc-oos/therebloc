@@ -1971,25 +1971,29 @@ function initDeleteButtons() {
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-
             const productName = this.closest('.cart-item').querySelector('.product-name').textContent;
             formToDelete = this.closest('form');
 
             document.getElementById('product-to-remove').textContent = `"${productName}"`;
-
             const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
             modal.show();
 
             const confirmBtn = document.getElementById('confirmDeleteBtn');
-
-            confirmBtn.onclick = function () {
-                if (formToDelete) {
-                    // ✅ Disable the remove button so it can’t be clicked twice
-                    const deleteBtn = formToDelete.querySelector('.delete-btn');
-                    deleteBtn.disabled = true;
-                    deleteBtn.classList.add('disabled'); // optional styling
-                    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+            
+            // ✅ Remove any existing click handlers to prevent duplicates
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            
+            // ✅ Add new click handler with double-click prevention
+            newConfirmBtn.onclick = function () {
+                if (formToDelete && !this.disabled) {
+                    // Disable button immediately
+                    this.disabled = true;
+                    this.style.opacity = '0.6';
+                    this.style.cursor = 'not-allowed';
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Removing...';
                     
+                    // Submit the form
                     formToDelete.submit();
                 }
             };
