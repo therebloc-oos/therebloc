@@ -2260,8 +2260,8 @@ def dashboard(request):
 
     total_inventory = Products.objects.values('name').distinct().count()
     pending_qs = Checkout.objects.filter(status__iexact="pending")
-	total_pending = pending_qs.values("group_id").distinct().count()
-
+    total_pending = pending_qs.values("group_id").distinct().count()
+    
     total_preparing = count_unique_orders(
         Checkout.objects.filter(
             status__in=["accepted", "Preparing", "Packed", "Out for Delivery", "Ready for Pickup", "delivered"]
