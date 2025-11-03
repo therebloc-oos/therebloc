@@ -6236,13 +6236,29 @@ def customer_home(request):
     # Sort best sellers by sold_count and take top 3
     best_seller_products = sorted(best_seller_products, key=lambda x: x['sold_count'], reverse=True)[:3]
 
+	# ✅ Add pagination (10 per page)
+    # Pagination
+    paginator = Paginator(unique_products, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    # ✅ Handle AJAX request
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        html = render_to_string(
+            'MSMEOrderingWebApp/customer_homegrid.html',
+            {'products': page_obj.object_list, 'page_obj': page_obj},
+            request=request
+        )
+        return JsonResponse({'html': html})
+
     # Format times to HH:MM:SS (ignore microseconds)
     current_time = datetime.now().strftime("%H:%M:%S")
     opening_time = business.opening_time.strftime("%H:%M:%S")
     closing_time = business.closing_time.strftime("%H:%M:%S")
 
     return render(request, 'MSMEOrderingWebApp/customer_home.html', {
-        'products': unique_products,
+	    'products': page_obj.object_list,
+        'page_obj': page_obj,
         'categories': categories,
         'all_products': list(products.values('name', 'variation_name', 'price', 'stocks', 'track_stocks', 'description')),
         'customization': customization,
