@@ -1115,14 +1115,124 @@
             font-size: 13px;
         }
     }
- 
-    
     </style>
 
     
 <div>
     <div class="container-fluid">
         <div class="container">
+
+            <!-- Apply Discount Button (in main inventory page) -->
+            <div class="mb-3 text-end">
+                <button type="button" class="btn btn-primary" onclick="openDiscountModal()">
+                    <i class="fas fa-tags me-2"></i>Apply Discount
+                </button>
+                <button type="button" class="btn btn-warning" onclick="openRevertModal()" id="revertDiscountBtn" style="display: none;">
+                    <i class="fas fa-undo me-2"></i>Revert Discount
+                </button>
+            </div>
+
+            <!-- Apply Discount Modal -->
+            <div class="modal fade" id="discountModal" tabindex="-1" aria-labelledby="discountModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h5 class="modal-title" id="discountModalLabel">
+                        <i class="fas fa-tags me-2"></i> Apply Discount by Category
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="discountPercentage" class="form-label">
+                        <i class="fas fa-percent me-2"></i> Discount Percentage
+                        </label>
+                        <input type="number" class="form-control" id="discountPercentage" 
+                            placeholder="Enter discount percentage (e.g., 10)" 
+                            min="0" max="100" step="1">
+                        <small class="text-muted">Enter whole numbers only (decimals will be ignored)</small>
+                    </div>
+            
+                    <div class="mb-3">
+                        <label class="form-label">
+                        <i class="fas fa-list me-2"></i> Select Categories
+                        </label>
+                        <div id="categoryCheckboxList" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                        {% for category in categories %}
+                            <div class="form-check mb-2">
+                            <input class="form-check-input discount-category-check" 
+                                    type="checkbox" 
+                                    value="{{ category.id }}" 
+                                    id="discountCat{{ category.id }}">
+                            <label class="form-check-label" for="discountCat{{ category.id }}">
+                                {{ category.name }}
+                            </label>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    </div>
+            
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> This will update the prices of all products in the selected categories. 
+                        The discount will be applied to the current price.
+                    </div>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="applyDiscount()">
+                        <i class="fas fa-check me-2"></i>Apply Discount
+                    </button>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <!-- NEW: Revert Discount Modal -->
+            <div class="modal fade" id="revertModal" tabindex="-1" aria-labelledby="revertModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning">
+                            <h5 class="modal-title" id="revertModalLabel">
+                                <i class="fas fa-undo me-2"></i> Revert Discount by Category
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-list me-2"></i> Select Categories to Revert
+                                </label>
+                                <div id="revertCategoryCheckboxList" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                                    {% for category in categories %}
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input revert-category-check" 
+                                                    type="checkbox" 
+                                                    value="{{ category.id }}" 
+                                                    id="revertCat{{ category.id }}">
+                                            <label class="form-check-label" for="revertCat{{ category.id }}">
+                                                {{ category.name }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                    
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Warning:</strong> This will restore products to their original prices before any discounts were applied.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-warning" onclick="revertDiscount()">
+                                <i class="fas fa-undo me-2"></i>Revert to Original Prices
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Add Product Form -->
             <div class="form-section fade-in">
                 <h3 class="section-title">
@@ -2467,7 +2577,6 @@ function openAddCategoryModal() {
     document.getElementById('modalOverlay').style.display = 'block';
     document.body.style.overflow = 'hidden';
 }
-
 </script>
 
 <script>
@@ -2619,4 +2728,219 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>   
+
+<script>
+// Open Revert Modal
+function openRevertModal() {
+    const modal = new bootstrap.Modal(document.getElementById('revertModal'));
+    modal.show();
+}
+
+// Check if there are original prices stored and show/hide revert button
+function checkOriginalPrices() {
+    fetch('/check-original-prices/', {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const revertBtn = document.getElementById('revertDiscountBtn');
+        if (data.has_original_prices) {
+            revertBtn.style.display = 'inline-block';
+        } else {
+            revertBtn.style.display = 'none';
+        }
+    })
+    .catch(error => console.error('Error checking original prices:', error));
+}
+
+// Open Discount Modal
+function openDiscountModal() {
+    const modal = new bootstrap.Modal(document.getElementById('discountModal'));
+    modal.show();
+}
+
+// Updated Apply Discount Function
+function applyDiscount() {
+    const discountPercentage = parseInt(document.getElementById('discountPercentage').value);
+    const selectedCategories = [];
+    
+    document.querySelectorAll('.discount-category-check:checked').forEach(checkbox => {
+        selectedCategories.push(checkbox.value);
+    });
+    
+    if (!discountPercentage || discountPercentage <= 0 || discountPercentage > 100) {
+        toastr.error('Please enter a valid discount percentage between 1 and 100');
+        return;
+    }
+    
+    if (selectedCategories.length === 0) {
+        toastr.error('Please select at least one category');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to apply ${discountPercentage}% discount to ${selectedCategories.length} categor${selectedCategories.length > 1 ? 'ies' : 'y'}?`)) {
+        return;
+    }
+    
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch('/apply-category-discount/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+            discount_percentage: discountPercentage,
+            category_ids: selectedCategories
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('discountModal'));
+            modal.hide();
+            
+            document.getElementById('discountPercentage').value = '';
+            document.querySelectorAll('.discount-category-check').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            toastr.success(data.message);
+            
+            // Update prices in the table
+            if (data.updated_products && data.updated_products.length > 0) {
+                data.updated_products.forEach(product => {
+                    const allRows = document.querySelectorAll('.product-row');
+                    allRows.forEach(row => {
+                        const editBtn = row.querySelector(`[onclick*="'${product.id}'"]`);
+                        if (!editBtn) return;
+                        
+                        const cells = Array.from(row.querySelectorAll('td'));
+                        cells.forEach(cell => {
+                            if (cell.classList.contains('product-price') || 
+                                (cell.textContent.includes('₱') && !cell.querySelector('input') && !cell.querySelector('button'))) {
+                                cell.textContent = `₱${parseFloat(product.new_price).toFixed(2)}`;
+                            }
+                        });
+                        
+                        const editButton = row.querySelector('.btn-outline-primary');
+                        if (editButton) {
+                            const onclickAttr = editButton.getAttribute('onclick');
+                            const updatedOnclick = onclickAttr.replace(
+                                /openEditModal\('([^']+)',\s*'([^']+)'/,
+                                `openEditModal('$1', '${product.new_price}'`
+                            );
+                            editButton.setAttribute('onclick', updatedOnclick);
+                        }
+                    });
+                });
+            }
+            
+            // Show revert button if we have original prices
+            if (data.has_original_prices) {
+                document.getElementById('revertDiscountBtn').style.display = 'inline-block';
+            }
+        } else {
+            toastr.error(data.error || 'Failed to apply discount');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        toastr.error('An error occurred while applying discount');
+    });
+}
+
+// NEW: Revert Discount Function
+function revertDiscount() {
+    const selectedCategories = [];
+    
+    document.querySelectorAll('.revert-category-check:checked').forEach(checkbox => {
+        selectedCategories.push(checkbox.value);
+    });
+    
+    if (selectedCategories.length === 0) {
+        toastr.error('Please select at least one category');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to revert prices for ${selectedCategories.length} categor${selectedCategories.length > 1 ? 'ies' : 'y'} to original prices?`)) {
+        return;
+    }
+    
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch('/revert-category-discount/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+            category_ids: selectedCategories
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('revertModal'));
+            modal.hide();
+            
+            document.querySelectorAll('.revert-category-check').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            toastr.success(data.message);
+            
+            // Update prices in the table
+            if (data.reverted_products && data.reverted_products.length > 0) {
+                data.reverted_products.forEach(product => {
+                    const allRows = document.querySelectorAll('.product-row');
+                    allRows.forEach(row => {
+                        const editBtn = row.querySelector(`[onclick*="'${product.id}'"]`);
+                        if (!editBtn) return;
+                        
+                        const cells = Array.from(row.querySelectorAll('td'));
+                        cells.forEach(cell => {
+                            if (cell.classList.contains('product-price') || 
+                                (cell.textContent.includes('₱') && !cell.querySelector('input') && !cell.querySelector('button'))) {
+                                cell.textContent = `₱${parseFloat(product.reverted_price).toFixed(2)}`;
+                            }
+                        });
+                        
+                        const editButton = row.querySelector('.btn-outline-primary');
+                        if (editButton) {
+                            const onclickAttr = editButton.getAttribute('onclick');
+                            const updatedOnclick = onclickAttr.replace(
+                                /openEditModal\('([^']+)',\s*'([^']+)'/,
+                                `openEditModal('$1', '${product.reverted_price}'`
+                            );
+                            editButton.setAttribute('onclick', updatedOnclick);
+                        }
+                    });
+                });
+            }
+            
+            // Hide revert button if no more original prices
+            if (!data.has_original_prices) {
+                document.getElementById('revertDiscountBtn').style.display = 'none';
+            }
+        } else {
+            toastr.error(data.error || 'Failed to revert discount');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        toastr.error('An error occurred while reverting discount');
+    });
+}
+
+// Check for original prices on page load
+document.addEventListener('DOMContentLoaded', function() {
+    checkOriginalPrices();
+});
+</script>
 {% endblock %}
