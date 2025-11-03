@@ -201,3 +201,11 @@ CSRF_COOKIE_SECURE = False
 DATA_UPLOAD_MAX_MEMORY_SIZE = 209715200  # 200 * 1024 * 1024 bytes
 FILE_UPLOAD_MAX_MEMORY_SIZE = 209715200
 
+# Cache Configuration (for storing original prices across logins)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'my_cache_table',
+    }
+}
+
