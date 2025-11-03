@@ -2488,7 +2488,7 @@ def sales_report_excel(request):
     elif report_type == "inventory":
         _generate_inventory_excel(ws, add_table_header, add_data_row)
     elif report_type == "top_products":
-        _generate_top_products_excel(ws, add_table_header, add_data_row)
+        _generate_top_products_excel(ws, add_table_header, add_data_row, orders)
 
     # === Auto column width ===
     for i, col in enumerate(ws.columns, start=1):
