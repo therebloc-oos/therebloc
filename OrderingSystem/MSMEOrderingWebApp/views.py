@@ -57,6 +57,8 @@ from django.conf import settings as django_settings
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.http import require_http_methods
 from django.core.cache import cache
+from django.core.paginator import Paginator
+
 
 @login_required_session(allowed_roles=['owner'])
 def apply_category_discount(request):
