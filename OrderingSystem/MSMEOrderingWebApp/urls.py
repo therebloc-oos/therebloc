@@ -97,4 +97,8 @@ urlpatterns = [
     path('add-closed-date/', views.add_closed_date, name='add_closed_date'),
     path('remove-closed-date/', views.remove_closed_date, name='remove_closed_date'),
     path("generate-sales-report-excel/", views.sales_report_excel, name="sales_report_excel"),
+    path('apply-category-discount/', views.apply_category_discount, name='apply_category_discount'),
+    path('revert-category-discount/', views.revert_category_discount, name='revert_category_discount'),
+    path('clear-original-prices/', views.clear_original_prices, name='clear_original_prices'),
+    path('check-original-prices/', views.check_original_prices, name='check_original_prices'),
 ]
