@@ -1,3 +1,4 @@
+
 {% block title %}{% endblock %}
 
 {% block content %}
@@ -1189,7 +1190,6 @@
         
         // Initialize the page
         updateSummary();
-        document.getElementById('orderType')?.addEventListener('change', updatePlaceOrderButton);
         document.querySelectorAll('.cart-item').forEach((item, index) => {
             item.style.opacity = '0';
             item.style.transform = 'translateY(20px)';
@@ -1452,14 +1452,6 @@
         const totalText = document.getElementById('total')?.textContent || '0';
         const total = parseFloat(totalText.replace(/[^\d.]/g, ''));
 
-        // ✅ NEW: check if order type is selected
-        const orderType = document.getElementById('orderType')?.value || '';
-
-        if (!orderType) {
-            button.disabled = true;
-            return;
-        }
-
         if (hasItems && hasPayment) {
             if (selectedPaymentMethod === 'cash') {
                 button.disabled = cashAmount < total;
@@ -1470,7 +1462,6 @@
             button.disabled = true;
         }
     }
-
 
 
     document.getElementById('cash-amount')?.addEventListener('input', () => {
