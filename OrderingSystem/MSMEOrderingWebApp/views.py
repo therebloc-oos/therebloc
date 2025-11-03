@@ -56,6 +56,196 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings as django_settings
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.http import require_http_methods
+from django.core.cache import cache
+
+@login_required_session(allowed_roles=['owner'])
+def apply_category_discount(request):
+    if request.method == 'POST':
+        try:
+            owner_id = request.session.get('owner_id')
+            if not owner_id:
+                return JsonResponse({'success': False, 'error': 'Session expired or not logged in.'})
+
+            data = json.loads(request.body)
+            discount_percentage = int(data.get('discount_percentage', 0))
+            category_ids = data.get('category_ids', [])
+
+            if discount_percentage <= 0 or discount_percentage > 100:
+                return JsonResponse({'success': False, 'error': 'Invalid discount percentage'})
+
+            if not category_ids:
+                return JsonResponse({'success': False, 'error': 'No categories selected'})
+
+            try:
+                category_ids = [int(cid) for cid in category_ids]
+            except (ValueError, TypeError):
+                return JsonResponse({'success': False, 'error': 'Invalid category IDs'})
+
+            valid_categories = ProductCategory.objects.filter(id__in=category_ids)
+            
+            if valid_categories.count() != len(category_ids):
+                return JsonResponse({'success': False, 'error': 'Some categories do not belong to your business'})
+
+            products = Products.objects.filter(category__in=valid_categories)
+
+            # Use cache with owner-specific key to persist across logins
+            cache_key = f'original_prices_{owner_id}'
+            
+            # Get existing original prices from cache or initialize empty dict
+            original_prices = cache.get(cache_key, {})
+
+            updated_products = []
+            updated_count = 0
+
+            for product in products:
+                product_id = str(product.id)
+                
+                # Store original price ONLY if not already stored
+                if product_id not in original_prices:
+                    original_prices[product_id] = {
+                        'price': str(product.price),
+                        'category_id': product.category.id
+                    }
+
+                old_price = product.price
+                discount_multiplier = Decimal(100 - discount_percentage) / Decimal(100)
+                # Use floor division to remove decimals - just flat integer
+                new_price = int(old_price * discount_multiplier)
+
+                product.price = new_price
+                product.save()
+
+                updated_products.append({
+                    'id': product_id,
+                    'old_price': str(old_price),
+                    'new_price': str(new_price),
+                    'original_price': original_prices[product_id]['price']
+                })
+                updated_count += 1
+
+            # Save original prices to cache with 2 month timeout (60 days)
+            cache.set(cache_key, original_prices, timeout=60*60*24*60)  # 60 days in seconds
+
+            return JsonResponse({
+                'success': True,
+                'message': f'Successfully applied {discount_percentage}% discount to {updated_count} product(s)',
+                'updated_products': updated_products,
+                'has_original_prices': True
+            })
+
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+@login_required_session(allowed_roles=['owner'])
+def revert_category_discount(request):
+    """Revert products back to their original prices (cache-based)"""
+    if request.method == 'POST':
+        try:
+            owner_id = request.session.get('owner_id')
+            if not owner_id:
+                return JsonResponse({'success': False, 'error': 'Session expired or not logged in.'})
+
+            data = json.loads(request.body)
+            category_ids = data.get('category_ids', [])
+
+            if not category_ids:
+                return JsonResponse({'success': False, 'error': 'No categories selected'})
+
+            cache_key = f'original_prices_{owner_id}'
+            original_prices = cache.get(cache_key, {})
+            if not original_prices:
+                return JsonResponse({'success': False, 'error': 'No original prices found. Cannot revert.'})
+
+            try:
+                category_ids = [int(cid) for cid in category_ids]
+            except (ValueError, TypeError):
+                return JsonResponse({'success': False, 'error': 'Invalid category IDs'})
+
+            valid_categories = ProductCategory.objects.filter(id__in=category_ids)
+            products = Products.objects.filter(category__in=valid_categories)
+
+            reverted_products = []
+            reverted_count = 0
+
+            for product in products:
+                product_id = str(product.id)
+                
+                if product_id in original_prices:
+                    current_price = product.price
+                    original_price = Decimal(original_prices[product_id]['price'])
+
+                    product.price = original_price
+                    product.save()
+
+                    reverted_products.append({
+                        'id': product_id,
+                        'current_price': str(current_price),
+                        'reverted_price': str(original_price)
+                    })
+                    reverted_count += 1
+
+                    del original_prices[product_id]  # remove from cache dict
+
+            # Update cache after reverting
+            cache.set(cache_key, original_prices, timeout=60*60*24*60)  # 60 days
+
+            return JsonResponse({
+                'success': True,
+                'message': f'Successfully reverted {reverted_count} product(s)',
+                'reverted_products': reverted_products,
+                'has_original_prices': len(original_prices) > 0
+            })
+
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+@login_required_session(allowed_roles=['owner'])
+def check_original_prices(request):
+    """Check if there are any original prices stored (cache-based)"""
+    try:
+        owner_id = request.session.get('owner_id')
+        if not owner_id:
+            return JsonResponse({'has_original_prices': False})
+        
+        cache_key = f'original_prices_{owner_id}'
+        original_prices = cache.get(cache_key, {})
+        
+        return JsonResponse({
+            'has_original_prices': len(original_prices) > 0,
+            'count': len(original_prices)
+        })
+    except Exception as e:
+        return JsonResponse({'has_original_prices': False, 'error': str(e)})
+
+@login_required_session(allowed_roles=['owner'])
+def clear_original_prices(request):
+    """Clear all stored original prices from cache"""
+    if request.method == 'POST':
+        try:
+            owner_id = request.session.get('owner_id')
+            if not owner_id:
+                return JsonResponse({'success': False, 'error': 'Session expired'})
+            
+            cache_key = f'original_prices_{owner_id}'
+            cache.delete(cache_key)
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Original prices cleared from cache'
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 @login_required_session(allowed_roles=['owner'])
 @require_POST
