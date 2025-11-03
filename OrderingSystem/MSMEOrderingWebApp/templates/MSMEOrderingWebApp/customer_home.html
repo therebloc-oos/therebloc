@@ -61,12 +61,6 @@
     }
     {% endif %}
 
-    .container, .container-fluid {
-        padding-left: 5px !important;
-        padding-right: 5px !important;
-        max-width: 100% !important;
-    }
-        
 
     /* Banner Section */
     .banner-section {
@@ -250,12 +244,13 @@
         background: rgba(255,255,255,0.8);
         backdrop-filter: blur(20px);
         border-radius: 20px;
-        padding: 18px;
+        padding: 30px;
         margin-bottom: 40px;
-        border-bottom: 3px solid;
-        border-top: 3px solid;
+        border-bottom: 2px solid;
+        border-top: 2px solid;
         border-color: var(--primary-color);
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+
         position: sticky;
         top: 73px;
         z-index: 1000; /* keeps it above other content */
@@ -283,7 +278,7 @@
 
     .form-select {
         font-weight: 600;
-        padding: 10px 25px;
+        padding: 15px 25px;
         background: white;
         box-shadow: none;
         color: {{ customization.body_font_color|default:"#000000" }};
@@ -302,7 +297,7 @@
 
     .clear-btn {
         background: var(--primary-color);
-        border: 2px solid var(--primary-color);
+        border: 2px solid var(--secondary-color);
         padding: 15px 20px;
         border-radius: 0 50px 50px 0;
         transition: all 0.3s ease;
@@ -836,7 +831,7 @@
         }
         
         .search-section {
-            padding: 10px;
+            padding: 20px;
         }
         
         .product-card {
@@ -1364,393 +1359,391 @@
         
     }
 
-    /* Modern Pagination Styles */
-    .pagination {
-        gap: 4px;
-        margin: 2rem 0;
-    }
-
-    .pagination .page-item {
-        list-style: none;
-    }
-
-    .pagination .page-link {
-        padding: 10px 16px;
-        color: {{ customization.body_font_color|default:"#000000" }};
-        font-family: '{{ customization.body_font_family|default:"Arial" }}';
-        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
-        border-width: 1px; 
-        border-style: {{ customization.input_border_style|default:'solid' }};
-        border-color: {{ customization.primary_color|default:'#000000' }};
-        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
-        font-weight: 500;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        background: white;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    .pagination .page-link:hover {
-        color: {{ customization.button_text_color|default:'#ffffff' }};
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .pagination .page-item.active .page-link {
-        background: linear-gradient(135deg, var(--primary-color) 50%, var(--secondary-color) 100%);
-        border-color: var(--primary-color);
-        color: {{ customization.button_text_color|default:'#ffffff' }};
-        cursor: default;
-        box-shadow: 0 4px 12px rgba(31, 31, 31, 0.3);
-    }
-
-    .pagination .page-item.active .page-link:hover {
-        transform: none;
-    }
-
-    .pagination-link {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 44px;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 576px) {
-        .pagination {
-            gap: 4px;
-        }
-        
-        .pagination .page-link {
-            padding: 8px 12px;
-            font-size: 14px;
-        }
-    }
-
 </style>
 
-<div class = "container">
-    <!-- Banner Section with Slideshow -->
-    <div class="banner-section">
-        <!-- Slideshow Container -->
-        <div class="banner-slideshow" id="bannerSlideshow">
-            <!-- Welcome Slide -->
-            <div class="slide welcome-slide active" data-slide="0">
-                <!-- Text Over Welcome Slide -->
-                <div class="banner-content">
-                    <div class="banner-text">
-                        <h1>Welcome to {% if business %}{{ business.business_name }}!{% else %}Our Store{% endif %}</h1>
-                        <p>
-                            {% if business.start_day and business.end_day and business.opening_time and business.closing_time %}
-                                We are open every {{ business.start_day }} to {{ business.end_day }} from {{ business.opening_time|date:"h:i A" }} to {{ business.closing_time|date:"h:i A" }}.
-                            {% else %}
-                                Discover amazing products at unbeatable prices
-                            {% endif %}
-                        </p>
-                        <p>
-                            {% if dynamic_description %}
-                                {{ dynamic_description }}
-                            {% else %}
-                                Shop with us today and find what you love!
-                            {% endif %}
-                        </p>
-                        <button class="btn banner-cta" onclick="scrollToSearch()">
-                            <i class="fas fa-search me-2"></i>Start Shopping
+
+<!-- Banner Section with Slideshow -->
+<div class="banner-section">
+    <!-- Slideshow Container -->
+    <div class="banner-slideshow" id="bannerSlideshow">
+        <!-- Welcome Slide -->
+        <div class="slide welcome-slide active" data-slide="0">
+            <!-- Text Over Welcome Slide -->
+            <div class="banner-content">
+                <div class="banner-text">
+                    <h1>Welcome to {% if business %}{{ business.business_name }}!{% else %}Our Store{% endif %}</h1>
+                    <p>
+                        {% if business.start_day and business.end_day and business.opening_time and business.closing_time %}
+                            We are open every {{ business.start_day }} to {{ business.end_day }} from {{ business.opening_time|date:"h:i A" }} to {{ business.closing_time|date:"h:i A" }}.
+                        {% else %}
+                            Discover amazing products at unbeatable prices
+                        {% endif %}
+                    </p>
+                    <p>
+                        {% if dynamic_description %}
+                            {{ dynamic_description }}
+                        {% else %}
+                            Shop with us today and find what you love!
+                        {% endif %}
+                    </p>
+                    <button class="btn banner-cta" onclick="scrollToSearch()">
+                        <i class="fas fa-search me-2"></i>Start Shopping
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Custom Images (if available) -->
+        {% if customization.homepage_image_1 %}
+        <div class="slide" data-slide="6" style="background-image: url('{{ customization.homepage_image_1.url }}');"></div>
+        {% endif %}
+        {% if customization.homepage_image_2 %}
+        <div class="slide" data-slide="7" style="background-image: url('{{ customization.homepage_image_2.url }}');"></div>
+        {% endif %}
+        {% if customization.homepage_image_3 %}
+        <div class="slide" data-slide="8" style="background-image: url('{{ customization.homepage_image_3.url }}');"></div>
+        {% endif %}
+        {% if customization.homepage_image_4 %}
+        <div class="slide" data-slide="9" style="background-image: url('{{ customization.homepage_image_4.url }}');"></div>
+        {% endif %}
+        {% if customization.homepage_image_5 %}
+        <div class="slide" data-slide="10" style="background-image: url('{{ customization.homepage_image_5.url }}');"></div>
+        {% endif %}
+    </div>
+
+    <!-- Navigation Arrows -->
+    <button class="slideshow-nav prev" id="prevSlide" onclick="changeSlide(-1)">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <button class="slideshow-nav next" id="nextSlide" onclick="changeSlide(1)">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+
+    <!-- Indicators -->
+    <div class="slideshow-indicators" id="slideshowIndicators">
+        <div class="indicator active" onclick="currentSlide(0)"></div>
+        {% if customization.homepage_image_1 %}<div class="indicator" onclick="currentSlide(6)"></div>{% endif %}
+        {% if customization.homepage_image_2 %}<div class="indicator" onclick="currentSlide(7)"></div>{% endif %}
+        {% if customization.homepage_image_3 %}<div class="indicator" onclick="currentSlide(8)"></div>{% endif %}
+        {% if customization.homepage_image_4 %}<div class="indicator" onclick="currentSlide(9)"></div>{% endif %}
+        {% if customization.homepage_image_5 %}<div class="indicator" onclick="currentSlide(10)"></div>{% endif %}
+    </div>
+</div>
+
+
+<!-- Best Seller Section -->
+{% if customization.show_best_sellers %}
+<div class="bestseller-section">
+    <div class="section-header text-center mb-2">
+        <h2 class="bestseller-title">
+            <i class="fas fa-trophy me-1"></i>{{ customization.best_sellers_title|default:"Best Sellers" }}
+        </h2>
+        <p class="bestseller-subtitle">{{ best_sellers_description|default:"Our most popular products loved by customers" }}</p>
+    </div>
+
+    <!-- Best Seller Products Grid (same style as product grid) -->
+    <div class="row" id="bestsellerGrid">
+        {% for product in best_seller_products %}
+        <!-- ✅ Only show if stocks > 0 when tracking stocks -->
+        {% if not product.track_stocks or product.stocks > 0 %}
+        <div class="col-6 col-md-4 col-xl-3 g-2 product-card fade-in" 
+             data-name="{{ product.name|lower }}" 
+             data-category="{{ product.category }}">
+             
+            <!-- Ranking Badge -->
+            <div class="bestseller-rank">{{ forloop.counter }}</div>
+
+            <div class="card">
+                {% if product.image %}
+                <div class="card-img-container ratio ratio-1x1">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+                </div>
+                {% else %}
+                <div class="card-img-container ratio ratio-1x1">
+                    <div class="card-img-placeholder d-flex align-items-center justify-content-center"
+                        style="
+                            width: 100%; 
+                            height: 100%; 
+                            border-radius: 20px 20px 0 0;
+                            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+                        ">
+                        <span style="font-size: 5rem; font-weight: 800; color: #ffffff;">
+                            {{ product.name|first|upper }}
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="card-body d-flex flex-column">
+                    <h6 class="mb-0">
+                        <span class="card-title mb-0">{{ product.name }}</span>
+                        {% if product.track_stocks %}
+                            <span class="product-stocks">(Stocks: {{ product.stocks }})</span>
+                        {% endif %}
+                    </h6>
+                    <div>
+                        <div class="price-badge mb-2">{{ product.price_range }}</div>
+                        <button class="btn btn-add-to-cart w-100"
+                                data-product="{{ product.name }}"
+                                data-image="{% if product.image %}{{ product.image.url }}{% endif %}">
+                            <i class="fas fa-cart-plus me-2"></i>Add to Cart
                         </button>
                     </div>
                 </div>
             </div>
-            
-            <!-- Custom Images (if available) -->
-            {% if customization.homepage_image_1 %}
-            <div class="slide" data-slide="6" style="background-image: url('{{ customization.homepage_image_1.url }}');"></div>
-            {% endif %}
-            {% if customization.homepage_image_2 %}
-            <div class="slide" data-slide="7" style="background-image: url('{{ customization.homepage_image_2.url }}');"></div>
-            {% endif %}
-            {% if customization.homepage_image_3 %}
-            <div class="slide" data-slide="8" style="background-image: url('{{ customization.homepage_image_3.url }}');"></div>
-            {% endif %}
-            {% if customization.homepage_image_4 %}
-            <div class="slide" data-slide="9" style="background-image: url('{{ customization.homepage_image_4.url }}');"></div>
-            {% endif %}
-            {% if customization.homepage_image_5 %}
-            <div class="slide" data-slide="10" style="background-image: url('{{ customization.homepage_image_5.url }}');"></div>
-            {% endif %}
         </div>
+        {% endif %}
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="fas fa-star fa-2x empty-icon"></i>
+                <h5>No bestsellers available</h5>
+                <p>Please check back later.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
-        <!-- Navigation Arrows -->
-        <button class="slideshow-nav prev" id="prevSlide" onclick="changeSlide(-1)">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        <button class="slideshow-nav next" id="nextSlide" onclick="changeSlide(1)">
-            <i class="fas fa-chevron-right"></i>
-        </button>
-
-        <!-- Indicators -->
-        <div class="slideshow-indicators" id="slideshowIndicators">
-            <div class="indicator active" onclick="currentSlide(0)"></div>
-            {% if customization.homepage_image_1 %}<div class="indicator" onclick="currentSlide(6)"></div>{% endif %}
-            {% if customization.homepage_image_2 %}<div class="indicator" onclick="currentSlide(7)"></div>{% endif %}
-            {% if customization.homepage_image_3 %}<div class="indicator" onclick="currentSlide(8)"></div>{% endif %}
-            {% if customization.homepage_image_4 %}<div class="indicator" onclick="currentSlide(9)"></div>{% endif %}
-            {% if customization.homepage_image_5 %}<div class="indicator" onclick="currentSlide(10)"></div>{% endif %}
+<!-- Search and Filter Section -->
+<div id="searchSection" class="search-section">
+    <div class="row align-items-center">
+        <div class="col-lg-8 mb-3 mb-lg-0">
+            <div class="input-group search-input-group">
+                <input type="text" class="form-control" id="searchInput" 
+                       placeholder="Search..." onkeyup="filterProducts()" autocomplete="off">
+                <button class="btn clear-btn" type="button" onclick="clearSearch()" title="Clear search">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-lg-4 d-flex align-items-center position-relative">
+            <select id="categoryFilter" class="form-select pe-5" onchange="filterProducts()">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat.name }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <i class="bi bi-caret-down-fill position-absolute" style="right: 25px; pointer-events: none;"></i>
         </div>
     </div>
 
-
-    <!-- Best Seller Section -->
-    {% if customization.show_best_sellers %}
-    <div class="bestseller-section">
-        <div class="section-header text-center mb-2">
-            <h2 class="bestseller-title">
-                <i class="fas fa-trophy me-1"></i>{{ customization.best_sellers_title|default:"Best Sellers" }}
-            </h2>
-            <p class="bestseller-subtitle">{{ best_sellers_description|default:"Our most popular products loved by customers" }}</p>
-        </div>
-
-        <!-- Best Seller Products Grid (same style as product grid) -->
-        <div class="row" id="bestsellerGrid">
-            {% for product in best_seller_products %}
-            <!-- ✅ Only show if stocks > 0 when tracking stocks -->
-            {% if not product.track_stocks or product.stocks > 0 %}
-            <div class="col-6 col-md-4 col-xl-3 g-2 product-card fade-in" 
-                data-name="{{ product.name|lower }}" 
-                data-category="{{ product.category }}">
-                
-                <!-- Ranking Badge -->
-                <div class="bestseller-rank">{{ forloop.counter }}</div>
-
-                <div class="card">
-                    {% if product.image %}
-                    <div class="card-img-container ratio ratio-1x1">
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
-                    </div>
-                    {% else %}
-                    <div class="card-img-container ratio ratio-1x1">
-                        <div class="card-img-placeholder d-flex align-items-center justify-content-center"
-                            style="
-                                width: 100%; 
-                                height: 100%; 
-                                border-radius: 20px 20px 0 0;
-                                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
-                            ">
-                            <span style="font-size: 5rem; font-weight: 800; color: #ffffff;">
-                                {{ product.name}}
-                            </span>
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="card-body d-flex flex-column">
-                        <h6 class="mb-0">
-                            <span class="card-title mb-0">{{ product.name }}</span>
-                            {% if product.track_stocks %}
-                                <span class="product-stocks">(Stocks: {{ product.stocks }})</span>
-                            {% endif %}
-                        </h6>
-                        <div>
-                            <div class="price-badge mb-2">{{ product.price_range }}</div>
-                            <button class="btn btn-add-to-cart w-100"
-                                    data-product="{{ product.name }}"
-                                    data-image="{% if product.image %}{{ product.image.url }}{% endif %}">
-                                <i class="fas fa-cart-plus me-2"></i>Add to Cart
-                            </button>
-                        </div>
-                    </div>
-                </div>
+    <div class="row mt-3">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div class="product-count">
+                <i class="fas fa-box me-2"></i>
+                <span id="productCount">{{ products|length }}</span> product{{ products|length|pluralize }} available
             </div>
-            {% endif %}
-            {% empty %}
-            <div class="col-12">
-                <div class="empty-state">
-                    <i class="fas fa-star fa-2x empty-icon"></i>
-                    <h5>No bestsellers available</h5>
-                    <p>Please check back later.</p>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Search and Filter Section -->
-    <div id="searchSection" class="search-section">
-        <div class="row align-items-center">
-            <div class="col-lg-8 mb-2 mb-lg-0">
-                <div class="input-group search-input-group">
-                    <input type="text" class="form-control" id="searchInput" 
-                        placeholder="Search..." onkeyup="filterProducts()" autocomplete="off">
-                    <button class="btn clear-btn" type="button" onclick="clearSearch()" title="Clear search">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="col-lg-4 d-flex align-items-center position-relative">
-                <select id="categoryFilter" class="form-select pe-2" onchange="filterProducts()">
-                    <option value="">All Categories</option>
-                    {% for cat in categories %}
-                    <option value="{{ cat.name }}">{{ cat.name }}</option>
-                    {% endfor %}
-                </select>
-                <i class="bi bi-caret-down-fill position-absolute" style="right: 25px; pointer-events: none;"></i>
+            <div class="d-flex gap-2">
+                <button class="gridIcon" onclick="toggleGridView()">
+                    <i class="fas fa-th" id="gridIcon"></i>
+                </button>
             </div>
         </div>
-    </div>
-
-
-    <!-- Success Message -->
-    <div class="cart-success scale-in" id="cartSuccess">
-        <div class="d-flex align-items-center">
-            <i class="fas fa-check-circle me-3 fs-4"></i>
-            <div>
-                <strong>Success!</strong><br>
-                <span id="successMessage">Item added to cart successfully!</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Loading Spinner -->
-    <div class="loading-spinner" id="loadingSpinner">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="mt-3 fw-semibold">Adding to cart...</p>
-    </div>
-
-    <!-- Outside Hours Message -->
-    <div class="cart-success scale-in" id="outsideHoursNotice" style="display: none; background: #dc3545;">
-        <div class="d-flex align-items-center">
-            <i class="fas fa-clock me-3 fs-4"></i>
-            <div>
-                <strong>WE ARE CLOSED!</strong><br>
-                <span>We’re happy to serve you from {{ business.opening_time|date:"h:i A" }} to {{ business.closing_time|date:"h:i A" }} from {{ business.start_day }} to {{ business.end_day }}. You’ll be able to add items to your cart once we’re open again. Thank you for your understanding!</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Force Closed Message -->
-    <div class="cart-success scale-in" id="forceClosedNotice" style="display: none; background: #dc3545;">
-        <div class="d-flex align-items-center">
-            <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
-            <div>
-                <strong>SHOP TEMPORARILY CLOSED!</strong><br>
-                <span>We are currently closed due to urgent reasons. Please check back later. Thank you for your understanding!</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="productSection">
-        {% include 'MSMEOrderingWebApp/customer_homegrid.html' %}
-    </div>
-
-
-    <!-- No Results Message -->
-    <div class="empty-state" id="noResults" style="display: none;">
-        <i class="fas fa-search-minus fa-5x empty-icon"></i>
-        <h5>No products found</h5>
-        <p>Try adjusting your search terms or browse different categories.</p>
-        <button class="btn btn-add-to-cart mt-3" onclick="clearSearch()">
-            <i class="fas fa-refresh me-2"></i>Clear Filters
-        </button>
-    </div>
-
-    <!-- Updated Modal HTML Structure -->
-    <div class="modal fade" id="addToCartModal" tabindex="-1" aria-labelledby="addToCartModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 shadow">
-
-        <!-- Modal Header -->
-        <div class="modal-header bg-primary text-white rounded-top-4">
-            <h5 class="modal-title fw-bold" id="addToCartModalLabel">
-            <i class="fas fa-cart-plus me-2"></i>Add to Cart
-            </h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-
-        <!-- Modal Body -->
-        <div class="modal-body">
-
-            <!-- Product Image Container - FIXED STRUCTURE -->
-            <div class="modal-image-wrapper">
-                <div class="modal-image-box" id="modalImageContainer">
-                    <!-- Image Element -->
-                    <img id="modalProductImage" 
-                        src="" 
-                        alt="Product Image"
-                        style="display: none;">
-                    
-                    <!-- Placeholder Element -->
-                    <div id="modalPlaceholder" 
-                        class="modal-placeholder"
-                        style="display: none;">
-                        <span id="modalPlaceholderLetter"></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product Name + Description -->
-            <div class="mb-0 text-center">
-            <label class="form-label fw-semibold text-muted">PRODUCT</label>
-            <h5 id="modalProductName"></h5>
-            <p id="modalProductDescription" class="text-muted small mt-1"></p> <!-- ✅ New description -->
-            </div>
-
-            <!-- Variation + Quantity Row -->
-            <div class="d-flex flex-wrap align-items-end justify-content-between p-3">
-                <!-- Variation -->
-                <div class="flex-fill position-relative" style="max-width: 250px;">
-                    <label for="modalVariation" class="form-label fw-semibold mb-2 text-muted">VARIATION</label>
-                    
-                    <select class="modal-dropdown" id="modalVariation" required>
-                        <option value="">Choose a variation...</option>
-                    </select>
-
-                    <!-- Dropdown Logo/Icon -->
-                    <i class="bi bi-caret-down-fill dropdown-logo"></i>
-                </div>
-
-                <!-- Quantity -->
-                <div>
-                    <label class="form-label fw-semibold mb-2 text-muted">QUANTITY</label>
-                    <div class="quantity-control">
-                    <button class="quantity-btn" type="button" onclick="adjustQuantity(-1)">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <input type="number" class="quantity-input" id="modalQuantity" min="1" max="99" value="1" readonly>
-                    <button class="quantity-btn" type="button" onclick="adjustQuantity(1)">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Price and Total -->
-            <div class="row p-3">
-            <div class="col-6">
-                <label class="form-label">UNIT PRICE</label>
-                <div class="unit-total text-success mb-0">₱<span id="modalPrice">0.00</span></div>
-            </div>
-            <div class="col-6 text-end">
-                <label class="form-label">TOTAL</label>
-                <div class="unit-total text-primary mb-0">₱<span id="modalTotal">0.00</span></div>
-            </div>
-            </div>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="modal-footer bg-light rounded-bottom-4">
-            <button type="button" class="btn btn-primary" onclick="addToCartConfirmed()" id="confirmAddBtn">
-            <i class="fas fa-cart-plus me-2"></i>Add to Cart
-            </button>
-        </div>
-        </div>
-    </div>
     </div>
 </div>
 
+
+<!-- Success Message -->
+<div class="cart-success scale-in" id="cartSuccess">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-check-circle me-3 fs-4"></i>
+        <div>
+            <strong>Success!</strong><br>
+            <span id="successMessage">Item added to cart successfully!</span>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div class="loading-spinner" id="loadingSpinner">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3 fw-semibold">Adding to cart...</p>
+</div>
+
+<!-- Outside Hours Message -->
+<div class="cart-success scale-in" id="outsideHoursNotice" style="display: none; background: #dc3545;">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-clock me-3 fs-4"></i>
+        <div>
+            <strong>WE ARE CLOSED!</strong><br>
+            <span>We’re happy to serve you from {{ business.opening_time|date:"h:i A" }} to {{ business.closing_time|date:"h:i A" }} from {{ business.start_day }} to {{ business.end_day }}. You’ll be able to add items to your cart once we’re open again. Thank you for your understanding!</span>
+        </div>
+    </div>
+</div>
+
+<!-- Force Closed Message -->
+<div class="cart-success scale-in" id="forceClosedNotice" style="display: none; background: #dc3545;">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+        <div>
+            <strong>SHOP TEMPORARILY CLOSED!</strong><br>
+            <span>We are currently closed due to urgent reasons. Please check back later. Thank you for your understanding!</span>
+        </div>
+    </div>
+</div>
+
+<!-- Products Grid -->
+<div class="row" id="productGrid">
+    {% for product in products %}
+    <!-- ✅ Only show if stocks > 0 when tracking stocks -->
+    {% if not product.track_stocks or product.stocks > 0 %}
+    <div class="col-6 col-md-4 col-xl-3 g-2 product-card fade-in" data-name="{{ product.name|lower }}" data-category="{{ product.category }}">
+        <div class="card">
+            {% if product.image %}
+            <div class="card-img-container ratio ratio-1x1">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+            </div>
+            {% else %}
+            <div class="card-img-container ratio ratio-1x1">
+                <div class="card-img-placeholder d-flex align-items-center justify-content-center"
+                    style="
+                        width: 100%; 
+                        height: 100%; 
+                        border-radius: 20px 20px 0 0;
+                        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+                    ">
+                    <span style="font-size: 5rem; font-weight: 800; color: #ffffff;">
+                        {{ product.name }}
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+                <h6 class="mb-0">
+                    <span class="card-title mb-0">{{ product.name }}</span>
+                    {% if product.track_stocks %}
+                        <span class="product-stocks">(Stocks: {{ product.stocks }})</span>
+                    {% endif %}
+                </h6>
+                <div>
+                    <div class="price-badge mb-2">{{ product.price_range }}</div>
+                    <button class="btn btn-add-to-cart w-100"
+                            data-product="{{ product.name }}"
+                            data-image="{% if product.image %}{{ product.image.url }}{% endif %}">
+                        <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% empty %}
+    <div class="col-12">
+        <div class="empty-state">
+            <i class="fas fa-store-slash fa-5x empty-icon"></i>
+            <h5>No products available</h5>
+            <p>Please check back later for new products.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- No Results Message -->
+<div class="empty-state" id="noResults" style="display: none;">
+    <i class="fas fa-search-minus fa-5x empty-icon"></i>
+    <h5>No products found</h5>
+    <p>Try adjusting your search terms or browse different categories.</p>
+    <button class="btn btn-add-to-cart mt-3" onclick="clearSearch()">
+        <i class="fas fa-refresh me-2"></i>Clear Filters
+    </button>
+</div>
+
+<!-- Updated Modal HTML Structure -->
+<div class="modal fade" id="addToCartModal" tabindex="-1" aria-labelledby="addToCartModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow">
+
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary text-white rounded-top-4">
+        <h5 class="modal-title fw-bold" id="addToCartModalLabel">
+          <i class="fas fa-cart-plus me-2"></i>Add to Cart
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+
+        <!-- Product Image Container - FIXED STRUCTURE -->
+        <div class="modal-image-wrapper">
+            <div class="modal-image-box" id="modalImageContainer">
+                <!-- Image Element -->
+                <img id="modalProductImage" 
+                     src="" 
+                     alt="Product Image"
+                     style="display: none;">
+                
+                <!-- Placeholder Element -->
+                <div id="modalPlaceholder" 
+                     class="modal-placeholder"
+                     style="display: none;">
+                    <span id="modalPlaceholderLetter"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Name + Description -->
+        <div class="mb-0 text-center">
+          <label class="form-label fw-semibold text-muted">PRODUCT</label>
+          <h5 id="modalProductName"></h5>
+          <p id="modalProductDescription" class="text-muted small mt-1"></p> <!-- ✅ New description -->
+        </div>
+
+        <!-- Variation + Quantity Row -->
+        <div class="d-flex flex-wrap align-items-end justify-content-between p-3">
+            <!-- Variation -->
+            <div class="flex-fill position-relative" style="max-width: 250px;">
+                <label for="modalVariation" class="form-label fw-semibold mb-2 text-muted">VARIATION</label>
+                
+                <select class="modal-dropdown" id="modalVariation" required>
+                    <option value="">Choose a variation...</option>
+                </select>
+
+                <!-- Dropdown Logo/Icon -->
+                <i class="bi bi-caret-down-fill dropdown-logo"></i>
+            </div>
+
+            <!-- Quantity -->
+            <div>
+                <label class="form-label fw-semibold mb-2 text-muted">QUANTITY</label>
+                <div class="quantity-control">
+                <button class="quantity-btn" type="button" onclick="adjustQuantity(-1)">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <input type="number" class="quantity-input" id="modalQuantity" min="1" max="99" value="1" readonly>
+                <button class="quantity-btn" type="button" onclick="adjustQuantity(1)">
+                    <i class="fas fa-plus"></i>
+                </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price and Total -->
+        <div class="row p-3">
+          <div class="col-6">
+            <label class="form-label">UNIT PRICE</label>
+            <div class="unit-total text-success mb-0">₱<span id="modalPrice">0.00</span></div>
+          </div>
+          <div class="col-6 text-end">
+            <label class="form-label">TOTAL</label>
+            <div class="unit-total text-primary mb-0">₱<span id="modalTotal">0.00</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer bg-light rounded-bottom-4">
+        <button type="button" class="btn btn-primary" onclick="addToCartConfirmed()" id="confirmAddBtn">
+          <i class="fas fa-cart-plus me-2"></i>Add to Cart
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% if messages %}
 <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
@@ -1774,22 +1767,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('pagination-link')) {
-            e.preventDefault();
-            const url = e.target.getAttribute('href');
-
-            fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(res => res.json())
-            .then(data => {
-                document.querySelector('#productSection').innerHTML = data.html;
-                // window.scrollTo({ top: 0, behavior: 'smooth' });
-            })
-            .catch(err => console.error('Pagination error:', err));
-        }
-    });
     document.addEventListener("DOMContentLoaded", function() {
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function(toastEl) {
