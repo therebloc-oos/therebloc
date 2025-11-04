@@ -1844,7 +1844,80 @@
         </div> <!-- ✅ end settings-card -->
     </form>
 </div>
-   
+
+{% load static %}
+
+<div class="card mt-4 shadow-sm"
+     style="border-radius: 12px; background-color: {{ customization.background_color }}; color: {{ customization.font_color }};">
+  <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+
+    <!-- Left Side -->
+    <div>
+      <h5 class="card-title mb-2 fw-semibold">
+        <i class="fas fa-print me-2"></i> RECEIPT PRINTER APP
+      </h5>
+      <p class="mb-1" style="font-size: 15px;">• Mobile Application</p>
+      <p class="mb-0" style="font-size: 15px;">• Compatible with Android Device</p>
+      <p class="mb-1" style="font-size: 15px;">• Connects seamlessly via Bluetooth</p>
+    </div>
+
+    <!-- Right Side Buttons -->
+    <div class="d-flex flex-column align-items-end gap-2 mt-3 mt-md-0">
+
+      <!-- HOW TO USE Button -->
+      <button type="button"
+              class="payment-change d-flex justify-content-center align-items-center"
+              style="background-color: {{ customization.button_color }}; color: white; width: 220px; border: none;"
+              data-bs-toggle="modal" data-bs-target="#howToUseModal">
+        <i class="fas fa-info-circle me-2"></i>
+        How to Use
+      </button>
+
+      <!-- DOWNLOAD APP Button -->
+      <a href="{% static 'downloads/cloudprinter.apk' %}" 
+         download 
+         id="downloadPrinterAppBtn"
+         class="payment-change d-flex justify-content-center align-items-center"
+         style="background-color: {{ customization.button_color }}; color: white; text-decoration: none; width: 220px;">
+         <i class="fas fa-download me-2"></i>
+         Download App
+      </a>
+
+    </div>
+  </div>
+</div>
+
+<!-- 🧾 HOW TO USE MODAL -->
+<div class="modal fade" id="howToUseModal" tabindex="-1" aria-labelledby="howToUseModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 12px;">
+      <div class="modal-header" style="background-color: {{ customization.button_color }}; color: white;">
+        <h5 class="modal-title" id="howToUseModalLabel">HOW TO USE</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+      </div>
+      <div class="modal-body" style="color: {{ customization.font_color }};">
+        <p><strong>Setting Up Automatic Wireless Printing</strong></p>
+        <ol class="mb-0">
+          <li>Plug in the thermal printer and switch it on.</li>
+          <li>Enable Bluetooth on the mobile device and pair it with the printer <strong>PB-58H</strong>.</li>
+          <li>Open the mobile application.</li>
+          <li>Grant all required permissions when prompted.</li>
+          <li>Configure the WebSocket URL and enter the printer’s MAC address.</li>
+          <li>Save the printer settings.</li>
+          <li>Tap the “Start Service” button within the application.</li>
+          <li>Verify the printer status to confirm that the service has successfully started.</li>
+        </ol>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" data-bs-dismiss="modal"
+                style="background-color: {{ customization.button_color }}; color: white;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+    
 {% include 'MSMEOrderingWebApp/customize_sec.html' %}
 
 <!--CHange Pass Modal -->
