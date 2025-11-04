@@ -1849,43 +1849,46 @@
 
 <div class="card mt-4 shadow-sm"
      style="border-radius: 12px; background-color: {{ customization.background_color }}; color: {{ customization.font_color }};">
-  <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+  <div class="card-body">
+    <div class="row align-items-center">
 
-    <!-- Left Side -->
-    <div>
-      <h5 class="card-title mb-2 fw-semibold">
-        <i class="fas fa-print me-2"></i> RECEIPT PRINTER APP
-      </h5>
-      <p class="mb-1" style="font-size: 15px;">• Mobile Application</p>
-      <p class="mb-0" style="font-size: 15px;">• Compatible with Android Device</p>
-      <p class="mb-1" style="font-size: 15px;">• Connects seamlessly via Bluetooth</p>
-    </div>
+      <!-- Left Side -->
+      <div class="col-md-7">
+        <h5 class="card-title mb-2 fw-semibold">
+          <i class="fas fa-print me-2"></i> RECEIPT PRINTER APP
+        </h5>
+        <p class="mb-1" style="font-size: 15px;">• Mobile Application</p>
+        <p class="mb-0" style="font-size: 15px;">• Compatible with Android Device</p>
+        <p class="mb-1" style="font-size: 15px;">• Connects seamlessly via Bluetooth</p>
+      </div>
 
-    <!-- Right Side Buttons -->
-    <div class="d-flex flex-column align-items-end gap-2 mt-3 mt-md-0">
+      <!-- Right Side Buttons -->
+      <div class="col-md-5 d-flex flex-md-column flex-row justify-content-center justify-content-md-end align-items-center align-items-md-end gap-2 mt-3 mt-md-0">
 
-      <!-- HOW TO USE Button -->
-      <button type="button"
-              class="payment-change d-flex justify-content-center align-items-center"
-              style="background-color: {{ customization.button_color }}; color: white; width: 220px; border: none;"
-              data-bs-toggle="modal" data-bs-target="#howToUseModal">
-        <i class="fas fa-info-circle me-2"></i>
-        How to Use
-      </button>
+        <!-- HOW TO USE Button -->
+        <button type="button"
+                class="payment-change d-flex justify-content-center align-items-center"
+                style="background-color: {{ customization.button_color }}; color: white; width: 220px; border: none;"
+                data-bs-toggle="modal" data-bs-target="#howToUseModal">
+          <i class="fas fa-info-circle me-2"></i>
+          How to Use
+        </button>
 
-      <!-- DOWNLOAD APP Button -->
-      <a href="{% static 'downloads/cloudprinter.apk' %}" 
-         download 
-         id="downloadPrinterAppBtn"
-         class="payment-change d-flex justify-content-center align-items-center"
-         style="background-color: {{ customization.button_color }}; color: white; text-decoration: none; width: 220px;">
-         <i class="fas fa-download me-2"></i>
-         Download App
-      </a>
+        <!-- DOWNLOAD APP Button -->
+        <a href="{% static 'downloads/cloudprinter.apk' %}" 
+           download 
+           id="downloadPrinterAppBtn"
+           class="payment-change d-flex justify-content-center align-items-center"
+           style="background-color: {{ customization.button_color }}; color: white; text-decoration: none; width: 220px;">
+           <i class="fas fa-download me-2"></i>
+           Download App
+        </a>
+      </div>
 
     </div>
   </div>
 </div>
+
 
 <!-- 🧾 HOW TO USE MODAL -->
 <div class="modal fade" id="howToUseModal" tabindex="-1" aria-labelledby="howToUseModalLabel" aria-hidden="true">
@@ -1916,7 +1919,7 @@
       </div>
     </div>
   </div>
-</div>
+</div> 
     
 {% include 'MSMEOrderingWebApp/customize_sec.html' %}
 
