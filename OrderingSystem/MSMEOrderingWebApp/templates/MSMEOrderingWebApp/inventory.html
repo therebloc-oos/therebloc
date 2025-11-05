@@ -1115,6 +1115,38 @@
             font-size: 13px;
         }
     }
+
+    /* 🔽 Make product category dropdown scrollable */
+    #categoryList {
+        max-height: 250px;         /* Limit dropdown height */
+        overflow-y: auto;           /* Enable vertical scrolling */
+        scrollbar-width: thin;      /* Firefox scroll width */
+        scrollbar-color: var(--primary-color) #f1f1f1; /* Firefox scrollbar color */
+    }
+    /* For WebKit browsers */
+    #categoryList::-webkit-scrollbar {
+        width: 6px;
+    }
+    #categoryList::-webkit-scrollbar-thumb {
+        background-color: var(--primary-color);
+        border-radius: 10px;
+    }
+    #categoryList::-webkit-scrollbar-track {
+        background-color: #f1f1f1;
+    }
+    #categoryList .category-name {
+        margin-left: 10px; /* adds space before text */
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}
+                    16
+                    {% else %}
+                    {{ customization.body_font_size|default:14 }}
+                    {% endif %}px;
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-weight: 500;
+    }
+
+
     </style>
 
     
@@ -1525,7 +1557,7 @@
                                                                    {% if product.available %}checked{% endif %}>
                                                             <label class="form-check-label availability-label-{{ product.id }}">
                                                                 {% if product.available %}
-                                                                    <span class="available-color">Available</span>
+                                                                    <span class="available-color">Availability</span>
                                                                 {% else %}
                                                                     <span class="text-muted">Unavailable</span>
                                                                 {% endif %}
