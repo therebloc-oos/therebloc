@@ -5,7 +5,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Business Owner Panel{% endblock %}</title>
+    <title>
+        {% block title %}
+            {% if business and business.business_name %}
+                {{ business.business_name }}
+            {% else %}
+                Business Owner Panel
+            {% endif %}
+        {% endblock %}
+    </title>
+
+    {% if business and business.logo %}
+        <link rel="icon" type="image/png" href="{{ business.logo.url }}">
+    {% else %}
+        <link rel="icon" type="image/png" href="{% static 'images/default-favicon.png' %}">
+    {% endif %}
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
