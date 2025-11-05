@@ -1,9 +1,17 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>{{ business.business_name|default:"Business" }} - Login</title>
+
+    {% if business and business.logo %}
+        <link rel="icon" type="image/png" href="{{ business.logo.url }}">
+    {% else %}
+        <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    {% endif %}
 
     {% load static %}
 
