@@ -3050,41 +3050,63 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const rowsPerPage = 10;
     const rows = Array.from(document.querySelectorAll("#productTableBody tr"));
-    const totalPages = Math.ceil(rows.length / rowsPerPage);
     const pagination = document.getElementById("paginationControls");
+    const rowsPerPage = 10; // Max rows per page (soft limit)
 
-    function showPage(page) {
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
+    // Group rows by data-group
+    const groupMap = {};
+    rows.forEach(row => {
+        const grp = row.dataset.group;
+        if (!groupMap[grp]) groupMap[grp] = [];
+        groupMap[grp].push(row);
+    });
 
-        rows.forEach((row, index) => {
-            row.style.display = index >= start && index < end ? "" : "none";
-        });
+    const groups = Object.values(groupMap);
 
-        // Update active class
+    // Build pages without splitting groups
+    const pages = [];
+    let tempPage = [];
+    let tempCount = 0;
+
+    groups.forEach(groupRows => {
+        if (tempCount + groupRows.length > rowsPerPage && tempPage.length) {
+            pages.push(tempPage);
+            tempPage = [];
+            tempCount = 0;
+        }
+        tempPage.push(...groupRows);
+        tempCount += groupRows.length;
+    });
+    if (tempPage.length) pages.push(tempPage);
+
+    // Function to show a page
+    function showPage(pageIndex) {
+        rows.forEach(row => row.style.display = "none");
+        pages[pageIndex].forEach(row => row.style.display = "");
+        // Update active button
         document.querySelectorAll("#paginationControls li").forEach((btn, i) => {
-            btn.classList.toggle("active", i === page - 1);
+            btn.classList.toggle("active", i === pageIndex);
         });
     }
 
     // Build pagination buttons
-    for (let i = 1; i <= totalPages; i++) {
+    pages.forEach((_, i) => {
         const li = document.createElement("li");
         li.classList.add("page-item");
-        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        li.innerHTML = `<a class="page-link" href="#">${i + 1}</a>`;
         li.addEventListener("click", e => {
             e.preventDefault();
             showPage(i);
         });
         pagination.appendChild(li);
-    }
+    });
 
-    // Initialize page 1
-    if (rows.length > 0) showPage(1);
+    // Initialize page 0
+    if (pages.length > 0) showPage(0);
 });
 </script>
+
 
 
 {% endblock %}
