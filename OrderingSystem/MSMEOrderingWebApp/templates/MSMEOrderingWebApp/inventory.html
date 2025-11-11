@@ -1146,6 +1146,71 @@
         font-weight: 500;
     }
 
+    /* Modern Pagination Styles */
+    .pagination {
+        gap: 4px;
+        margin: 2rem 0;
+    }
+
+    .pagination .page-item {
+        list-style: none;
+    }
+
+    .pagination .page-link {
+        padding: 10px 16px;
+        color: {{ customization.body_font_color|default:"#000000" }};
+        font-family: '{{ customization.body_font_family|default:"Arial" }}';
+        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
+        border-width: 1px; 
+        border-style: {{ customization.input_border_style|default:'solid' }};
+        border-color: {{ customization.primary_color|default:'#000000' }};
+        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .pagination .page-link:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, var(--primary-color) 50%, var(--secondary-color) 100%);
+        border-color: var(--primary-color);
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+        cursor: default;
+        box-shadow: 0 4px 12px rgba(31, 31, 31, 0.3);
+    }
+
+    .pagination .page-item.active .page-link:hover {
+        transform: none;
+    }
+
+    .pagination-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 576px) {
+        .pagination {
+            gap: 4px;
+        }
+        
+        .pagination .page-link {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+    }
+
+
 
     </style>
 
@@ -1504,7 +1569,7 @@
                                     <th scope="col">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="productTableBody">
                                 {% for group in grouped_products %}
                                     {% with group.list as items %}
                                         {% if items|length > 1 %}
@@ -1530,7 +1595,7 @@
                                                                         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
                                                                     ">
                                                                         <span style="font-size: 1.5rem; font-weight: 700; color: #fff;">
-                                                                            {{ product.name}}
+                                                                            {{ product.name|first|upper}}
                                                                         </span>
                                                                     </div>
                                                                 {% endif %}
@@ -1614,7 +1679,7 @@
                                                                     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
                                                                 ">
                                                                     <span style="font-size: 1.5rem; font-weight: 700; color: #fff;">
-                                                                        {{ product.name}}
+                                                                        {{ product.name|first|upper}}
                                                                     </span>
                                                                 </div>
                                                             {% endif %}
@@ -1680,9 +1745,16 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        <div class="pagination d-flex justify-content-center mt-3">
+                            <nav>
+                                <ul id="paginationControls" class="pagination"></ul>
+                            </nav>
+                        </div>
                     </div>
                 {% endif %}
             </div>
+
+
 
             <!-- Modal Overlay -->
             <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
@@ -2975,4 +3047,41 @@ document.addEventListener('DOMContentLoaded', function() {
     checkOriginalPrices();
 });
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const rowsPerPage = 10; // number of rows to show per page
+    const rows = Array.from(document.querySelectorAll("#productTableBody tr"));
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
+    const pagination = document.getElementById("paginationControls");
+
+    function showPage(page) {
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        rows.forEach((row, index) => {
+        row.style.display = index >= start && index < end ? "" : "none";
+        });
+
+        document.querySelectorAll("#paginationControls li").forEach((btn, i) => {
+        btn.classList.toggle("active", i === page);
+        });
+    }
+
+    // Build pagination buttons
+    for (let i = 1; i <= totalPages; i++) {
+        const li = document.createElement("li");
+        li.classList.add("page-item");
+        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        li.addEventListener("click", e => {
+        e.preventDefault();
+        showPage(i);
+        });
+        pagination.appendChild(li);
+    }
+
+    // Initialize page 1
+    if (rows.length > 0) showPage(1);
+    });
+</script>
+
 {% endblock %}
