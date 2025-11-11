@@ -1146,71 +1146,6 @@
         font-weight: 500;
     }
 
-    /* Modern Pagination Styles */
-    .pagination {
-        gap: 4px;
-        margin: 2rem 0;
-    }
-
-    .pagination .page-item {
-        list-style: none;
-    }
-
-    .pagination .page-link {
-        padding: 10px 16px;
-        color: {{ customization.body_font_color|default:"#000000" }};
-        font-family: '{{ customization.body_font_family|default:"Arial" }}';
-        font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' > 16 %}16{% else %}{{ customization.body_font_size|default:14 }}{% endif %}px;
-        border-width: 1px; 
-        border-style: {{ customization.input_border_style|default:'solid' }};
-        border-color: {{ customization.primary_color|default:'#000000' }};
-        border-radius: {{ customization.button_rounded_corner|default:1 }}px;
-        font-weight: 500;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        background: white;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    .pagination .page-link:hover {
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .pagination .page-item.active .page-link {
-        background: linear-gradient(135deg, var(--primary-color) 50%, var(--secondary-color) 100%);
-        border-color: var(--primary-color);
-        color: {{ customization.button_text_color|default:'#ffffff' }};
-        cursor: default;
-        box-shadow: 0 4px 12px rgba(31, 31, 31, 0.3);
-    }
-
-    .pagination .page-item.active .page-link:hover {
-        transform: none;
-    }
-
-    .pagination-link {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 44px;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 576px) {
-        .pagination {
-            gap: 4px;
-        }
-        
-        .pagination .page-link {
-            padding: 8px 12px;
-            font-size: 14px;
-        }
-    }
-
-
 
     </style>
 
@@ -1569,7 +1504,7 @@
                                     <th scope="col">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="productTableBody">
+                            <tbody>
                                 {% for group in grouped_products %}
                                     {% with group.list as items %}
                                         {% if items|length > 1 %}
@@ -1595,7 +1530,7 @@
                                                                         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
                                                                     ">
                                                                         <span style="font-size: 1.5rem; font-weight: 700; color: #fff;">
-                                                                            {{ product.name|first|upper}}
+                                                                            {{ product.name}}
                                                                         </span>
                                                                     </div>
                                                                 {% endif %}
@@ -1679,7 +1614,7 @@
                                                                     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
                                                                 ">
                                                                     <span style="font-size: 1.5rem; font-weight: 700; color: #fff;">
-                                                                        {{ product.name|first|upper}}
+                                                                        {{ product.name}}
                                                                     </span>
                                                                 </div>
                                                             {% endif %}
@@ -1745,16 +1680,9 @@
                                 {% endfor %}
                             </tbody>
                         </table>
-                        <div class="pagination d-flex justify-content-center mt-3">
-                            <nav>
-                                <ul id="paginationControls" class="pagination"></ul>
-                            </nav>
-                        </div>
                     </div>
                 {% endif %}
             </div>
-
-
 
             <!-- Modal Overlay -->
             <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
@@ -3047,66 +2975,4 @@ document.addEventListener('DOMContentLoaded', function() {
     checkOriginalPrices();
 });
 </script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const rows = Array.from(document.querySelectorAll("#productTableBody tr"));
-    const pagination = document.getElementById("paginationControls");
-    const rowsPerPage = 10; // Max rows per page (soft limit)
-
-    // Group rows by data-group
-    const groupMap = {};
-    rows.forEach(row => {
-        const grp = row.dataset.group;
-        if (!groupMap[grp]) groupMap[grp] = [];
-        groupMap[grp].push(row);
-    });
-
-    const groups = Object.values(groupMap);
-
-    // Build pages without splitting groups
-    const pages = [];
-    let tempPage = [];
-    let tempCount = 0;
-
-    groups.forEach(groupRows => {
-        if (tempCount + groupRows.length > rowsPerPage && tempPage.length) {
-            pages.push(tempPage);
-            tempPage = [];
-            tempCount = 0;
-        }
-        tempPage.push(...groupRows);
-        tempCount += groupRows.length;
-    });
-    if (tempPage.length) pages.push(tempPage);
-
-    // Function to show a page
-    function showPage(pageIndex) {
-        rows.forEach(row => row.style.display = "none");
-        pages[pageIndex].forEach(row => row.style.display = "");
-        // Update active button
-        document.querySelectorAll("#paginationControls li").forEach((btn, i) => {
-            btn.classList.toggle("active", i === pageIndex);
-        });
-    }
-
-    // Build pagination buttons
-    pages.forEach((_, i) => {
-        const li = document.createElement("li");
-        li.classList.add("page-item");
-        li.innerHTML = `<a class="page-link" href="#">${i + 1}</a>`;
-        li.addEventListener("click", e => {
-            e.preventDefault();
-            showPage(i);
-        });
-        pagination.appendChild(li);
-    });
-
-    // Initialize page 0
-    if (pages.length > 0) showPage(0);
-});
-</script>
-
-
-
 {% endblock %}
