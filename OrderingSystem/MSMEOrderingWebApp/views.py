@@ -6460,9 +6460,16 @@ from .models import CustomerReview, ReviewPhoto, User
 def customer_reviews(request):
     business = BusinessDetails.objects.first()
     customization = get_or_create_customization()
+    user = User.objects.get(id=request.session['user_id'])
+
+    # ✅ Check if customer has any completed or valid purchase in Checkout
+    has_purchase = Checkout.objects.filter(email=user.email, status="Completed").exists()
 
     if request.method == 'POST':
-        user = User.objects.get(id=request.session['user_id'])
+        # Prevent review if user has no purchase
+        if not has_purchase:
+            return JsonResponse({'status': 'error', 'message': 'You need to make a purchase first before leaving a review.'})
+
         review_text = request.POST.get('review')
         rating = request.POST.get('rating')
         is_anonymous = 'anonymous' in request.POST
@@ -6499,7 +6506,7 @@ def customer_reviews(request):
                .select_related('user')
                .order_by('-submitted_at'))
 
-    # Format times to HH:MM:SS
+    # Format times
     current_time = datetime.now().strftime("%H:%M:%S")
     opening_time = business.opening_time.strftime("%H:%M:%S") if business and business.opening_time else "00:00:00"
     closing_time = business.closing_time.strftime("%H:%M:%S") if business and business.closing_time else "23:59:59"
@@ -6511,8 +6518,8 @@ def customer_reviews(request):
         'current_time': current_time,
         'opening_time': opening_time,
         'closing_time': closing_time,
+        'has_purchase': has_purchase,  # ✅ Pass to template
     })
-
 
 @login_required_session(allowed_roles=['customer'])
 def customer_cart(request):
