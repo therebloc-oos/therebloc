@@ -712,7 +712,7 @@
       <i class="fas fa-star text-warning me-2"></i>
       Customer Reviews
     </h2>
-    <button type="button" class="btn btn-primary btn-add-review" data-bs-toggle="modal" data-bs-target="#reviewModal">
+    <button type="button" class="btn btn-primary btn-add-review">
       <i class="fas fa-plus me-2"></i>Add a Review
     </button>
   </div>
@@ -961,6 +961,45 @@
   <button id="nextPhotoBtn" onclick="nextPhoto()" class="next-btn">&#8594;</button>
 </div>
 
+ <!-- No Purchase Modal -->
+<div class="modal fade" id="noPurchaseModal" tabindex="-1" aria-labelledby="noPurchaseModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center p-4">
+      <div class="modal-body">
+        <i class="fas fa-exclamation-circle text-warning fa-3x mb-3"></i>
+        <h5 class="fw-bold mb-2">Purchase Required</h5>
+        <p>You need to make a purchase first before leaving a review.</p>
+        <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const hasPurchase = {{ has_purchase|yesno:"true,false" }};
+  const addReviewBtn = document.querySelector('.btn-add-review');
+
+  if (addReviewBtn) {
+    addReviewBtn.addEventListener('click', function(event) {
+      if (!hasPurchase) {
+        // Show "No Purchase" modal
+        const modal = new bootstrap.Modal(document.getElementById('noPurchaseModal'), {
+          backdrop: false,
+          keyboard: true
+        });
+        modal.show();
+      } else {
+        // User has purchased: open the review modal manually
+        const reviewModal = new bootstrap.Modal(document.getElementById('reviewModal'));
+        reviewModal.show();
+      }
+    });
+  }
+});
+</script>
 
 <script>
 
