@@ -502,6 +502,38 @@
             font-size: 1.2rem;
         }
 
+        .services-button {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(25px);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            transition: all 0.3s ease-in-out;
+            color: var(--primary-color);
+            font-size: 15px;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Apply text shadow */
+            cursor: pointer;
+            border-color: var(--primary-color);
+            border-style: solid;
+            border-radius: {{ customization.button_rounded_corner|default:1 }}px;
+            font-family: {{ customization.header_font_family|default:"Montserrat" }};
+            
+        }
+
+        .services-button:hover {
+            border: none;
+            text-shadow: 2px 2px 4px rrgba(0, 0, 0, 0.527); /* Apply text shadow */
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: {{ customization.button_text_color|default:'#ffffff' }};
+        }
+
+        .services-button i {
+            font-size: 1.2rem;
+        }
+
 
         /* Time Range Display */
         .time-range {
@@ -1073,25 +1105,6 @@
             box-shadow: none;
         }
 
-        #addServiceBtn {
-            padding:10px;
-            border-radius: 8px;
-            border: 2px solid var(--primary-color);
-            background: transparent;
-            font-family: {{ customization.header_font_family|default:"Montserrat" }};
-            font-weight: 700;
-            color: var(--primary-color);
-            font-size: 14px;
-            transition: all 0.2s ease-in-out;
-        }
-
-        #addServiceBtn:enabled:hover {
-            background: var(--primary-color);
-            color: #fff;
-            border-color: var(--primary-color);
-            transform: translateY(-1px);
-        }
-
         @media (max-width: 767px) {
             .card2-header .d-flex {
                 flex-direction: row; /* Keep the elements in one row on larger screens */
@@ -1472,6 +1485,16 @@
         justify-content: flex-end;
     }    
 
+    #closedDatesBtnWrapper {
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.3s ease;
+        margin-bottom: 2px; /* optional spacing */
+    }
+    #closedDatesBtnWrapper.show {
+        max-height: 100px; /* adjust to button height */
+    }
+
     </style>
 
     <!-- Add this CSS for styling -->
@@ -1510,11 +1533,6 @@
             <button type="button" class="save-button btn-warning" id="toggleShopBtn">
                 {% if business.force_closed %}Open Shop{% else %}Close Shop{% endif %}
             </button>
-            
-            <!-- NEW: Closed at Button -->
-            <button type="button" class="save-button btn-info" id="closedDatesBtn" data-bs-toggle="modal" data-bs-target="#closedDatesModal">
-                <i class="fas fa-calendar-times"></i> No scheduled orders at...
-            </button>
         </div>
 
         <!-- Closed Dates Modal (Add before closing </body> tag) -->
@@ -1524,14 +1542,13 @@
                     <div class="modal-header">
                         <h5 class="modal-title" id="closedDatesLabel">
                             <i class="fas fa-calendar-times me-2"></i>
-                            Manage Dates
+                            Set Unavailable Dates
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <p class="text-muted mb-3">
-                            <i class="fas fa-info-circle"></i> Select dates when your business won't accept scheduled orders. 
-                            Customers won't be able to schedule orders on these dates.
+                            <i class="fas fa-info-circle"></i> Select the dates when your business won’t accept scheduled orders. Customers can’t schedule orders on these dates.
                         </p>
                         
                         <!-- Date Picker -->
@@ -1657,7 +1674,7 @@
                             {% endfor %}
                         </div>
 
-                            <button type="button" class="btn btn-secondary btn-sm mt-2" id="addSocialMedia" disabled>
+                            <button type="button" class="services-button w-100 btn-sm mt-2" id="addSocialMedia" disabled>
                                 <i class="fas fa-plus"></i> Add Social Media
                             </button>
                         </div>
@@ -1775,12 +1792,21 @@
                             </div>
 
                             <div class="custom-checkbox mb-1">
-                                <input type="checkbox" id="scheduled" name="mode_service" value="Scheduled" class="editable-field" disabled {% if 'Scheduled' in business.services_offered %}checked{% endif %}>
+                                <input type="checkbox" id="scheduled" name="mode_service" value="Scheduled"
+                                    class="editable-field"
+                                    {% if 'Scheduled' in business.services_offered %}checked{% endif %}>
                                 <label for="scheduled">
                                     <i class="fas fa-clock"></i>
                                     Scheduled Order
                                 </label>
                             </div>
+
+                            <div id="closedDatesBtnWrapper" style= "margin-left: 30px;">
+                                <button type="button" class="services-button btn-info btn-sm mb-2 mt-2" style="width:100%" id="closedDatesBtn" data-bs-toggle="modal" data-bs-target="#closedDatesModal">
+                                    <i class="fas fa-calendar-times"></i> Set Unavailable Dates for Scheduled Orders
+                                </button>
+                            </div>
+  
 
                             <div class="custom-checkbox mb-1">
                                 <input type="checkbox" id="onsite" name="mode_service" value="OnSite" class="editable-field" disabled {% if 'OnSite' in business.services_offered %}checked{% endif %}>
@@ -1792,7 +1818,7 @@
 
                             <!-- Extra Services -->
                             <div id="onsiteServicesWrapper" style="display: none; margin-left: 30px;">
-                                <button type="button" id="addServiceBtn" class="btn btn-outline-primary btn-sm mb-2 mt-2" style="width:100%" disabled>
+                                <button type="button" id="addServiceBtn" class="services-button btn-sm mb-2 mt-2" style="width:100%" disabled>
                                     <i class="fas fa-plus"></i> Add Specific Service
                                 </button>
                                 <div id="onsiteServicesList">
@@ -2149,17 +2175,23 @@
             addSocialBtn.addEventListener("click", function() {
                 const container = document.getElementById("socialMediaContainer");
                 const newRow = document.createElement("div");
-                newRow.classList.add("row", "g-2", "mb-2", "social-media-row");
+                newRow.classList.add("d-flex", "align-items-center", "mb-2", "social-media-row");
+                newRow.style.gap = "8px"; // optional spacing between elements
                 newRow.innerHTML = `
-                    <div class="col-md-4">
+                    <div style="flex: 0 0 30%;">
                         <input type="text" name="social_platform[]" class="form-control editable-field" placeholder="Platform">
                     </div>
-                    <div class="col-md-6">
+                    <div style="flex: 0 0 55%;">
                         <input type="text" name="social_username[]" class="form-control editable-field" placeholder="Link">
                     </div>
-                    <div class="col-md-2 d-flex align-items-center">
-                        <button type="button" class="btn btn-danger btn-sm remove-social">&times;</button>
+                    <div style="flex: 0 0 10%;" class="d-flex justify-content-center">
+                        <button type="button" class="btn btn-outline-danger btn-sm d-flex justify-content-center align-items-center remove-social" 
+                                style="height: 50px; width: 35px; border-radius: {{ customization.input_rounded_corner|default:1 }}px;" title="Remove social media">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </div>
+
+
                 `;
                 container.appendChild(newRow);
                 
@@ -2190,6 +2222,36 @@
                     serviceList.innerHTML = "";
                 }
             });
+        }
+
+        const scheduledCheckbox = document.getElementById("scheduled");
+        const closedDatesBtnWrapper = document.getElementById("closedDatesBtnWrapper");
+
+        if (scheduledCheckbox && closedDatesBtnWrapper) {
+            // Initial state: hide
+            closedDatesBtnWrapper.classList.remove('show');
+
+            scheduledCheckbox.addEventListener("change", function () {
+                if (this.checked) {
+                    closedDatesBtnWrapper.classList.add('show');
+                } else {
+                    closedDatesBtnWrapper.classList.remove('show');
+                }
+
+                if (!isRestoring) {
+                    localStorage.setItem('scheduled_checkbox', this.checked);
+                }
+            });
+
+            // Restore state from localStorage
+            const savedScheduled = localStorage.getItem('scheduled_checkbox');
+            if (savedScheduled !== null) {
+                const isChecked = savedScheduled === 'true';
+                scheduledCheckbox.checked = isChecked;
+                if (isChecked) {
+                    closedDatesBtnWrapper.classList.add('show');
+                }
+            }
         }
 
         // Add service functionality
