@@ -3049,8 +3049,8 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-    const rowsPerPage = 10; // number of rows to show per page
+document.addEventListener("DOMContentLoaded", function () {
+    const rowsPerPage = 10;
     const rows = Array.from(document.querySelectorAll("#productTableBody tr"));
     const totalPages = Math.ceil(rows.length / rowsPerPage);
     const pagination = document.getElementById("paginationControls");
@@ -3058,12 +3058,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function showPage(page) {
         const start = (page - 1) * rowsPerPage;
         const end = start + rowsPerPage;
+
         rows.forEach((row, index) => {
-        row.style.display = index >= start && index < end ? "" : "none";
+            row.style.display = index >= start && index < end ? "" : "none";
         });
 
+        // Update active class
         document.querySelectorAll("#paginationControls li").forEach((btn, i) => {
-        btn.classList.toggle("active", i === page);
+            btn.classList.toggle("active", i === page - 1);
         });
     }
 
@@ -3073,15 +3075,16 @@ document.addEventListener('DOMContentLoaded', function() {
         li.classList.add("page-item");
         li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
         li.addEventListener("click", e => {
-        e.preventDefault();
-        showPage(i);
+            e.preventDefault();
+            showPage(i);
         });
         pagination.appendChild(li);
     }
 
     // Initialize page 1
     if (rows.length > 0) showPage(1);
-    });
+});
 </script>
+
 
 {% endblock %}
