@@ -1620,7 +1620,12 @@ function runDeliveryFeeTimer(button, expiryTime) {
         let remaining = Math.max(0, Math.floor((expiryTime - now) / 1000));
 
         if (remaining > 0) {
-            timerSpan.textContent = ` (wait ${remaining}s)`;
+            // Convert seconds to MM:SS format
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            timerSpan.textContent = ` (wait ${formattedTime})`;
         } else {
             clearInterval(deliveryFeeTimer);
             deliveryFeeTimer = null;
@@ -1663,7 +1668,7 @@ function showDeliveryFeeRequest() {
         feeContainer.innerHTML = `
             <div style="height: 20px; visibility: hidden;"></div>
             <button id="request-delivery-fee-btn" class="checkout-btn">Request Delivery Fee</button>
-            <span id="delivery-fee-loading" style="display:none;">Loading...</span>
+            <span id="delivery-fee-loading" style="display:none;">Your request is being processed, please wait and don't refresh...</span>
             <span id="delivery-fee-amount" style="display:none;"></span>
         `;
         container.appendChild(feeContainer);
