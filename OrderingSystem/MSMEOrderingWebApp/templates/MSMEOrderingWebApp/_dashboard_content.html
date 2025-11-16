@@ -1276,12 +1276,22 @@
                                 <div class="customer-avatar">
                                     <i class="fas fa-user"></i>
                                 </div>
+
                                 <div class="customer-details">
-                                    <div class="customer-name">{{ group.first.first_name }} {{ group.first.last_name }}</div>
-                                    <div class="customer-email">{{ group.first.email }}</div>
+                                    <div class="customer-name">
+                                        {{ group.first.first_name }} {{ group.first.last_name }}
+                                    </div>
+
+                                    <div class="customer-email">
+                                        {{ group.first.email }} ┃ {{ group.first.contact_number }}
+                                    </div>
+
+                                    <div class="customer-address">
+                                        {{ group.first.address }}
+                                    </div>
                                 </div>
                             </div>
-                            
+
                             <div class="order-meta d-flex flex-wrap align-items-center">
                                 <!-- Date Item -->
                                 <div class="meta-item d-flex align-items-center mb-sm-0">
