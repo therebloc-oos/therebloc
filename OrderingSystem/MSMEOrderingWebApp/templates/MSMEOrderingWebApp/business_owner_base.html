@@ -1,3 +1,4 @@
+
 {% load static %}
 
 <!DOCTYPE html>
@@ -795,6 +796,50 @@
             from { transform: scale(0.95); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
+                    
+        /* Desktop / Sidebar layout */
+        .sidebar-footer2 {
+            margin-left: var(--sidebar-width, 260px); /* sidebar width */
+            width: calc(100% - var(--sidebar-width, 260px));
+        }
+
+        /* Footer styles */
+        .site-footer {
+            background: var(--primary-color);
+            color: {{customization.button_text_color|default:'#ffffff' }};
+            padding: 20px 15px;
+            text-align: center;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        }
+
+        .site-footer .footer-bottom p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .site-footer .footer-email {
+            display: block;
+            margin-top: 3px;
+            font-size: 14px;
+            text-decoration: none;
+            color: {{customization.button_text_color|default:'#ffffff' }};
+            transition: 0.3s;
+            font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+
+        }
+
+        .site-footer .footer-email:hover {
+            text-decoration: underline;
+            font-weight: 700;
+        }
+
+        /* Mobile: remove margin-left, full width */
+        @media (max-width: 768px) {
+            .sidebar-footer2 {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
 
     </style>
 </head>
@@ -957,7 +1002,15 @@
     </div>
   </div>
 </div>
-
+    
+<footer class="site-footer sidebar-footer2">
+    <div class="footer-bottom">
+        <p>Powered by <strong>CLMV Ordering System Website</strong> • {{ now|date:"Y" }}</p>
+        <a href="mailto:msmeoonlineorderingsystem@gmail.com" class="footer-email">
+            msmeoonlineorderingsystem@gmail.com
+        </a>
+    </div>
+</footer>
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
