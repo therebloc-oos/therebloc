@@ -1,5 +1,6 @@
-{% extends 'MSMEOrderingWebApp/business_owner_base.html' %}
 
+{% extends 'MSMEOrderingWebApp/business_owner_base.html' %}
+{% load static %}
 {% block title %}Inventory Management{% endblock %}
 
 {% block content %}
@@ -185,7 +186,7 @@
         }
 
         .btn {
-            padding: 15px;
+            padding: 10px;
             font-weight: 600;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: none;
@@ -1154,16 +1155,6 @@
     <div class="container-fluid">
         <div class="container">
 
-            <!-- Apply Discount Button (in main inventory page) -->
-            <div class="mb-3 text-end">
-                <button type="button" class="btn btn-primary" onclick="openDiscountModal()">
-                    <i class="fas fa-tags me-2"></i>Apply Discount
-                </button>
-                <button type="button" class="btn btn-warning" onclick="openRevertModal()" id="revertDiscountBtn" style="display: none;">
-                    <i class="fas fa-undo me-2"></i>Revert Discount
-                </button>
-            </div>
-
             <!-- Apply Discount Modal -->
             <div class="modal fade" id="discountModal" tabindex="-1" aria-labelledby="discountModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -1183,6 +1174,15 @@
                             placeholder="Enter discount percentage (e.g., 10)" 
                             min="0" max="100" step="1">
                         <small class="text-muted">Enter whole numbers only (decimals will be ignored)</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-tag me-2"></i>Already Discounted Categories
+                        </label>
+                        <ul id="alreadyDiscountedList" class="list-group">
+                            <!-- JS will fill this -->
+                        </ul>
                     </div>
             
                     <div class="mb-3">
@@ -1211,7 +1211,6 @@
                     </div>
                     </div>
                     <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" onclick="applyDiscount()">
                         <i class="fas fa-check me-2"></i>Apply Discount
                     </button>
@@ -1256,7 +1255,6 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                             <button type="button" class="btn btn-warning" onclick="revertDiscount()">
                                 <i class="fas fa-undo me-2"></i>Revert to Original Prices
                             </button>
@@ -1325,52 +1323,80 @@
 
                             <!-- Product Name, Category, and Price -->
                             <div class="row g-3">
+                                <!-- Product Name -->
                                 <div class="col-12 col-md-12 col-lg-6">
                                     <label for="product_name" class="form-label">
                                         <i class="fas fa-box"></i> Product Name
                                     </label>
-                                    <input type="text" id="product_name" name="product_name" class="form-control" 
+                                    <input 
+                                        type="text" 
+                                        id="product_name" 
+                                        name="product_name" 
+                                        class="form-control" 
                                         placeholder="Enter product name" 
-                                        value="{{ form_data.product_name|default:'' }}" required>
+                                        value="{{ form_data.product_name|default:'' }}" 
+                                        required
+                                    >
                                 </div>
 
+                                <!-- Product Category -->
                                 <div class="col-12 col-md-12 col-lg-6">
                                     <label for="product_category" class="form-label">
                                         <i class="fas fa-tags"></i> Product Category
                                     </label>
 
                                     <div class="dropdown w-100">
-                                        <button class="form-select text-start d-flex justify-content-between align-items-center"
-                                                type="button"
-                                                id="categoryDropdown"
-                                                data-bs-toggle="dropdown"
-                                                aria-expanded="false">
+                                        <button 
+                                            class="form-select text-start d-flex justify-content-between align-items-center"
+                                            type="button"
+                                            id="categoryDropdown"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false"
+                                        >
                                             <span id="selectedCategoryText">-- Select Category --</span>
                                             <i class="fas fa-chevron-down ms-2"></i>
                                         </button>
 
-                                        <ul class="dropdown-menu w-100 slim-dropdown" aria-labelledby="categoryDropdown" id="categoryList">
+                                        <ul 
+                                            class="dropdown-menu w-100 slim-dropdown" 
+                                            aria-labelledby="categoryDropdown" 
+                                            id="categoryList"
+                                        >
                                             {% for category in categories %}
                                                 <li class="d-flex justify-content-between align-items-center dropdown-item-slim">
-                                                    <span class="category-name" data-id="{{ category.id }}">{{ category.name }}</span>
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-outline-danger btn-delete-slim"
-                                                            title="Delete category"
-                                                            onclick="deleteCategory({{ category.id }}, '{{ category.name }}')">
+                                                    <span class="category-name" data-id="{{ category.id }}">
+                                                        {{ category.name }}
+                                                    </span>
+                                                    <button 
+                                                        type="button"
+                                                        class="btn btn-sm btn-outline-danger btn-delete-slim"
+                                                        title="Delete category"
+                                                        onclick="deleteCategory({{ category.id }}, '{{ category.name }}')"
+                                                    >
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </li>
                                             {% endfor %}
                                             <li><hr class="dropdown-divider my-1"></li>
                                             <li>
-                                                <button class="dropdown-item text-success py-2" type="button" onclick="openAddCategoryModal()">
-                                                    <i class="fas fa-plus-circle me-2"></i> Add New Category
+                                                <button 
+                                                    class="dropdown-item text-success py-2" 
+                                                    type="button" 
+                                                    onclick="openAddCategoryModal()"
+                                                >
+                                                    <i class="fas fa-plus-circle me-2"></i>
+                                                    Add New Category
                                                 </button>
                                             </li>
                                         </ul>
                                     </div>
 
-                                    <input type="hidden" name="product_category" id="selectedCategoryId" required>
+                                    <input 
+                                        type="hidden" 
+                                        name="product_category" 
+                                        id="selectedCategoryId" 
+                                        required
+                                    >
                                 </div>
 
 
@@ -1437,7 +1463,7 @@
             </form>
             </div>
 
-            <!-- Card Containing Search Functionality and Category Tabs -->
+            <!-- Card Containing Search, Category, and Discount Button -->
             <div class="sc-card">
                 <div class="row g-2 align-items-center">
                     <!-- Search Bar -->
@@ -1457,19 +1483,22 @@
                     <div class="col-12 col-md-5">
                         <div class="dropdown category-dropdown">
                             <button
-                                class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="categoryDropdownTabs" data-bs-toggle="dropdown" aria-expanded="false" title="All">
+                                class="btn btn-outline-secondary dropdown-toggle w-100"
+                                type="button"
+                                id="categoryDropdownTabs"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                title="All"
+                            >
                                 <span id="categoryDropdownLabel">All</span>
                             </button>
 
                             <ul class="dropdown-menu w-100" aria-labelledby="categoryDropdownTabs">
                                 <li>
-                                    <input type="text" id="categorySearchInput" class="form-control" placeholder="Search category..." onkeyup="filterCategoryList()"
-                                    >
+                                    <input type="text" id="categorySearchInput" class="form-control" placeholder="Search category..." onkeyup="filterCategoryList()">
                                 </li>
                                 <li>
-                                    <a class="dropdown-item active" onclick="filterProductsByCategory('all', this)">
-                                        All
-                                    </a>
+                                    <a class="dropdown-item active" onclick="filterProductsByCategory('all', this)">All</a>
                                 </li>
                                 {% for category in categories %}
                                     <li>
@@ -1480,6 +1509,18 @@
                                 {% endfor %}
                             </ul>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Apply + Revert Button Row -->
+                <div class="row mt-2">
+                    <div id="discountBtnContainer" class="col-12 d-flex gap-2">
+                        <button type="button" class="btn btn-primary flex-grow-1" id="applyDiscountBtn" onclick="openDiscountModal()">
+                            <i class="fas fa-tags me-2"></i>Apply Discount
+                        </button>
+                        <button type="button" class="btn btn-warning" onclick="openRevertModal()" id="revertDiscountBtn" style="display: none;">
+                            <i class="fas fa-undo me-2"></i>Revert Discount
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1498,7 +1539,7 @@
                                     <th scope="col">Variation</th>
                                     <th scope="col">Price</th>
                                     <th scope="col">Stocks</th>
-                                    <th scope="col">Available</th>
+                                    <th scope="col">Availability</th>
                                     <th scope="col">Added</th>
                                     <th scope="col">Last Modified</th>
                                     <th scope="col">Actions</th>
@@ -1530,7 +1571,7 @@
                                                                         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
                                                                     ">
                                                                         <span style="font-size: 1.5rem; font-weight: 700; color: #fff;">
-                                                                            {{ product.name}}
+                                                                             {{ product.name|first|upper }}
                                                                         </span>
                                                                     </div>
                                                                 {% endif %}
@@ -1557,7 +1598,7 @@
                                                                    {% if product.available %}checked{% endif %}>
                                                             <label class="form-check-label availability-label-{{ product.id }}">
                                                                 {% if product.available %}
-                                                                    <span class="available-color">Availability</span>
+                                                                    <span class="available-color">Available</span>
                                                                 {% else %}
                                                                     <span class="text-muted">Unavailable</span>
                                                                 {% endif %}
@@ -1614,7 +1655,7 @@
                                                                     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
                                                                 ">
                                                                     <span style="font-size: 1.5rem; font-weight: 700; color: #fff;">
-                                                                        {{ product.name}}
+                                                                        {{ product.name|first|upper }}
                                                                     </span>
                                                                 </div>
                                                             {% endif %}
@@ -1711,61 +1752,117 @@
                 </form>
             </div>
 
-            <!-- Edit Product Modal -->
+<!-- Edit Product Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel">
-                    <i class="fas fa-edit me-2"></i> Edit Product
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <div class="modal-body">
-                <!-- Hidden Inputs -->
-                <input type="hidden" id="editProductId">
-                <input type="hidden" id="editType">
-
-                <!-- Product Name -->
-                <div class="mb-3">
-                    <label for="editProductName" class="form-label">Product Name</label>
-                    <input type="text" class="form-control" id="editProductName" required>
-                </div>
-
-                <!-- Variation -->
-                <div class="mb-3">
-                    <label for="editVariationName" class="form-label">Variation</label>
-                    <input type="text" class="form-control" id="editVariationName" disabled>
-                </div>
-
-                <!-- Price -->
-                <div class="mb-3">
-                    <label for="editProductPrice" class="form-label">Price (₱)</label>
-                    <input type="number" class="form-control" id="editProductPrice" step="0.01" required>
-                </div>
-
-                <!-- Stocks -->
-                <div class="mb-3" id="editProductStocksGroup">
-                    <label for="editProductStocks" class="form-label">Stocks</label>
-                    <input type="number" class="form-control" id="editProductStocks" min="0" required>
-                </div>
-
-                <!-- Description -->
-                <div class="mb-3">
-                    <label for="editProductDescription" class="form-label">Description</label>
-                    <textarea class="form-control" id="editProductDescription" rows="3"></textarea>
-                </div>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveEditBtn">Save Changes</button>
-            </div>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      
+      <form id="editProductForm" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">
+            <i class="fas fa-edit me-2"></i> Edit Product
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+
+        <div class="modal-body">
+          <!-- Hidden Inputs -->
+          <input type="hidden" id="editProductId" name="product_id">
+          <input type="hidden" id="editType" name="edit_type">
+
+          <!-- Product Image -->
+          <div class="mb-3 d-flex justify-content-center">
+              <div>
+                  <div id="editImageDropArea"
+                      class="position-relative rounded overflow-hidden mx-auto"
+                      style="
+                          width: 250px;
+                          height: 250px;
+                          border: 2px dashed #888;
+                          cursor: pointer;
+                          background: #f8f9fa;
+                      ">
+
+                      <!-- Image Preview -->
+                      <img id="editImagePreview"
+                          src=""
+                          alt="Preview"
+                          style="
+                              position:absolute;
+                              top:0; left:0;
+                              width:100%; height:100%;
+                              object-fit: cover;
+                              border-radius: 8px;
+                              display:none;
+                          ">
+
+                      <!-- Placeholder UI -->
+                      <div id="editImagePlaceholder"
+                          class="d-flex flex-column justify-content-center align-items-center text-center"
+                          style="
+                              position:absolute;
+                              top:0; left:0;
+                              width:100%; height:100%;
+                              color: white;
+                          ">
+                      </div>
+
+                      <!-- Hidden File Input -->
+                      <input type="file"
+                          id="editProductImage"
+                          name="new_image"
+                          accept=".jpg,.jpeg,.png,.webp"
+                          style="display:none;">
+                  </div>
+
+                  <small class="text-muted">
+                      <i class="fas fa-info-circle me-1"></i> Upload a new image to replace current.
+                  </small>
+              </div>
+          </div>
+
+
+          <!-- Product Name -->
+          <div class="mb-3">
+            <label for="editProductName" class="form-label">Product Name</label>
+            <input type="text" class="form-control" id="editProductName" name="new_name" required>
+          </div>
+
+          <!-- Variation -->
+          <div class="mb-3">
+            <label for="editVariationName" class="form-label">Variation</label>
+            <input type="text" class="form-control" id="editVariationName" name="new_variation" disabled>
+          </div>
+
+          <!-- Price -->
+          <div class="mb-3">
+            <label for="editProductPrice" class="form-label">Price (₱)</label>
+            <input type="number" class="form-control" id="editProductPrice" name="new_price" step="0.01" required>
+          </div>
+
+          <!-- Stocks -->
+          <div class="mb-3" id="editProductStocksGroup">
+            <label for="editProductStocks" class="form-label">Stocks</label>
+            <input type="number" class="form-control" id="editProductStocks" name="new_stocks" min="0" required>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label for="editProductDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="editProductDescription" name="new_description" rows="3"></textarea>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Save Changes</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
+
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -1789,8 +1886,23 @@
 </div>
 
 <script>
+    function toggleRevertButton(show) {
+        const revertBtn = document.getElementById('revertDiscountBtn');
+        const applyBtn = document.getElementById('applyDiscountBtn');
+        const container = document.getElementById('discountBtnContainer');
 
-    
+        if (show) {
+            revertBtn.style.display = 'inline-block';
+            container.classList.remove('col-12');
+            container.classList.add('col-md-6'); // container takes half width when both buttons are visible
+            applyBtn.classList.remove('flex-grow-1'); // Apply shrinks to fit beside Revert
+        } else {
+            revertBtn.style.display = 'none';
+            container.classList.remove('col-md-6');
+            container.classList.add('col-12'); // container full width when Revert hidden
+            applyBtn.classList.add('flex-grow-1'); // Apply fills the container
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
         const productNameInput = document.getElementById('product_name');
@@ -2254,6 +2366,36 @@
         closeEditModal();
     }
 
+    document.getElementById("editImageDropArea").addEventListener("click", function () {
+    document.getElementById("editProductImage").click();
+});
+
+/* ✅ ADD THIS AT THE VERY BOTTOM */
+document.addEventListener("DOMContentLoaded", () => {
+    fetch("/check_original_prices/")
+        .then(res => res.json())
+        .then(data => {
+            toggleRevertButton(data.has_original_prices);
+        });
+});
+
+// Live preview when uploading
+document.getElementById("editProductImage").addEventListener("change", function (event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById("editImagePreview");
+    const placeholder = document.getElementById("editImagePlaceholder");
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            preview.src = e.target.result;
+            preview.style.display = "block";
+            placeholder.style.display = "none";
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
     // Open Product Edit Modal
     function openEditModal(productId, price, variation, name, type, stocks, trackStocks, description) {
         document.getElementById("editProductId").value = productId;
@@ -2263,44 +2405,80 @@
         document.getElementById("editVariationName").disabled = false;
         document.getElementById("editProductPrice").value = price;
         document.getElementById("editProductStocks").value = stocks;
-    
-        // ✅ Populate description field
         document.getElementById("editProductDescription").value = description || "";
-    
+
+        // Track stock visibility
         const stockGroup = document.getElementById("editProductStocksGroup");
         const stockInput = document.getElementById("editProductStocks");
-    
-        let ts = String(trackStocks).trim().toLowerCase();
-        const isTrackingEnabled = (ts === "true" || ts === "1" || ts === "yes" || ts === "on" || ts === "checked");
-    
-        if (!isTrackingEnabled) {
-            stockGroup.style.display = "none";
-            stockInput.required = false;
-        } else {
-            stockGroup.style.display = "block";
-            stockInput.required = true;
+
+        const isTrackingEnabled = ["true", "1", "yes", "on", "checked"]
+            .includes(String(trackStocks).trim().toLowerCase());
+
+        stockGroup.style.display = isTrackingEnabled ? "block" : "none";
+        stockInput.required = isTrackingEnabled;
+
+        // Reset input
+        const fileInput = document.getElementById("editProductImage");
+        if (fileInput) fileInput.value = "";
+
+        const preview = document.getElementById("editImagePreview");
+        const placeholder = document.getElementById("editImagePlaceholder");
+
+        /* ------------- IMAGE DETECTION FIX FOR VARIATIONS ------------- */
+
+        let productRow = document.querySelector(`tr [data-product-id="${productId}"]`);
+        if (productRow) productRow = productRow.closest("tr");
+
+        let imgElement = null;
+
+        if (productRow) {
+            // Check if this row has an image
+            imgElement = productRow.querySelector("img");
+
+            if (!imgElement) {
+                // Check grouped (variation parent) image
+                const groupName = productRow.getAttribute("data-group");
+
+                if (groupName && groupName.startsWith("group-")) {
+                    const groupImg = document.querySelector(`tr[data-group="${groupName}"] img`);
+
+                    if (groupImg) {
+                        imgElement = groupImg;
+                    }
+                }
+            }
         }
-    
-        const modal = new bootstrap.Modal(document.getElementById("editModal"));
-        modal.show();
+
+        if (imgElement && imgElement.src) {
+            preview.src = imgElement.src;
+            preview.style.display = "block";
+            placeholder.style.display = "none";   // Keep hidden
+            placeholder.innerHTML = "";           // Clear placeholder
+        } else {
+            preview.style.display = "none";
+            placeholder.style.display = "none";   // Hide placeholder completely
+            placeholder.innerHTML = "";           // No text
+        }
+
+        // Show modal
+        new bootstrap.Modal(document.getElementById("editModal")).show();
     }
-    
-    // Close Edit Modal
+
+
+    // ✅ Close Edit Modal
     function closeEditModal() {
         const modal = bootstrap.Modal.getInstance(document.getElementById("editModal"));
-        if (modal) {
-            modal.hide();
-        }
+        if (modal) modal.hide();
     }
-    
-    // Form validation
+
+    // ✅ Form validation
     document.addEventListener('DOMContentLoaded', function () {
         const forms = document.querySelectorAll('form');
         forms.forEach(form => {
             form.addEventListener('submit', function (e) {
                 const requiredFields = form.querySelectorAll('[required]');
                 let isValid = true;
-    
+
                 requiredFields.forEach(field => {
                     if (!field.value.trim()) {
                         field.classList.add('is-invalid');
@@ -2309,7 +2487,7 @@
                         field.classList.remove('is-invalid');
                     }
                 });
-    
+
                 if (!isValid) {
                     e.preventDefault();
                     alert('Please fill in all required fields.');
@@ -2317,6 +2495,41 @@
             });
         });
     });
+
+    // ✅ Save Edited Product (AJAX)
+    function saveEditedProduct() {
+        const formData = new FormData();
+        formData.append('product_id', document.getElementById('editProductId').value);
+        formData.append('new_name', document.getElementById('editProductName').value);
+        formData.append('new_price', document.getElementById('editProductPrice').value);
+        formData.append('new_stocks', document.getElementById('editProductStocks').value);
+        formData.append('new_description', document.getElementById('editProductDescription').value);
+        formData.append('new_variation', document.getElementById('editVariationName').value);
+
+        const newImage = document.getElementById('editProductImage').files[0];
+        if (newImage) formData.append('new_image', newImage);
+
+        fetch("{% url 'edit_product_price' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ ' + data.message);
+                location.reload();
+            } else {
+                alert('❌ ' + (data.error || 'Failed to update product.'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An unexpected error occurred.');
+        });
+    }
 
     function toggleStocksInputs() {
         const isTrackingEnabled = document.getElementById('toggleStocks').checked;
@@ -2613,59 +2826,77 @@ function openAddCategoryModal() {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const saveEditBtn = document.getElementById('saveEditBtn');
+    const editForm = document.getElementById('editProductForm');
     
-    if (saveEditBtn) {
-        saveEditBtn.addEventListener('click', function() {
-            const productId = document.getElementById('editProductId').value;
-            const productName = document.getElementById('editProductName').value;
-            const productPrice = document.getElementById('editProductPrice').value;
-            const productStocks = document.getElementById('editProductStocks').value;
-            const productDescription = document.getElementById('editProductDescription').value;
-            const productVariation = document.getElementById('editVariationName').value;
-
-            if (!productName || !productPrice) {
-                toastr.error('Please fill in all required fields');
-                return;
-            }
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
             
+            const formData = new FormData(this);
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            submitBtn.disabled = true;
             
             fetch("{% url 'edit_product_price' %}", {
                 method: 'POST',
+                body: formData,
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    new_name: productName,
-                    new_price: productPrice,
-                    new_stocks: productStocks,
-                    new_description: productDescription,
-                    new_variation: productVariation
-                })
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
             .then(response => response.json())
             .then(data => {
+                // Reset button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
                 if (data.success) {
                     const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
                     modal.hide();
                     toastr.success(data.message);
                     
-                    // Find the EXACT row for this specific product ID
+                    const productId = formData.get('product_id');
+                    const productName = data.product.name;
+                    const productPrice = data.product.price;
+                    const productStocks = data.product.stocks;
+                    const productVariation = data.product.variation_name;
+                    const imageUrl = data.product.image_url;
+                    
+                    // Find and update the specific product row
                     const allRows = document.querySelectorAll('.product-row');
                     allRows.forEach(row => {
-                        // Find the edit button that contains this exact product ID
                         const editBtn = row.querySelector(`[onclick*="'${productId}'"]`);
-                        if (!editBtn) return; // Skip if this isn't the right row
+                        if (!editBtn) return;
                         
                         const cells = Array.from(row.querySelectorAll('td'));
-                        
-                        // Determine if this is the first row with rowspan (has image/name cells)
                         const hasRowspan = row.querySelector('td[rowspan]') !== null;
                         
-                        // Update Product Name (only for rows with rowspan - grouped products)
+                        // Update Product Image (if present)
+                        if (imageUrl) {
+                            cells.forEach(cell => {
+                                const imgElement = cell.querySelector('img');
+                                if (imgElement) {
+                                    imgElement.src = imageUrl;
+                                }
+                                
+                                // Update fallback initial if no image exists
+                                const fallbackDiv = cell.querySelector('div[style*="background: linear-gradient"]');
+                                if (fallbackDiv && imageUrl) {
+                                    // Replace fallback with actual image
+                                    cell.querySelector('div[style*="width: 60px"]').innerHTML = `
+                                        <img src="${imageUrl}" alt="${productName}" 
+                                            style="max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 8px;">
+                                    `;
+                                }
+                            });
+                        }
+                        
+                        // Update Product Name
                         if (hasRowspan) {
                             cells.forEach(cell => {
                                 if (cell.hasAttribute('rowspan') && 
@@ -2675,7 +2906,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                             });
                         } else {
-                            // For single products or non-first variation rows
                             if (cells[1] && !cells[1].querySelector('img') && 
                                 !cells[1].querySelector('div') && 
                                 !cells[1].hasAttribute('rowspan') &&
@@ -2683,9 +2913,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 cells[1].textContent = productName.charAt(0).toUpperCase() + productName.slice(1);
                             }
                         }
-
-                        // Find cells by their content/class, not by index
-                        // This works regardless of rowspan
+                        
+                        // Update other fields
                         cells.forEach((cell, index) => {
                             const text = cell.textContent.trim();
                             const hasInput = cell.querySelector('input');
@@ -2700,11 +2929,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 !text.includes('/') && !text.includes('•') &&
                                 !text.toLowerCase().includes('available') &&
                                 !text.toLowerCase().includes('not tracked') &&
-                                !text.match(/^\d+$/) && // Not just a number (stock)
-                                text.toLowerCase() !== productName.toLowerCase() && // Not the product name
+                                !text.match(/^\d+$/) &&
+                                text.toLowerCase() !== productName.toLowerCase() &&
                                 cell.getAttribute('style')?.includes('background-color: #f0f0f0ff')) {
                                 
-                                // This is likely the variation cell
                                 const prevCell = cells[index - 1];
                                 if (prevCell && (prevCell.hasAttribute('rowspan') || 
                                     prevCell.textContent.trim().toLowerCase() === productName.toLowerCase())) {
@@ -2726,15 +2954,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                 !text.toLowerCase().includes('available') &&
                                 (text.match(/^\d+$/) || text.toLowerCase().includes('not tracked'))) {
                                 
-                                // Check if the next cell is the availability toggle (to confirm this is stock cell)
                                 const nextCell = cells[index + 1];
                                 if (nextCell && nextCell.querySelector('.form-check-input')) {
                                     cell.textContent = productStocks;
                                 }
                             }
                         });
-
-                        // Update edit button onclick with proper escaping
+                        
+                        // Update edit button onclick
                         const editButton = row.querySelector('.btn-outline-primary');
                         if (editButton) {
                             const variationName = (data.product.variation_name || '').replace(/'/g, "\\'");
@@ -2753,6 +2980,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
+                // Reset button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
                 console.error('Error:', error);
                 toastr.error('An error occurred while updating the product');
             });
@@ -2764,8 +2995,30 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // Open Revert Modal
 function openRevertModal() {
-    const modal = new bootstrap.Modal(document.getElementById('revertModal'));
-    modal.show();
+    fetch('/check-original-prices/')
+    .then(response => response.json())
+    .then(data => {
+        const modal = new bootstrap.Modal(document.getElementById('revertModal'));
+
+        // First clear all
+        document.querySelectorAll('.revert-category-check').forEach(cb => {
+            cb.checked = false;
+        });
+
+        if (data.discounted_categories && data.discounted_categories.length > 0) {
+            data.discounted_categories.forEach(catId => {
+                const checkbox = document.getElementById(`revertCat${catId}`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+        }
+
+        modal.show();
+    })
+    .catch(err => {
+        console.error('Error loading discounted categories:', err);
+    });
 }
 
 // Check if there are original prices stored and show/hide revert button
@@ -2791,6 +3044,43 @@ function checkOriginalPrices() {
 // Open Discount Modal
 function openDiscountModal() {
     const modal = new bootstrap.Modal(document.getElementById('discountModal'));
+
+    // Clear old list
+    const list = document.getElementById('alreadyDiscountedList');
+    list.innerHTML = "<li class='list-group-item text-muted'>Loading...</li>";
+
+    fetch('/check-original-prices/')
+        .then(res => res.json())
+        .then(data => {
+            list.innerHTML = ""; // Clear
+
+            if (data.category_discounts && Object.keys(data.category_discounts).length > 0) {
+                for (const [categoryId, percentage] of Object.entries(data.category_discounts)) {
+                    const categoryLabel = document.querySelector(`label[for="discountCat${categoryId}"]`);
+                    const categoryName = categoryLabel ? categoryLabel.textContent.trim() : `Category ${categoryId}`;
+
+                    list.innerHTML += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            ${categoryName}
+                            <span class="badge bg-primary rounded-pill">${percentage}%</span>
+                        </li>
+                    `;
+                }
+            } else {
+                list.innerHTML = `
+                    <li class="list-group-item text-muted">
+                        No discounted categories yet.
+                    </li>
+                `;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            list.innerHTML = `
+                <li class="list-group-item text-danger">Error loading discounted categories</li>
+            `;
+        });
+
     modal.show();
 }
 
