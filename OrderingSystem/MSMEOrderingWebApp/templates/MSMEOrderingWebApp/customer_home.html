@@ -1607,7 +1607,7 @@
                         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
                     ">
                     <span style="font-size: 5rem; font-weight: 800; color: #ffffff;">
-                        {{ product.name }}
+                        {{ product.name|first|upper }}
                     </span>
                 </div>
             </div>
