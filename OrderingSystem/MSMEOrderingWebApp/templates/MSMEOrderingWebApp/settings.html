@@ -1662,18 +1662,17 @@
                                     >
                                 </div>
                                 <div class="col-12 col-md-2 col-sm-2 d-flex justify-content-md-center justify-content-start mt-2 mt-md-0">
-                                    <button 
-                                        type="button" 
-                                        class="btn btn-danger btn-sm remove-social w-100 w-md-auto" 
-                                        disabled
-                                    >
-                                        &times;
+                                    <button type="button" 
+                                            class="btn btn-outline-danger btn-sm d-flex justify-content-center align-items-center remove-social" 
+                                            style="height: 50px; width: 35px; border-radius: {{ customization.input_rounded_corner|default:1 }}px;" 
+                                            title="Remove social media" 
+                                            disabled>
+                                        <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </div>
                             </div>
                             {% endfor %}
                         </div>
-
                             <button type="button" class="services-button w-100 btn-sm mt-2" id="addSocialMedia" disabled>
                                 <i class="fas fa-plus"></i> Add Social Media
                             </button>
@@ -1901,7 +1900,7 @@
         </button>
 
         <!-- DOWNLOAD APP Button -->
-        <a href="{% static 'downloads/cloudprinter.apk' %}" 
+        <a href="{% static 'downloads/cloudprinterupd.apk' %}" 
            download 
            id="downloadPrinterAppBtn"
            class="payment-change d-flex justify-content-center align-items-center"
@@ -1936,12 +1935,6 @@
           <li>Tap the “Start Service” button within the application.</li>
           <li>Verify the printer status to confirm that the service has successfully started.</li>
         </ol>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn" data-bs-dismiss="modal"
-                style="background-color: {{ customization.button_color }}; color: white;">
-          Close
-        </button>
       </div>
     </div>
   </div>
@@ -2030,6 +2023,33 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script>
+    // Password toggle — listen on the wrapper so clicks anywhere on the icon area work
+    document.querySelectorAll('.password-toggle').forEach(wrapper => {
+        wrapper.addEventListener('click', function () {
+            // find the icon that has data-target (fallback to wrapper dataset if present)
+            const icon = this.querySelector('.toggle-password');
+            const targetId = (icon && icon.dataset.target) || this.dataset.target;
+            if (!targetId) return;
+            const input = document.getElementById(targetId);
+            if (!input) return;
+
+            // toggle input type
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (icon) {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
+            } else {
+                input.type = 'password';
+                if (icon) {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
+        });
+    });
+
     document.addEventListener("DOMContentLoaded", function() {
         const editBtn = document.getElementById("editDetails");
         const saveBtn = document.getElementById("saveDetails");
@@ -2047,6 +2067,183 @@
         
         // Track if we're currently restoring to prevent conflicts
         let isRestoring = false;
+
+                // ---------- Event Listeners Setup ----------
+        function setupEventListeners() {
+            // Onsite checkbox
+            if (onsiteCheckbox) {
+                onsiteCheckbox.addEventListener("change", function () {
+                    if (wrapper) {
+                        wrapper.style.display = this.checked ? "block" : "none";
+                    }
+                    if (!this.checked && serviceList) {
+                        serviceList.innerHTML = "";
+                        saveServices();
+                    }
+                    saveEditableFields();
+                });
+            }
+
+            // Add service button
+            if (addServiceBtn) {
+                addServiceBtn.addEventListener("click", () => addServiceInput());
+            }
+
+            // Add event listeners to existing database services
+            if (serviceList) {
+                serviceList.querySelectorAll('.removeServiceBtn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        this.closest('.input-group').remove();
+                        saveServices();
+                    });
+                });
+
+                serviceList.querySelectorAll('input[name="specific_services[]"]').forEach(input => {
+                    input.addEventListener('input', function() {
+                        if (!isRestoring) {
+                            saveServices();
+                        }
+                    });
+                });
+            }
+
+            // Edit button
+            if (editButton) {
+                editButton.addEventListener('click', function () {
+                    toggleEditMode(true);
+                    showToast('Edit mode enabled. Make your changes and click Save Details.', 'info');
+                });
+            }
+
+            // Form field changes
+            const allFields = [
+                ...Array.from(document.getElementsByTagName('input')),
+                ...Array.from(document.getElementsByTagName('textarea')),
+                ...Array.from(document.getElementsByTagName('select'))
+            ];
+            
+            allFields.forEach(field => {
+                if (field.classList.contains('editable-field') && field.type !== 'file') {
+                    field.addEventListener('input', saveEditableFields);
+                    if (field.type === 'checkbox' || field.type === 'radio') {
+                        field.addEventListener('change', saveEditableFields);
+                    }
+                }
+            });
+
+            // Fix modal scroll after close
+            const changePasswordModalEl = document.getElementById('changePasswordModal');
+            if (changePasswordModalEl) {
+                changePasswordModalEl.addEventListener('hidden.bs.modal', () => {
+                    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+                    document.body.classList.remove('modal-open');
+                });
+            }
+
+            // UPDATED Form submission with AJAX and proper localStorage clearing
+            if (settingsForm) {
+                settingsForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    
+                    // Save current data before submission
+                    saveEditableFields();
+                    saveServices();
+                    
+                    // Show loading state
+                    if (saveButton) {
+                        const originalText = saveButton.textContent;
+                        saveButton.textContent = 'Saving...';
+                        saveButton.disabled = true;
+                    }
+                    
+                    // Create FormData from the form
+                    const formData = new FormData(this);
+                    
+                    // Submit via AJAX to detect success/failure
+                    fetch(this.action || window.location.href, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Clear localStorage only on successful save
+                            clearFormLocalStorage();
+                            
+                            // Reset edit mode
+                            toggleEditMode(false);
+                            
+                            // Show success message
+                            showToast(data.message || 'Settings saved successfully!', 'success');
+                            
+                            // Optional: reload page after a short delay to show fresh data
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                            
+                        } else {
+                            // Handle save error
+                            showToast('Error saving settings: ' + (data.error || 'Unknown error'), 'danger');
+                            
+                            // Re-enable edit mode on error
+                            toggleEditMode(true);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Save error:', error);
+                        showToast('Failed to save settings. Please try again.', 'danger');
+                        
+                        // Re-enable edit mode on error
+                        toggleEditMode(true);
+                    })
+                    .finally(() => {
+                        // Reset button state
+                        if (saveButton) {
+                            saveButton.textContent = 'Save Details';
+                            saveButton.disabled = false;
+                        }
+                    });
+                });
+            }
+        }
+
+        // ⭐ Correct: Change Password works because it's outside setupEventListeners
+        const changePasswordModal = document.getElementById('changePasswordModal');
+        if (changePasswordModal) {
+            const form = changePasswordModal.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+
+                    fetch(form.action, {
+                        method: "POST",
+                        body: formData,
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            const modalInstance = bootstrap.Modal.getInstance(changePasswordModal);
+                            modalInstance.hide();
+                            form.reset();
+
+                            setTimeout(() => location.reload(), 200);
+                        } else {
+                            showToast(data.message || "Password change failed.", "danger");
+                        }
+                    })
+                    .catch(() => {
+                        showToast("Something went wrong. Please try again.", "danger");
+                    });
+                });
+            }
+        }
+
+
 
         // ---------- MAIN FIX: Improved toggleEditable function ----------
         function toggleEditable(editing) {
@@ -2170,43 +2367,49 @@
             });
         }
 
-        // Add Social Media Row
         if (addSocialBtn) {
             addSocialBtn.addEventListener("click", function() {
                 const container = document.getElementById("socialMediaContainer");
                 const newRow = document.createElement("div");
-                newRow.classList.add("d-flex", "align-items-center", "mb-2", "social-media-row");
-                newRow.style.gap = "8px"; // optional spacing between elements
+                newRow.classList.add("row", "g-2", "align-items-center", "mb-2", "social-media-row");
+
                 newRow.innerHTML = `
-                    <div style="flex: 0 0 30%;">
+                    <div class="col-12 col-md-5 col-sm-5">
                         <input type="text" name="social_platform[]" class="form-control editable-field" placeholder="Platform">
                     </div>
-                    <div style="flex: 0 0 55%;">
+                    <div class="col-12 col-md-5 col-sm-5">
                         <input type="text" name="social_username[]" class="form-control editable-field" placeholder="Link">
                     </div>
-                    <div style="flex: 0 0 10%;" class="d-flex justify-content-center">
+                    <div class="col-12 col-md-2 col-sm-2 d-flex justify-content-md-center justify-content-start mt-2 mt-md-0">
                         <button type="button" class="btn btn-outline-danger btn-sm d-flex justify-content-center align-items-center remove-social" 
                                 style="height: 50px; width: 35px; border-radius: {{ customization.input_rounded_corner|default:1 }}px;" title="Remove social media">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
-
-
                 `;
+
                 container.appendChild(newRow);
-                
-                // Apply current edit state to new elements
+
+                // Apply current edit mode to new row
                 const isEditing = localStorage.getItem('settings_edit_mode') === 'true';
-                const newInputs = newRow.querySelectorAll('input, button');
-                newInputs.forEach(input => input.disabled = !isEditing);
+                newRow.querySelectorAll('input, button').forEach(el => {
+                    el.disabled = !isEditing;
+                    if (el.classList.contains('remove-social')) {
+                        el.style.pointerEvents = isEditing ? 'auto' : 'none';
+                        el.style.opacity = isEditing ? '1' : '0.5';
+                    }
+                });
             });
         }
 
         // Remove Social Media Row
         if (document.getElementById("socialMediaContainer")) {
             document.getElementById("socialMediaContainer").addEventListener("click", function(e) {
-                if (e.target.classList.contains("remove-social")) {
-                    e.target.closest(".social-media-row").remove();
+                // find the nearest .remove-social button whether the icon or inner element was clicked
+                const btn = e.target.closest('.remove-social');
+                if (btn) {
+                    const row = btn.closest('.social-media-row');
+                    if (row) row.remove();
                 }
             });
         }
@@ -2790,255 +2993,6 @@
                 setTimeout(() => {
                     isRestoring = false;
                 }, 200);
-            }
-        }
-
-        // ---------- Event Listeners Setup ----------
-        function setupEventListeners() {
-            // Onsite checkbox
-            if (onsiteCheckbox) {
-                onsiteCheckbox.addEventListener("change", function () {
-                    if (wrapper) {
-                        wrapper.style.display = this.checked ? "block" : "none";
-                    }
-                    if (!this.checked && serviceList) {
-                        serviceList.innerHTML = "";
-                        saveServices();
-                    }
-                    saveEditableFields();
-                });
-            }
-
-            // Add service button
-            if (addServiceBtn) {
-                addServiceBtn.addEventListener("click", () => addServiceInput());
-            }
-
-            // Add event listeners to existing database services
-            if (serviceList) {
-                serviceList.querySelectorAll('.removeServiceBtn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        this.closest('.input-group').remove();
-                        saveServices();
-                    });
-                });
-
-                serviceList.querySelectorAll('input[name="specific_services[]"]').forEach(input => {
-                    input.addEventListener('input', function() {
-                        if (!isRestoring) {
-                            saveServices();
-                        }
-                    });
-                });
-            }
-
-            // Make upload placeholder clickable to trigger file upload
-            
-            /*if (uploadPlaceholder && logoInput) {
-                uploadPlaceholder.style.cursor = 'pointer';
-                uploadPlaceholder.addEventListener('click', function() {
-                    if (!logoInput.disabled) {
-                        logoInput.click();
-                    }
-                });
-            }
-            */
-
-            // Logo upload
-            /*
-            if (logoInput) {
-                logoInput.addEventListener('change', function () {
-                    const file = this.files[0];
-                    if (!file) return;
-
-                    const formData = new FormData();
-                    formData.append("logo", file);
-
-                    fetch("{% url 'upload_logo' %}", {
-                        method: "POST",
-                        body: formData,
-                        headers: { "X-Requested-With": "XMLHttpRequest" }
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            if (logoPreview && uploadPlaceholder) {
-                                logoPreview.src = data.logo_url;
-                                logoPreview.style.display = 'block';
-                                logoPreview.style.cursor = 'pointer';
-                                uploadPlaceholder.style.display = 'none';
-                                
-                                // Make the new logo preview clickable
-                                logoPreview.addEventListener('click', function() {
-                                    if (!logoInput.disabled) {
-                                        logoInput.click();
-                                    }
-                                });
-                            }
-                            
-                            localStorage.setItem('logo_preview', data.logo_url);
-                            showToast('Logo uploaded successfully!', 'success');
-                        } else {
-                            showToast('Error uploading logo: ' + data.error, 'danger');
-                        }
-                    })
-                    .catch(error => {
-                        showToast('Upload failed. Try again.', 'danger');
-                    });
-                });
-            }
-            */    
-
-            // Edit button
-            if (editButton) {
-                editButton.addEventListener('click', function () {
-                    toggleEditMode(true);
-                    showToast('Edit mode enabled. Make your changes and click Save Details.', 'info');
-                });
-            }
-
-            // Form field changes
-            const allFields = [
-                ...Array.from(document.getElementsByTagName('input')),
-                ...Array.from(document.getElementsByTagName('textarea')),
-                ...Array.from(document.getElementsByTagName('select'))
-            ];
-            
-            allFields.forEach(field => {
-                if (field.classList.contains('editable-field') && field.type !== 'file') {
-                    field.addEventListener('input', saveEditableFields);
-                    if (field.type === 'checkbox' || field.type === 'radio') {
-                        field.addEventListener('change', saveEditableFields);
-                    }
-                }
-            });
-
-            // Change password modal
-            const changePasswordModal = document.getElementById('changePasswordModal');
-            if (changePasswordModal) {
-                const form = changePasswordModal.querySelector('form');
-                if (form) {
-                    form.addEventListener('submit', function (e) {
-                        e.preventDefault();
-                        const formData = new FormData(form);
-
-                        fetch(form.action, {
-                            method: "POST",
-                            body: formData,
-                            headers: { "X-Requested-With": "XMLHttpRequest" }
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                const modalInstance = bootstrap.Modal.getInstance(changePasswordModalEl);
-                                modalInstance.hide();
-                                form.reset();
-
-                                setTimeout(() => {
-                                    location.reload();
-                                }, 200);
-                            }
-                        })
-                        .catch(() => showToast("Something went wrong. Please try again.", "danger"));
-                    });
-                }
-            }
-
-            // Password toggle
-            document.querySelectorAll('.toggle-password').forEach(toggle => {
-                toggle.addEventListener('click', function () {
-                    const targetId = this.dataset.target;
-                    const input = document.getElementById(targetId);
-                    if (!input) return;
-
-                    if (input.type === 'password') {
-                        input.type = 'text';
-                        this.classList.remove('fa-eye');
-                        this.classList.add('fa-eye-slash');
-                    } else {
-                        input.type = 'password';
-                        this.classList.remove('fa-eye-slash');
-                        this.classList.add('fa-eye');
-                    }
-                });
-            });
-
-            // Fix modal scroll after close
-            const changePasswordModalEl = document.getElementById('changePasswordModal');
-            if (changePasswordModalEl) {
-                changePasswordModalEl.addEventListener('hidden.bs.modal', () => {
-                    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-                    document.body.classList.remove('modal-open');
-                });
-            }
-
-            // UPDATED Form submission with AJAX and proper localStorage clearing
-            if (settingsForm) {
-                settingsForm.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    
-                    // Save current data before submission
-                    saveEditableFields();
-                    saveServices();
-                    
-                    // Show loading state
-                    if (saveButton) {
-                        const originalText = saveButton.textContent;
-                        saveButton.textContent = 'Saving...';
-                        saveButton.disabled = true;
-                    }
-                    
-                    // Create FormData from the form
-                    const formData = new FormData(this);
-                    
-                    // Submit via AJAX to detect success/failure
-                    fetch(this.action || window.location.href, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Clear localStorage only on successful save
-                            clearFormLocalStorage();
-                            
-                            // Reset edit mode
-                            toggleEditMode(false);
-                            
-                            // Show success message
-                            showToast(data.message || 'Settings saved successfully!', 'success');
-                            
-                            // Optional: reload page after a short delay to show fresh data
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1500);
-                            
-                        } else {
-                            // Handle save error
-                            showToast('Error saving settings: ' + (data.error || 'Unknown error'), 'danger');
-                            
-                            // Re-enable edit mode on error
-                            toggleEditMode(true);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Save error:', error);
-                        showToast('Failed to save settings. Please try again.', 'danger');
-                        
-                        // Re-enable edit mode on error
-                        toggleEditMode(true);
-                    })
-                    .finally(() => {
-                        // Reset button state
-                        if (saveButton) {
-                            saveButton.textContent = 'Save Details';
-                            saveButton.disabled = false;
-                        }
-                    });
-                });
             }
         }
 
