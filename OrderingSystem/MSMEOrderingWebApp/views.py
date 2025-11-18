@@ -57,6 +57,9 @@ from django.conf import settings as django_settings
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.http import require_http_methods
 from django.core.cache import cache
+from django.core.paginator import Paginator
+
+
 
 @login_required_session(allowed_roles=['owner'])
 def apply_category_discount(request):
@@ -88,29 +91,38 @@ def apply_category_discount(request):
 
             products = Products.objects.filter(category__in=valid_categories)
 
-            # Use cache with owner-specific key to persist across logins
+            # Use cache with owner-specific key
             cache_key = f'original_prices_{owner_id}'
-            
-            # Get existing original prices from cache or initialize empty dict
             original_prices = cache.get(cache_key, {})
+
+            # Ensure structure exists
+            if "products" not in original_prices:
+                original_prices["products"] = {}
+
+            if "category_discounts" not in original_prices:
+                original_prices["category_discounts"] = {}
 
             updated_products = []
             updated_count = 0
 
             for product in products:
                 product_id = str(product.id)
-                
-                # Store original price ONLY if not already stored
-                if product_id not in original_prices:
-                    original_prices[product_id] = {
-                        'price': str(product.price),
-                        'category_id': product.category.id
+                category_id = product.category.id
+
+                # Save original product price if not stored
+                if product_id not in original_prices["products"]:
+                    original_prices["products"][product_id] = {
+                        "price": str(product.price),
+                        "category_id": category_id
                     }
 
+                # Save category discount
+                original_prices["category_discounts"][str(category_id)] = discount_percentage
+
+                # Calculate new price
                 old_price = product.price
                 discount_multiplier = Decimal(100 - discount_percentage) / Decimal(100)
-                # Use floor division to remove decimals - just flat integer
-                new_price = int(old_price * discount_multiplier)
+                new_price = int(old_price * discount_multiplier)  # floor to integer
 
                 product.price = new_price
                 product.save()
@@ -119,27 +131,27 @@ def apply_category_discount(request):
                     'id': product_id,
                     'old_price': str(old_price),
                     'new_price': str(new_price),
-                    'original_price': original_prices[product_id]['price']
+                    'original_price': original_prices["products"][product_id]['price']
                 })
                 updated_count += 1
 
-            # Save original prices to cache with 2 month timeout (60 days)
-            cache.set(cache_key, original_prices, timeout=60*60*24*60)  # 60 days in seconds
+            # Save to cache for 60 days
+            cache.set(cache_key, original_prices, timeout=60*60*24*60)
 
             return JsonResponse({
                 'success': True,
                 'message': f'Successfully applied {discount_percentage}% discount to {updated_count} product(s)',
                 'updated_products': updated_products,
-                'has_original_prices': True
+                'has_original_prices': True,
+                'category_discounts': original_prices["category_discounts"]
             })
 
         except Exception as e:
             import traceback
             print(traceback.format_exc())
             return JsonResponse({'success': False, 'error': str(e)})
-    
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 @login_required_session(allowed_roles=['owner'])
 def revert_category_discount(request):
@@ -158,7 +170,7 @@ def revert_category_discount(request):
 
             cache_key = f'original_prices_{owner_id}'
             original_prices = cache.get(cache_key, {})
-            if not original_prices:
+            if not original_prices or "products" not in original_prices:
                 return JsonResponse({'success': False, 'error': 'No original prices found. Cannot revert.'})
 
             try:
@@ -174,10 +186,10 @@ def revert_category_discount(request):
 
             for product in products:
                 product_id = str(product.id)
-                
-                if product_id in original_prices:
+
+                if product_id in original_prices["products"]:
                     current_price = product.price
-                    original_price = Decimal(original_prices[product_id]['price'])
+                    original_price = Decimal(original_prices["products"][product_id]['price'])
 
                     product.price = original_price
                     product.save()
@@ -189,7 +201,19 @@ def revert_category_discount(request):
                     })
                     reverted_count += 1
 
-                    del original_prices[product_id]  # remove from cache dict
+                    # Remove product from cache after reverting
+                    del original_prices["products"][product_id]
+
+            # Optionally, remove category discounts if no products remain in that category
+            for cat_id in category_ids:
+                str_cat_id = str(cat_id)
+                # Remove category discount only if none of its products remain
+                if str_cat_id in original_prices.get("category_discounts", {}):
+                    still_has_products = any(
+                        p_info["category_id"] == cat_id for p_info in original_prices["products"].values()
+                    )
+                    if not still_has_products:
+                        del original_prices["category_discounts"][str_cat_id]
 
             # Update cache after reverting
             cache.set(cache_key, original_prices, timeout=60*60*24*60)  # 60 days
@@ -198,19 +222,18 @@ def revert_category_discount(request):
                 'success': True,
                 'message': f'Successfully reverted {reverted_count} product(s)',
                 'reverted_products': reverted_products,
-                'has_original_prices': len(original_prices) > 0
+                'has_original_prices': len(original_prices.get("products", {})) > 0
             })
 
         except Exception as e:
             import traceback
             print(traceback.format_exc())
             return JsonResponse({'success': False, 'error': str(e)})
-    
+
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 @login_required_session(allowed_roles=['owner'])
 def check_original_prices(request):
-    """Check if there are any original prices stored (cache-based)"""
     try:
         owner_id = request.session.get('owner_id')
         if not owner_id:
@@ -218,11 +241,18 @@ def check_original_prices(request):
         
         cache_key = f'original_prices_{owner_id}'
         original_prices = cache.get(cache_key, {})
-        
+
+        products_saved = len(original_prices.get("products", {})) > 0
+        categories_saved = len(original_prices.get("category_discounts", {})) > 0
+
+        has_original = products_saved or categories_saved
+
         return JsonResponse({
-            'has_original_prices': len(original_prices) > 0,
-            'count': len(original_prices)
+            "has_original_prices": has_original,
+            "discounted_categories": list(original_prices.get("category_discounts", {}).keys()),
+            "category_discounts": original_prices.get("category_discounts", {})
         })
+
     except Exception as e:
         return JsonResponse({'has_original_prices': False, 'error': str(e)})
 
@@ -604,7 +634,9 @@ def send_order_status_email(recipient_email, order_code, status, orders, rejecti
     elif status.lower() == "accepted":
         message_content = f"""
         <p style="padding-left: 20px; padding-right:20px; font-size: 15px; color: #555; font-weight: bold; line-height: 1.6;">Good news! Your order has been ACCEPTED and is being PROCESSED.</p>
-        <p style="padding-left: 20px; padding-right:20px; font-size: 13px; color: #555; margin-top: 2px;">We are working to get your order ready for shipment. Stay tuned for updates.</p>
+        <p style="padding: 0 20px; font-size: 14px; color: #555; margin: 5px 0 10px; line-height: 1.5;">
+            We are processing your order(s). Please stay tuned for updates.
+        </p>
         """
     elif status == "Preparing":
         message_content = f"""
@@ -618,7 +650,7 @@ def send_order_status_email(recipient_email, order_code, status, orders, rejecti
     elif status == "Ready for Pickup":
         message_content = f"""
         <p style="padding-left: 20px; padding-right:20px; font-size: 15px; color: #555; font-weight: bold; line-height: 1.6;">Your order is now READY FOR PICK UP!</p>
-        <p style="padding-left: 20px; padding-right:20px; font-size: 15px; color: #555; margin-top: 10px;">Please show this email including your order code.</p>
+        <p style="padding-left: 20px; padding-right:20px; font-size: 15px; color: #555; margin-top: 10px;">Please show this email including your order code for confirmation.</p>
         """
     elif status == "Out for Delivery":
         message_content = f"""
@@ -728,7 +760,7 @@ def send_order_status_email(recipient_email, order_code, status, orders, rejecti
 
                     <!-- Footer -->
                     <tr>
-                    <td style="padding: 20px; background-color: #f5f5f5; text-align: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                    <td style="padding: 20px; background-color: #fafafa; color: #333; text-align: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
                             <table role="presentation" align="center" cellspacing="0" cellpadding="0" border="0" width="100%" style="text-align: center;">
                                 <tr>
                                     <td style="color: {customization.button_text_color}; font-size: 13px; line-height: 1.8; padding: 0 15px;">
@@ -767,7 +799,6 @@ def send_order_status_email(recipient_email, order_code, status, orders, rejecti
         print(f"✅ Email sent to {recipient_email}")
     except Exception as e:
         print(f"❌ Failed to send email: {e}")
-
 
 @csrf_exempt
 def update_order_status(request):
@@ -954,7 +985,9 @@ def send_email_notification(recipient_email, status, order_code, orders, rejecti
     elif status.lower() == "accepted":
         message_content = f"""
         <p style="padding-left: 20px; padding-right:20px; font-size: 15px; color: #555; font-weight: bold; line-height: 1.6;">Good news! Your order has been ACCEPTED and is being PROCESSED.</p>
-        <p style="padding-left: 20px; padding-right:20px; font-size: 13px; color: #555; margin-top: 2px;">We are working to get your order ready for shipment. Stay tuned for updates.</p>
+        <p style="padding: 0 20px; font-size: 14px; color: #555; margin: 5px 0 10px; line-height: 1.5;">
+            We are processing your order(s). Please stay tuned for updates.
+        </p>
         """
     elif status == "Preparing":
         message_content = f"""
@@ -968,7 +1001,7 @@ def send_email_notification(recipient_email, status, order_code, orders, rejecti
     elif status == "Ready for Pickup":
         message_content = f"""
         <p style="padding-left: 20px; padding-right:20px; font-size: 15px; color: #555; font-weight: bold; line-height: 1.6;">Your order is now READY FOR PICK UP!</p>
-        <p style="padding-left: 20px; padding-right:20px; font-size: 15px; color: #555; margin-top: 10px;">Please show this email including your order code.</p>
+        <p style="padding-left: 20px; padding-right:20px; font-size: 15px; color: #555; margin-top: 10px;">Please show this email including your order code for confirmation.</p>
         """
     elif status == "Out for Delivery":
         message_content = f"""
@@ -1078,7 +1111,7 @@ def send_email_notification(recipient_email, status, order_code, orders, rejecti
 
                     <!-- Footer -->
                     <tr>
-                    <td style="padding: 20px; background-color: #f5f5f5; text-align: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                    <td style="padding: 20px; background-color: #fafafa; color: #333; text-align: center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
                             <table role="presentation" align="center" cellspacing="0" cellpadding="0" border="0" width="100%" style="text-align: center;">
                                 <tr>
                                     <td style="color: {customization.button_text_color}; font-size: 13px; line-height: 1.8; padding: 0 15px;">
@@ -1981,7 +2014,8 @@ def force_change(request):
                 
                         <!-- Paragraph -->
                         <p style="font-size: 16px; color: #fff; line-height: 1.6; margin: 0 0 30px; text-align: center;">
-                            You recently updated your email address. Please confirm it below to activate your account and continue using our services.
+                            You recently updated your email address. Please confirm it below to activate your account and continue using our services. 
+                            <strong style="color: #ffcc00;">THIS IS FOR ONE-TIME USE ONLY.</strong>
                         </p>
                 
                         <!-- Button -->
@@ -2354,6 +2388,7 @@ def register_user(request):
                     <!-- Greeting -->
                     <p style="text-align: center; font-size: 16px; line-height: 1.6; color: #ffffff;">
                         To complete your registration, please click the button below to verify your email address and activate your account.
+                        <strong style="color: #ffcc00;">THIS IS FOR ONE-TIME USE ONLY.</strong>
                     </p>
             
                     <!-- Button as table (email-friendly) -->
@@ -4740,71 +4775,90 @@ def delete_category(request, category_id):
 		
 @login_required_session(allowed_roles=['owner'])
 def edit_product_price(request):
-    # Check if it's an AJAX request
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
-        try:
-            data = json.loads(request.body)
-            product_id = data.get('product_id')
-            new_price = data.get('new_price')
-            new_stocks = data.get('new_stocks')
-            new_description = data.get('new_description')
-            new_name = data.get('new_name')
-            new_variation = data.get('new_variation')
+    """
+    Handles product edits (supports both AJAX and normal form POST),
+    including image uploads even if the product initially had no image.
+    """
+    try:
+        # ✅ Handle both AJAX and regular form submissions
+        product_id = request.POST.get('product_id')
+        new_price = request.POST.get('new_price')
+        new_stocks = request.POST.get('new_stocks')
+        new_description = request.POST.get('new_description')
+        new_name = request.POST.get('new_name')
+        new_variation = request.POST.get('new_variation')
+        new_image = request.FILES.get('new_image')  # ✅ Handle image upload
 
-            product = Products.objects.get(id=product_id)
+        product = Products.objects.get(id=product_id)
 
-            # Track variation changes
-            if new_variation is not None and str(product.variation_name) != str(new_variation):
-                ProductEditHistory.objects.create(
-                    product=product,
-                    field="variation_name",
-                    old_value=product.variation_name,
-                    new_value=new_variation,
-                )
-                product.variation_name = new_variation
+        # ✅ Track and update image change
+        if new_image:
+            old_image_value = product.image.url if product.image else "None"
+            ProductEditHistory.objects.create(
+                product=product,
+                field="image",
+                old_value=old_image_value,
+                new_value=new_image.name,
+            )
+            product.image = new_image
 
-            # Track name changes
-            if new_name is not None and str(product.name) != str(new_name):
-                ProductEditHistory.objects.create(
-                    product=product,
-                    field="name",
-                    old_value=product.name,
-                    new_value=new_name,
-                )
-                product.name = new_name
+        # ✅ Track variation changes
+        if new_variation and str(product.variation_name) != str(new_variation):
+            ProductEditHistory.objects.create(
+                product=product,
+                field="variation_name",
+                old_value=product.variation_name,
+                new_value=new_variation,
+            )
+            product.variation_name = new_variation
 
-            # Track price changes
-            if new_price is not None and str(product.price) != str(new_price):
-                ProductEditHistory.objects.create(
-                    product=product,
-                    field="price",
-                    old_value=product.price,
-                    new_value=new_price,
-                )
-                product.price = new_price
+        # ✅ Track name changes
+        if new_name and str(product.name) != str(new_name):
+            ProductEditHistory.objects.create(
+                product=product,
+                field="name",
+                old_value=product.name,
+                new_value=new_name,
+            )
+            product.name = new_name
 
-            # Track stocks changes
-            if new_stocks is not None and str(product.stocks) != str(new_stocks):
-                ProductEditHistory.objects.create(
-                    product=product,
-                    field="stocks",
-                    old_value=product.stocks,
-                    new_value=new_stocks,
-                )
-                product.stocks = new_stocks
+        # ✅ Track price changes
+        if new_price and str(product.price) != str(new_price):
+            ProductEditHistory.objects.create(
+                product=product,
+                field="price",
+                old_value=product.price,
+                new_value=new_price,
+            )
+            product.price = new_price
 
-            # Track description changes
-            if new_description is not None and str(product.description or "") != str(new_description):
-                ProductEditHistory.objects.create(
-                    product=product,
-                    field="description",
-                    old_value=product.description or "",
-                    new_value=new_description,
-                )
-                product.description = new_description
+        # ✅ Track stocks changes
+        if new_stocks and str(product.stocks) != str(new_stocks):
+            ProductEditHistory.objects.create(
+                product=product,
+                field="stocks",
+                old_value=product.stocks,
+                new_value=new_stocks,
+            )
+            product.stocks = new_stocks
 
-            product.save()
+        # ✅ Track description changes
+        if new_description and str(product.description or "") != str(new_description):
+            ProductEditHistory.objects.create(
+                product=product,
+                field="description",
+                old_value=product.description or "",
+                new_value=new_description,
+            )
+            product.description = new_description
 
+        product.save()  # ✅ Save before retrieving .url
+
+        # ✅ Ensure correct image URL after saving
+        image_url = product.image.url if product.image else None
+
+        # ✅ Check if this is an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': True,
                 'message': 'Product updated successfully.',
@@ -4815,87 +4869,28 @@ def edit_product_price(request):
                     'stocks': product.stocks,
                     'description': product.description or '',
                     'variation_name': product.variation_name,
-                    'track_stocks': product.track_stocks
+                    'track_stocks': product.track_stocks,
+                    'image_url': image_url,
                 }
             })
+        else:
+            # ✅ Handle regular form submission
+            messages.success(request, "Product updated successfully.")
+            return redirect('inventory')
 
-        except Products.DoesNotExist:
-            return JsonResponse({
-                'success': False,
-                'error': 'Product not found.'
-            }, status=404)
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            }, status=400)
-    else:
-        # Fallback for non-AJAX requests
-        if request.method == 'POST':
-            product_id = request.POST.get('product_id')
-            new_price = request.POST.get('new_price')
-            new_stocks = request.POST.get('new_stocks')
-            new_description = request.POST.get('new_description')
-            new_name = request.POST.get('new_name')
-            new_variation = request.POST.get('new_variation')  # ✅ Added
-
-            try:
-                product = Products.objects.get(id=product_id)
-
-                # ✅ Track variation changes
-                if new_variation is not None and str(product.variation_name) != str(new_variation):
-                    ProductEditHistory.objects.create(
-                        product=product,
-                        field="variation_name",
-                        old_value=product.variation_name,
-                        new_value=new_variation,
-                    )
-                    product.variation_name = new_variation
-
-                if new_name is not None and str(product.name) != str(new_name):
-                    ProductEditHistory.objects.create(
-                        product=product,
-                        field="name",
-                        old_value=product.name,
-                        new_value=new_name,
-                    )
-                    product.name = new_name
-
-                if new_price is not None and str(product.price) != str(new_price):
-                    ProductEditHistory.objects.create(
-                        product=product,
-                        field="price",
-                        old_value=product.price,
-                        new_value=new_price,
-                    )
-                    product.price = new_price
-
-                if new_stocks is not None and str(product.stocks) != str(new_stocks):
-                    ProductEditHistory.objects.create(
-                        product=product,
-                        field="stocks",
-                        old_value=product.stocks,
-                        new_value=new_stocks,
-                    )
-                    product.stocks = new_stocks
-
-                if new_description is not None and str(product.description or "") != str(new_description):
-                    ProductEditHistory.objects.create(
-                        product=product,
-                        field="description",
-                        old_value=product.description or "",
-                        new_value=new_description,
-                    )
-                    product.description = new_description
-
-                product.save()
-                messages.success(request, "Product updated successfully.")
-
-            except Products.DoesNotExist:
-                messages.error(request, "Product not found.")
-
+    except Products.DoesNotExist:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Product not found.'}, status=404)
+        messages.error(request, "Product not found.")
         return redirect('inventory')
 
+    except Exception as e:
+        # Fallback for both AJAX and standard requests
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        messages.error(request, f"Error updating product: {e}")
+        return redirect('inventory')
+		
 @login_required_session(allowed_roles=['owner'])
 @require_POST
 def delete_product(request, product_id):
@@ -5693,7 +5688,8 @@ def create_staff_account(request):
 
                     <!-- Greeting -->
                     <p style="text-align: center; font-size: 16px; line-height: 1.6; color: #ffffff;">
-                        Hello {first_name}, please verify your email to activate your account:
+                        Hello {first_name}, please verify your email to activate your account
+                        <strong style="color: #ffcc00;">THIS IS FOR ONE-TIME USE ONLY.</strong>
                     </p>
 
                     <!-- Button as table (email-friendly) -->
