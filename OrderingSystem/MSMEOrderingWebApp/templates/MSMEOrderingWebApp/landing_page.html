@@ -2201,7 +2201,6 @@
             </div>
         </section>
 
-
         <!-- Best Seller Section -->
         {% if customization.show_best_sellers %}
         <div class="bestseller-section animate-on-scroll">
@@ -2387,8 +2386,8 @@
                             <div>
                                 <div class="price-badge mb-2">{{ product.price_range }}</div>
                                 <button class="btn btn-add-to-cart w-100"
-                                        data-product="{{ product.name }}"
-                                        data-image="{% if product.image %}{{ product.image.url }}{% endif %}">
+                                        type="button"
+                                        onclick="showLoginNoticeModal()">
                                     <i class="fas fa-cart-plus me-2"></i>Add to Cart
                                 </button>
                             </div>
