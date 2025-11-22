@@ -414,12 +414,14 @@ def reprint_receipt(request):
                 "store_address": store_address,
                 "order_type": reference_order.order_type,
                 "notes": reference_order.additional_notes or "",
+                "specific_order_type": reference_order.specific_order_type or "",  # ✅ Add specific_order_type
+                "sub_total": float(reference_order.sub_total) if reference_order.sub_total else None,  # ✅ Add sub_total
             },
             "items": [
                 {
                     "product_name": o.product_name,
                     "quantity": o.quantity,
-                    "price": float(o.price),
+                    "price": float(o.price / o.quantity) if o.quantity > 0 else float(o.price),  # ✅ Unit price
                 } for o in orders
             ]
         }
