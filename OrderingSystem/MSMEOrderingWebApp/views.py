@@ -2558,37 +2558,37 @@ def dashboard(request):
     )
 
     # ✅ Completed orders for table (all time)
-	completed_all_qs = Checkout.objects.filter(status__iexact="completed").order_by('-updated_at')
-	
-	grouped_completed_orders = defaultdict(list)
-	for order in completed_all_qs:
-	    order_date = order.updated_at.date() if order.updated_at else None
-	    composite_key = f"{order.order_code}_{order.group_id}"
-	    grouped_completed_orders[composite_key].append(order)
-	
-	completed_orders_grouped = []
-	total_sales = Decimal("0.00")  # ✅ Daily sales only
-	for composite_key, items in grouped_completed_orders.items():
-	    clean_order_code = composite_key.split('_')[0]
-	    
-	    # ✅ Use sub_total from the first item (it's the same for all items in the group)
-	    # This is the discounted total
-	    order_total = items[0].sub_total if items[0].sub_total else sum(item.price for item in items)
-	
-	    # ✅ Count sales only if order is completed today
-	    if items[0].updated_at and start_of_day <= items[0].updated_at <= end_of_day:
-	        total_sales += order_total
-	
-	    completed_orders_grouped.append({
-	        'order_code': clean_order_code,
-	        'items': items,
-	        'first': items[0],
-	        'total_price': order_total,  # ✅ Use discounted sub_total
-	    })
-	completed_orders_grouped.sort(
-	    key=lambda x: x['first'].updated_at or make_aware(datetime.min, tz),
-	    reverse=True
-	)
+    completed_all_qs = Checkout.objects.filter(status__iexact="completed").order_by('-updated_at')
+
+    grouped_completed_orders = defaultdict(list)
+    for order in completed_all_qs:
+        order_date = order.updated_at.date() if order.updated_at else None
+        composite_key = f"{order.order_code}_{order.group_id}"
+        grouped_completed_orders[composite_key].append(order)
+
+    completed_orders_grouped = []
+    total_sales = Decimal("0.00")  # ✅ Daily sales only
+    for composite_key, items in grouped_completed_orders.items():
+        clean_order_code = composite_key.split('_')[0]
+        
+        # ✅ Use sub_total from the first item (it's the same for all items in the group)
+        # This is the discounted total
+        order_total = items[0].sub_total if items[0].sub_total else sum(item.price for item in items)
+
+        # ✅ Count sales only if order is completed today
+        if items[0].updated_at and start_of_day <= items[0].updated_at <= end_of_day:
+            total_sales += order_total
+
+        completed_orders_grouped.append({
+            'order_code': clean_order_code,
+            'items': items,
+            'first': items[0],
+            'total_price': order_total,  # ✅ Use discounted sub_total
+        })
+    completed_orders_grouped.sort(
+        key=lambda x: x['first'].updated_at or make_aware(datetime.min, tz),
+        reverse=True
+    )
 
     riders = StaffAccount.objects.filter(role="rider", access="enabled")
 
