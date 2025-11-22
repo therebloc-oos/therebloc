@@ -2484,9 +2484,8 @@ def dashboard(request):
         return len(unique_orders)
 
     total_inventory = Products.objects.values('name').distinct().count()
-    pending_qs = Checkout.objects.filter(status__iexact="pending")
-    total_pending = pending_qs.values("group_id").distinct().count()
-    
+    total_pending = count_unique_orders(Checkout.objects.filter(status__iexact="pending"))
+
     total_preparing = count_unique_orders(
         Checkout.objects.filter(
             status__in=["accepted", "Preparing", "Packed", "Out for Delivery", "Ready for Pickup", "delivered"]
@@ -2606,7 +2605,6 @@ def dashboard(request):
     }
 
     return render(request, 'MSMEOrderingWebApp/dashboard.html', context)
-
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
