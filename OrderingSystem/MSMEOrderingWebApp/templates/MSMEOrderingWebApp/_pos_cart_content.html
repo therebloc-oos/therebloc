@@ -969,13 +969,33 @@
                 </div>
             </div>
 
+            <!-- Discount Section -->
+            <div class="options-card">
+                <div class="option-group">
+                    <h4 class="option-title">
+                        <i class="fas fa-percent"></i>
+                        Discount
+                    </h4>
+
+                    <!-- Discount Input -->
+                    <input type="number" id="discount-percentage" class="form-control"
+                        placeholder="Discount %" min="0" max="100" oninput="applyDiscount()">
+                    
+                    <!-- Discount Amount Display -->
+                    <div id="discount-display" class="mt-2" style="display: none;">
+                        <span style="font-weight: 600; color: var(--primary-color); font-family: {{ customization.body_font_family|default:'Arial' }};">
+                            Discount Applied: <span id="discount-amount-text">₱0.00</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
 
             <!-- Payment Options -->
             <div class="options-card">
                 <div class="option-group">
                     <h4 class="option-title">
                         <i class="fas fa-credit-card"></i>
-                        Payment Method
+                        Mode of Payment
                     </h4>
                     <div class="option-buttons">
                         <div class="option-btn" data-type="payment" data-value="cash">
@@ -1035,12 +1055,16 @@
                         <span class="summary-label">Subtotal</span>
                         <span class="summary-value" id="subtotal">₱{{ subtotal|floatformat:2 }}</span>
                     </div>
+                    <div class="summary-row" id="discount-row" style="display: none; color: #10b981;">
+                        <span class="summary-label">Discount (<span id="discount-percent-display">0</span>%)</span>
+                        <span class="summary-value" id="discount-amount">-₱0.00</span>
+                    </div>
                     <div class="summary-row total-row">
                         <span class="summary-label">Total</span>
                         <span class="summary-value" id="total">₱{{ subtotal|floatformat:2 }}</span>
                     </div>
                     <div class="summary-row">
-                        <span class="summary-label">Payment Method</span>
+                        <span class="summary-label">Mode of Payment</span>
                         <span class="summary-value" id="payment-method">Not Selected</span>
                     </div>
                 </div>
@@ -1388,7 +1412,7 @@
     }
 
     function updateSummary() {
-        let total = 0;
+        let subtotal = 0;
         let itemCount = 0;
         const productSummary = document.getElementById('product-summary');
         
@@ -1402,7 +1426,7 @@
             const productName = cartItem.querySelector('.product-name').textContent;
             const itemTotal = qty * price;
 
-            total += itemTotal;
+            subtotal += itemTotal;
             itemCount += qty;
 
             // Add product to summary
@@ -1418,16 +1442,42 @@
             productSummary.appendChild(productSummaryItem);
         });
 
-        // Update totals
-        document.getElementById('subtotal').textContent = `₱${total.toFixed(2)}`;
-        document.getElementById('total').textContent = `₱${total.toFixed(2)}`;
+        // Update subtotal display
+        document.getElementById('subtotal').textContent = `₱${subtotal.toFixed(2)}`;
         document.getElementById('item-count').textContent = itemCount;
+
+        // Apply discount to get final total (round to remove decimals)
+        const discountPercent = parseFloat(document.getElementById('discount-percentage')?.value) || 0;
+        const discountValue = Math.round((subtotal * discountPercent) / 100);
+        const finalTotal = subtotal - discountValue;
+
+        // Update discount row visibility and values
+        const discountRow = document.getElementById('discount-row');
+        const discountDisplay = document.getElementById('discount-display');
+        
+        if (discountPercent > 0) {
+            if (discountRow) {
+                discountRow.style.display = 'flex';
+                document.getElementById('discount-percent-display').textContent = discountPercent;
+                document.getElementById('discount-amount').textContent = `-₱${discountValue}`;
+            }
+            if (discountDisplay) {
+                discountDisplay.style.display = 'block';
+                document.getElementById('discount-amount-text').textContent = `₱${discountValue} (${discountPercent}%)`;
+            }
+        } else {
+            if (discountRow) discountRow.style.display = 'none';
+            if (discountDisplay) discountDisplay.style.display = 'none';
+        }
+
+        // Update total with discount applied
+        document.getElementById('total').textContent = `₱${finalTotal.toFixed(2)}`;
 
         // Update cash summary
         const cashSummary = document.getElementById('cash-summary');
         if (selectedPaymentMethod === 'cash') {
             const cashAmount = parseFloat(document.getElementById('cash-amount')?.value || 0);
-            const change = cashAmount - total;
+            const change = cashAmount - finalTotal;
             
             document.getElementById('cash-given').textContent = `₱${cashAmount.toFixed(2)}`;
             document.getElementById('change-summary').textContent = `₱${change >= 0 ? change.toFixed(2) : '0.00'}`;
@@ -1440,8 +1490,6 @@
 
         updatePlaceOrderButton();
     }
-
-
 
     function updatePlaceOrderButton() {
         const button = document.getElementById('place-order-btn');
@@ -1470,7 +1518,7 @@
 
     function placeOrder() {
         if (!selectedPaymentMethod) {
-            alert('Please select a payment method.');
+            alert('Please select a mode of payment.');
             return;
         }
 
@@ -1530,12 +1578,31 @@
 
     function placeOrder() {
         if (!selectedPaymentMethod) {
-            showOrderPopup("Missing Payment", "Please select a payment method.", false);
+            showOrderPopup("Missing Payment", "Please select a mode of payment.", false);
             return;
         }
 
         // ✅ Get the current order type value when placing the order
         const orderType = document.getElementById("orderType")?.value || null;
+        
+        // ✅ Get discount percentage
+        const discountPercent = parseFloat(document.getElementById('discount-percentage')?.value) || 0;
+        
+        // ✅ Get the final total (with discount applied)
+        const totalText = document.getElementById('total')?.textContent || '0';
+        const finalTotal = parseFloat(totalText.replace(/[^\d.]/g, ''));
+        
+        // ✅ Calculate subtotal (before discount)
+        let subtotal = 0;
+        document.querySelectorAll('.cart-item').forEach(cartItem => {
+            const qty = parseInt(cartItem.querySelector('.qty-input').value);
+            const priceText = cartItem.querySelector('.product-price').textContent;
+            const price = parseFloat(priceText.replace(/[^\d.]/g, ''));
+            subtotal += qty * price;
+        });
+        
+        // ✅ Calculate discount amount
+        const discountAmount = Math.round((subtotal * discountPercent) / 100);
 
         const orderData = {
             payment_method: selectedPaymentMethod,
@@ -1543,7 +1610,12 @@
             cash_amount: selectedPaymentMethod === 'cash'
                 ? parseFloat(document.getElementById('cash-amount').value || 0)
                 : null,
-            order_type: orderType   // ✅ include here
+            order_type: orderType,
+            // ✅ Add discount info
+            discount_percent: discountPercent,
+            discount_amount: discountAmount,
+            subtotal: subtotal,
+            total: finalTotal
         };
 
         fetch("{% url 'pos_place_order' %}", {
@@ -1605,6 +1677,73 @@
         });
     }
 
+    function applyDiscount() {
+        const discountInput = document.getElementById('discount-percentage');
+        const discountRow = document.getElementById('discount-row');
+        const discountPercentDisplay = document.getElementById('discount-percent-display');
+        const discountAmountEl = document.getElementById('discount-amount');
+        const discountDisplay = document.getElementById('discount-display');
+        const discountAmountText = document.getElementById('discount-amount-text');
+        
+        let discountPercent = parseFloat(discountInput.value) || 0;
+        
+        // Clamp between 0 and 100
+        if (discountPercent < 0) discountPercent = 0;
+        if (discountPercent > 100) discountPercent = 100;
+        
+        // Calculate subtotal from cart items
+        let subtotal = 0;
+        document.querySelectorAll('.cart-item').forEach(cartItem => {
+            const qty = parseInt(cartItem.querySelector('.qty-input').value);
+            const priceText = cartItem.querySelector('.product-price').textContent;
+            const price = parseFloat(priceText.replace(/[^\d.]/g, ''));
+            subtotal += qty * price;
+        });
+        
+        // Calculate discount amount
+        const discountValue = Math.round((subtotal * discountPercent) / 100);
+        const finalTotal = subtotal - discountValue;
+        
+        // Update discount row in summary (always update this)
+        if (discountPercent > 0) {
+            // Show discount row in order summary
+            if (discountRow) {
+                discountRow.style.display = 'flex';
+                discountPercentDisplay.textContent = discountPercent;
+                discountAmountEl.textContent = `-₱${discountValue.toFixed(2)}`;
+            }
+            
+            // Show discount display below input
+            if (discountDisplay && discountAmountText) {
+                discountDisplay.style.display = 'block';
+                discountAmountText.textContent = `₱${discountValue.toFixed(2)} (${discountPercent}%)`;
+            }
+        } else {
+            // Hide discount row
+            if (discountRow) {
+                discountRow.style.display = 'none';
+            }
+            
+            // Hide discount display below input
+            if (discountDisplay) {
+                discountDisplay.style.display = 'none';
+            }
+        }
+        
+        // Always update total immediately (regardless of payment method)
+        document.getElementById('total').textContent = `₱${finalTotal.toFixed(2)}`;
+        
+        // Update cash change calculation only if cash payment is selected
+        if (selectedPaymentMethod === 'cash') {
+            const cashAmount = parseFloat(document.getElementById('cash-amount')?.value || 0);
+            const change = cashAmount - finalTotal;
+            document.getElementById('cash-given').textContent = `₱${cashAmount.toFixed(2)}`;
+            document.getElementById('change-summary').textContent = `₱${change >= 0 ? change.toFixed(2) : '0.00'}`;
+            document.getElementById('change-amount').textContent = `₱${change >= 0 ? change.toFixed(2) : '0.00'}`;
+        }
+        
+        updatePlaceOrderButton();
+    }
 </script>
 
 {% endblock %}
