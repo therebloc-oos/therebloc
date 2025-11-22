@@ -3658,6 +3658,8 @@ def _generate_no_data_pdf():
 
 def _generate_sales_report(orders, period_label, styles):
     """Generate simplified but comprehensive sales report."""
+    from django.utils.timezone import localtime
+    
     story = []
     story.append(Paragraph("SALES REPORT", styles['title']))
 
@@ -3670,20 +3672,25 @@ def _generate_sales_report(orders, period_label, styles):
     # ===== GROUP ORDERS =====
     grouped_orders = defaultdict(list)
     for order in completed_orders:
-        key = (order.order_code, str(order.group_id))  # ✅ use group_id to distinguish same code orders
+        key = (order.order_code, str(order.group_id))
         grouped_orders[key].append(order)
 
-    # ===== METRICS =====
-    total_revenue = sum(float(order.price) for order in completed_orders)
-    total_orders = len(grouped_orders)  # ✅ each group_id is a unique order
+    # ===== METRICS (use sub_total for discounted orders) =====
+    total_revenue = Decimal("0.00")
+    for (order_code, group_id), items in grouped_orders.items():
+        # ✅ Use sub_total (discounted total) from the first item
+        order_total = items[0].sub_total if items[0].sub_total else sum(Decimal(str(item.price)) for item in items)
+        total_revenue += order_total
+
+    total_orders = len(grouped_orders)
     total_items = sum(order.quantity for order in completed_orders)
-    avg_order_value = total_revenue / total_orders if total_orders > 0 else 0
+    avg_order_value = float(total_revenue) / total_orders if total_orders > 0 else 0
 
     # ===== EXECUTIVE SUMMARY =====
     story.append(Paragraph("EXECUTIVE SUMMARY", styles['heading']))
     exec_data = [
         ["Metric", "Value"],
-        ["Total Sales", f"Php {total_revenue:,.2f}"],
+        ["Total Sales", f"Php {float(total_revenue):,.2f}"],
         ["Total Orders", str(total_orders)],
         ["Average Order Value", f"Php {avg_order_value:,.2f}"],
         ["Items Sold", str(total_items)],
@@ -3703,11 +3710,15 @@ def _generate_sales_report(orders, period_label, styles):
     for (order_code, group_id), items in sorted(grouped_orders.items(), key=lambda x: x[1][0].created_at):
         first_order = items[0]
         customer_name = f"{first_order.first_name} {first_order.last_name}"
-        order_datetime = first_order.created_at.strftime("%Y-%m-%d %H:%M") if first_order.created_at else ""
+        
+        # ✅ Convert to local time (Asia/Manila)
+        order_datetime = localtime(first_order.created_at).strftime("%Y-%m-%d %I:%M %p") if first_order.created_at else ""
 
         # Bullet list for items
         ordered_items = "<br/>".join([f"• {o.product_name} (x{o.quantity})" for o in items])
-        total_value = sum(float(o.price) for o in items)
+        
+        # ✅ Use sub_total (discounted total) instead of summing item prices
+        total_value = float(first_order.sub_total) if first_order.sub_total else sum(float(o.price) for o in items)
 
         sales_data.append([
             customer_name,
@@ -3726,9 +3737,12 @@ def _generate_sales_report(orders, period_label, styles):
     story.append(Paragraph("REVENUE BREAKDOWN", styles['heading']))
 
     # --- Sales by Payment Method (Pie Chart + Totals) ---
+    # ✅ Use sub_total for payment method summary
     payment_summary = defaultdict(float)
-    for order in completed_orders:
-        payment_summary[order.payment_method] += float(order.price)
+    for (order_code, group_id), items in grouped_orders.items():
+        first_order = items[0]
+        order_total = float(first_order.sub_total) if first_order.sub_total else sum(float(o.price) for o in items)
+        payment_summary[first_order.payment_method] += order_total
 
     if payment_summary:
         story.append(Paragraph("Sales by Payment Method", styles['normal']))
@@ -3759,10 +3773,13 @@ def _generate_sales_report(orders, period_label, styles):
         story.append(Spacer(1, 20))
 
     # --- Sales by Order Type (Bar Chart + Totals) ---
+    # ✅ Use sub_total for order type summary
     order_type_summary = defaultdict(float)
-    for order in completed_orders:
-        if order.order_type:
-            order_type_summary[order.order_type] += float(order.price)
+    for (order_code, group_id), items in grouped_orders.items():
+        first_order = items[0]
+        if first_order.order_type:
+            order_total = float(first_order.sub_total) if first_order.sub_total else sum(float(o.price) for o in items)
+            order_type_summary[first_order.order_type] += order_total
 
     if order_type_summary:
         story.append(Paragraph("Sales by Order Type", styles['normal']))
@@ -3809,12 +3826,12 @@ def _generate_sales_report(orders, period_label, styles):
         )
 
     if product_sales:
-        total_sales = sum(p["revenue"] for p in product_sales.values())
+        total_product_sales = sum(p["revenue"] for p in product_sales.values())
         ranked = sorted(product_sales.items(), key=lambda x: x[1]["revenue"], reverse=True)
 
         prod_data = [["Rank", "Product", "Unit Price", "Units Sold", "% of Sales"]]
         for i, (prod, data) in enumerate(ranked, 1):
-            pct = (data["revenue"] / total_sales * 100) if total_sales > 0 else 0
+            pct = (data["revenue"] / total_product_sales * 100) if total_product_sales > 0 else 0
             prod_data.append([
                 str(i),
                 prod[:40] + "..." if len(prod) > 40 else prod,
@@ -3830,8 +3847,7 @@ def _generate_sales_report(orders, period_label, styles):
 
         ranked = sorted(product_sales.items(), key=lambda x: x[1]["revenue"], reverse=True)
         best_product, best_data = ranked[0]
-        total_sales = sum(p["revenue"] for p in product_sales.values())
-        best_pct = (best_data["revenue"] / total_sales * 100) if total_sales > 0 else 0
+        best_pct = (best_data["revenue"] / total_product_sales * 100) if total_product_sales > 0 else 0
 
         analysis_text = (
             f"The top-performing product is <b>{best_product}</b>, selling {best_data['quantity']} units "
@@ -3839,7 +3855,7 @@ def _generate_sales_report(orders, period_label, styles):
         )
         if len(ranked) > 1:
             second_product, second_data = ranked[1]
-            second_pct = (second_data["revenue"] / total_sales * 100) if total_sales > 0 else 0
+            second_pct = (second_data["revenue"] / total_product_sales * 100) if total_product_sales > 0 else 0
             analysis_text += (
                 f" The next best-seller is <b>{second_product}</b>, with {second_data['quantity']} units sold "
                 f"and Php {second_data['revenue']:,.2f} ({second_pct:.1f}%)."
@@ -3854,7 +3870,9 @@ def _generate_sales_report(orders, period_label, styles):
         first_order = items[0]
         key = f"{first_order.first_name} {first_order.last_name}"
         customer_sales[key]["orders"] += 1
-        customer_sales[key]["revenue"] += sum(float(o.price) for o in items)
+        # ✅ Use sub_total for customer revenue
+        order_total = float(first_order.sub_total) if first_order.sub_total else sum(float(o.price) for o in items)
+        customer_sales[key]["revenue"] += order_total
 
     if customer_sales:
         ranked_customers = sorted(customer_sales.items(), key=lambda x: x[1]["revenue"], reverse=True)[:10]
@@ -3871,8 +3889,6 @@ def _generate_sales_report(orders, period_label, styles):
 
     story.append(Spacer(1, 20))
     return story
-
-
 
 import matplotlib.pyplot as plt
 from io import BytesIO
@@ -5207,15 +5223,20 @@ def pos_place_order(request):
             if not cart_items.exists():
                 return JsonResponse({'success': False, 'error': 'Cart is empty'})
 
-            # ✅ Determine subtotal
-            subtotal = sum(item.price * item.quantity for item in cart_items)
             data = json.loads(request.body)
+
+            # ✅ Get subtotal from cart items (before discount)
+            subtotal = sum(item.price * item.quantity for item in cart_items)
+            
+            # ✅ Get the discounted total from frontend (if provided), otherwise use subtotal
+            total = Decimal(str(data.get('total', subtotal)))
 
             payment_method = data.get('payment_method')
             additional_notes = data.get('notes', '')
             proof = None
             cash_given = Decimal(str(data.get('cash_amount', 0))) if data.get('cash_amount') else None
-            total = subtotal
+            
+            # ✅ Calculate change based on discounted total
             change = cash_given - total if cash_given is not None else None
 
             order_code = generate_order_code('walkin')
@@ -5292,7 +5313,7 @@ def pos_place_order(request):
                     product_name=item.product_name,
                     quantity=item.quantity,
                     price=item.price * item.quantity,
-                    sub_total=subtotal,
+                    sub_total=total,  # ✅ Use discounted total here
                     order_type="walkin",
                     specific_order_type=specific_order_type,
                     order_code=order_code,
@@ -5302,7 +5323,7 @@ def pos_place_order(request):
                     status="completed",
                     cash_given=cash_given,
                     change=change,
-                    group_id=group_id,  # ✅ same group_id for all walkin items
+                    group_id=group_id,
                 )
                 checkout_entries.append(checkout)
 
@@ -5322,8 +5343,6 @@ def pos_place_order(request):
                 'order_code': order_code,
                 'first_name': first_name,
                 'last_name': last_name,
-				'contact_number': latest_cart.contact_number if latest_cart and latest_cart.contact_number else "N/A",
-				'address': latest_cart.address if latest_cart and latest_cart.address else "In-store",
                 'business_name': business_name,
                 'store_address': store_address,
                 'payment_method': payment_method,
@@ -5331,6 +5350,7 @@ def pos_place_order(request):
                 'specific_order_type': specific_order_type,
                 'cash_given': float(cash_given) if cash_given else None,
                 'change': float(change) if change else None,
+                'total': float(total),  # ✅ Add discounted total to receipt
                 'created_at': timezone.localtime(timezone.now()).strftime('%Y-%m-%d %H:%M'),
                 'hide_customer_info': True
             }
@@ -5368,8 +5388,6 @@ def pos_place_order(request):
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'Invalid method'})
-
-
 
 from collections import defaultdict
 from django.utils.timezone import now
