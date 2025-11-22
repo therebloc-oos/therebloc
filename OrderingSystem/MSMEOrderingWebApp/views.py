@@ -5350,7 +5350,7 @@ def pos_place_order(request):
                 'specific_order_type': specific_order_type,
                 'cash_given': float(cash_given) if cash_given else None,
                 'change': float(change) if change else None,
-                'total': float(total),  # ✅ Add discounted total to receipt
+                'sub_total': float(total),
                 'created_at': timezone.localtime(timezone.now()).strftime('%Y-%m-%d %H:%M'),
                 'hide_customer_info': True
             }
