@@ -1631,7 +1631,7 @@
                     <h6 class="mb-0">
                         <span class="card-title mb-0">{{ product.name }}</span>
                         {% if product.track_stocks %}
-                            <span class="product-stocks">(Stocks: {{ product.stocks }})</span>
+                            <span class="product-stocks">(Stock/s: {{ product.stocks }})</span>
                         {% endif %}
                     </h6>
                     <div>
@@ -1785,7 +1785,7 @@
                 <h6 class="mb-0">
                     <span class="card-title mb-0">{{ product.name }}</span>
                     {% if product.track_stocks %}
-                        <span class="product-stocks">(Stocks: {{ product.stocks }})</span>
+                        <span class="product-stocks">(Stock/s: {{ product.stocks }})</span>
                     {% endif %}
                 </h6>
                 <div>
@@ -2084,7 +2084,7 @@
                     let optionText = `${variation.variation_name} (₱${parseFloat(variation.price).toFixed(2)})`;
                     if (variation.track_stocks) {
                         if (variation.stocks > 0) {
-                            optionText += ` — Stocks: ${variation.stocks}`;
+                            optionText += ` — Stock/s: ${variation.stocks}`;
                         } else {
                             optionText += ` — Out of stock`;
                             opt.disabled = true;
@@ -2729,7 +2729,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let stocksHtml = '';
         if (product.track_stocks) {
             const stockColor = product.stocks <= 5 && product.stocks > 0 ? 'style="color: #ff6b6b; font-weight: bold;"' : '';
-            stocksHtml = `<span class="product-stocks" ${stockColor}>(Stocks: ${product.stocks})</span>`;
+            stocksHtml = `<span class="product-stocks" ${stockColor}>(Stock/s: ${product.stocks})</span>`;
         }
         
         cardDiv.innerHTML = `
@@ -2863,7 +2863,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const stockSpan = card.querySelector('.product-stocks');
                 if (stockSpan) {
                     const currentStockText = stockSpan.textContent;
-                    const newStockText = `(Stocks: ${productInfo.stocks})`;
+                    const newStockText = `(Stock/s: ${productInfo.stocks})`;
                     
                     if (currentStockText !== newStockText) {
                         stockSpan.textContent = newStockText;
@@ -2958,7 +2958,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 let optionText = `${variation.variation_name} (₱${parseFloat(priceInfo.price).toFixed(2)})`;
                 if (variation.track_stocks) {
-                    optionText += ` - Stocks:${variation.stocks}`;
+                    optionText += ` - Stock/s:${variation.stocks}`;
                     
                     if (variation.stocks <= 5) {
                         opt.style.color = '#ff6b6b';
