@@ -944,7 +944,7 @@
                 <div class="form-section">
                     <div class="section-header">
                         <i class="fa-solid fa-credit-card"></i>
-                        <h3>Payment Method</h3>
+                        <h3>Mode of Payment</h3>
                     </div>
                     <div class="option-grid">
                         <label class="radio-option {% if 'Cash' not in business.payment_methods %}disabled-option{% endif %}">
@@ -1440,7 +1440,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!paymentSelected) {
             checkoutBtn.disabled = true;
             checkoutBtn.classList.add('disabled-btn');
-            checkoutBtn.title = "Please select a payment method";
+            checkoutBtn.title = "Please select a mode of payment";
             return;
         }
 
