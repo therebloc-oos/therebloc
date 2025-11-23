@@ -152,14 +152,58 @@
         box-shadow: 0 10px 20px rgba(0,0,0,0.3);
     }
 
-    /* Slideshow Controls */
-    .slideshow-indicators {
+    /* ==== FIXED SLIDESHOW BOTTOM SECTION ==== */
+
+    /* Desktop Layout - Text on sides, indicators in middle */
+    .slideshow-bottom-info {
         position: absolute;
-        bottom: 20px;
+        bottom: 15px;
         left: 50%;
         transform: translateX(-50%);
+        width: 95%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 5px;
+        font-size: 10px; /* ✅ Fixed from 5px */
+        font-weight: 600;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+        z-index: 10;
+        pointer-events: none;
+        font-family: '{{ customization.body_font_family|default:"Montserrat" }}';
+        color: {{ customization.button_text_color|default:'#ffffff' }};
+    }
+
+    /* Make indicators clickable */
+    .slideshow-bottom-info .middle-indicators {
+        pointer-events: auto;
+        flex-shrink: 0;
+    }
+
+    /* Left and Right text */
+    .slideshow-bottom-info .left-text,
+    .slideshow-bottom-info .right-text {
+        flex: 1;
+        text-align: center;
+        font-size: 90degpx; /* ✅ Readable size */
+        line-height: 1.1;
+        padding: 0 5px;
+    }
+
+    .slideshow-bottom-info .left-text {
+        text-align: left;
+    }
+
+    .slideshow-bottom-info .right-text {
+        text-align: right;
+    }
+
+    /* Indicators in the middle */
+    .middle-indicators {
         display: flex;
         gap: 10px;
+        justify-content: center;
+        align-items: center;
         z-index: 4;
     }
 
@@ -175,9 +219,107 @@
 
     .indicator.active {
         background: rgba(255,255,255,0.9);
-        transform: scale(1.2);
-        box-shadow: 0 0 10px rgba(255,255,255,0.6);
+        transform: scale(1.1);
+        box-shadow: 0 0 15px rgba(255,255,255,0.8);
     }
+
+    .indicator:hover {
+        background: rgba(255,255,255,0.7);
+        transform: scale(1.2);
+    }
+
+    /* ==== TABLET LAYOUT (768px - 1024px) ==== */
+    @media (max-width: 1024px) {
+        .slideshow-bottom-info {
+            font-size: 7px;
+            gap: 10px;
+        }
+
+        .slideshow-bottom-info .left-text,
+        .slideshow-bottom-info .right-text {
+            font-size: 9px;
+            padding: 0 5px;
+        }
+
+        .indicator {
+            width: 7px;
+            height: 7px;
+        }
+    }
+
+    /* ==== MOBILE LAYOUT - COMBINE TEXT INTO ONE LINE ==== */
+    @media (max-width: 768px) {
+        .slideshow-bottom-info {
+            flex-direction: column;
+            gap: 8px;
+            bottom: 10px;
+            width: 98%;
+            font-size: 5px; /* ✅ Fixed from 2px */
+            align-items: center;
+        }
+
+        /* Indicators go to top */
+        .slideshow-bottom-info .middle-indicators {
+            order: 1;
+            display: flex !important;
+            gap: 8px;
+            margin-bottom: 3px;
+        }
+
+        /* ✅ COMBINE: Left text shows both texts */
+        .slideshow-bottom-info .left-text {
+            order: 2;
+            text-align: center;
+            font-size: 4px; /* ✅ Readable */
+            padding: 0 5px;
+            display: block;
+            width: 100%;
+        }
+
+        /* ✅ Add second text after first text */
+        .slideshow-bottom-info .left-text::after {
+        content: " from Students of BET major in Computer Engineering Technology";
+        }
+
+        /* ✅ HIDE: Right text completely */
+        .slideshow-bottom-info .right-text {
+            display: none;
+        }
+
+        .indicator {
+            width: 6px;
+            height: 6px;
+        }
+    }
+
+    /* ==== VERY SMALL MOBILE (< 480px) ==== */
+    @media (max-width: 480px) {
+        .slideshow-bottom-info {
+            font-size: 5px; /* ✅ Fixed from 2px */
+            gap: 6px;
+            bottom: 8px;
+        }
+
+        .slideshow-bottom-info .left-text {
+            font-size: 10px; /* ✅ Readable */
+            padding: 0 3px;
+        }
+
+        .middle-indicators {
+            gap: 6px;
+        }
+
+        .indicator {
+            width: 5px;
+            height: 5px;
+            border: 1.5px solid rgba(255,255,255,0.8);
+        }
+
+        .indicator.active {
+            transform: scale(1.2);
+        }
+    }
+
     
     /* Slideshow Navigation Arrows */
     .slideshow-nav {
@@ -826,8 +968,8 @@
         
         .banner-cta {
             padding: 12px 24px;
-            font-size: 14px;
-            margin-top: 1rem;
+            font-size: 12px;
+            margin-top: 10px;
         }
         
         .search-section {
@@ -875,9 +1017,9 @@
         }
         
         .banner-cta {
-            padding: 10px 20px;
-            font-size: 13px;
-            margin-top: 0.8rem;
+            padding: 5px 10px;
+            font-size: 10px;
+            margin-top: 7px;
         }
         
         .slideshow-indicators {
@@ -1420,13 +1562,24 @@
     </button>
 
     <!-- Indicators -->
-    <div class="slideshow-indicators" id="slideshowIndicators">
-        <div class="indicator active" onclick="currentSlide(0)"></div>
-        {% if customization.homepage_image_1 %}<div class="indicator" onclick="currentSlide(6)"></div>{% endif %}
-        {% if customization.homepage_image_2 %}<div class="indicator" onclick="currentSlide(7)"></div>{% endif %}
-        {% if customization.homepage_image_3 %}<div class="indicator" onclick="currentSlide(8)"></div>{% endif %}
-        {% if customization.homepage_image_4 %}<div class="indicator" onclick="currentSlide(9)"></div>{% endif %}
-        {% if customization.homepage_image_5 %}<div class="indicator" onclick="currentSlide(10)"></div>{% endif %}
+<!-- Bottom Text + Indicators Row -->
+    <div class="slideshow-bottom-info">
+                
+        <span class="left-text">
+            Powered by Technological University of the Philippines – Cavite Campus
+        </span>
+
+        <div class="middle-indicators" id="slideshowIndicators">
+            <div class="indicator active" onclick="currentSlide(0)"></div>
+            {% if customization.homepage_image_1 %}<div class="indicator" onclick="currentSlide(6)"></div>{% endif %}
+            {% if customization.homepage_image_2 %}<div class="indicator" onclick="currentSlide(7)"></div>{% endif %}
+            {% if customization.homepage_image_3 %}<div class="indicator" onclick="currentSlide(8)"></div>{% endif %}
+            {% if customization.homepage_image_4 %}<div class="indicator" onclick="currentSlide(9)"></div>{% endif %}
+            {% if customization.homepage_image_5 %}<div class="indicator" onclick="currentSlide(10)"></div>{% endif %}
+        </div>
+        <span class="right-text">
+            from students of BET - Computer Engineering Technology
+        </span>
     </div>
 </div>
 
@@ -1509,7 +1662,9 @@
 <!-- Search and Filter Section -->
 <div id="searchSection" class="search-section">
     <div class="row align-items-center">
-        <div class="col-lg-8 mb-3 mb-lg-0">
+
+        <!-- Search Input -->
+        <div class="col-lg-6 col-md-12 mb-3">
             <div class="input-group search-input-group">
                 <input type="text" class="form-control" id="searchInput" 
                        placeholder="Search..." onkeyup="filterProducts()" autocomplete="off">
@@ -1518,13 +1673,27 @@
                 </button>
             </div>
         </div>
-        <div class="col-lg-4 d-flex align-items-center position-relative">
+
+        <!-- Price Sorting Dropdown -->
+        <div class="col-lg-3 col-md-6 d-flex align-items-center position-relative mb-3">
+            <select id="priceSort" class="form-select pe-5" onchange="sortByPrice()">
+                <option value="">Sort by Price</option>
+                <option value="low-high">Lowest to Highest</option>
+                <option value="high-low">Highest to Lowest</option>
+            </select>
+            <!-- Triangle caret icon -->
+            <i class="bi bi-caret-down-fill position-absolute" style="right: 25px; pointer-events: none;"></i>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="col-lg-3 col-md-6 d-flex align-items-center position-relative mb-3">
             <select id="categoryFilter" class="form-select pe-5" onchange="filterProducts()">
                 <option value="">All Categories</option>
                 {% for cat in categories %}
                 <option value="{{ cat.name }}">{{ cat.name }}</option>
                 {% endfor %}
             </select>
+            <!-- Triangle caret icon -->
             <i class="bi bi-caret-down-fill position-absolute" style="right: 25px; pointer-events: none;"></i>
         </div>
     </div>
@@ -2066,7 +2235,7 @@
         const cartData = {
             product_name: `${productName} - ${variation}`,
             quantity: quantity,
-            price: price * quantity  // Saving price multiplied by quantity
+            price: price * quantity
         };
 
         if (modalElement && typeof bootstrap !== 'undefined') {
@@ -2091,6 +2260,11 @@
             if (data.success) {
                 success.style.display = 'block';
                 setTimeout(() => success.style.display = 'none', 2500);
+                
+                // ✅ UPDATE CART BADGE HERE
+                if (typeof updateCartBadge === 'function' && data.cart_count !== undefined) {
+                    updateCartBadge(data.cart_count);
+                }
             }
         })
         .catch(error => {
@@ -2098,7 +2272,6 @@
             spinner.style.display = 'none';
         });
     }
-
 
     // Helper to get CSRF token
     function getCookie(name) {
@@ -2134,6 +2307,23 @@
                 if (input) input.focus();
             }, 800);
         }
+    }
+
+    function sortByPrice() {
+        const sortValue = document.getElementById("priceSort").value;
+        const productGrid = document.getElementById("productGrid");
+        const products = Array.from(productGrid.getElementsByClassName("product-card"));
+
+        products.sort((a, b) => {
+            const priceA = parseFloat(a.querySelector(".price-badge").innerText.replace(/[^\d.]/g, ""));
+            const priceB = parseFloat(b.querySelector(".price-badge").innerText.replace(/[^\d.]/g, ""));
+
+            if (sortValue === "low-high") return priceA - priceB;
+            if (sortValue === "high-low") return priceB - priceA;
+            return 0;
+        });
+
+        products.forEach(card => productGrid.appendChild(card));
     }
 
     function filterProducts() {
@@ -2192,113 +2382,89 @@
         icon.className = isList ? 'fas fa-bars' : 'fas fa-th';
     }
 
+            function initializeSlideshow() {
+            const slides = document.querySelectorAll('.banner-slideshow .slide');
+            const indicators = document.querySelectorAll('.middle-indicators .indicator, .slideshow-indicators .indicator');
+            const banner = document.querySelector('.banner-section');
 
+            let totalSlides = slides.length;
+            let currentSlideIndex = 0;
+            let slideInterval = null;
 
-
-    function initializeSlideshow() {
-        const slides = document.querySelectorAll('.banner-slideshow .slide');
-        const indicators = document.querySelectorAll('.slideshow-indicators .indicator');
-        totalSlides = slides.length;
-
-        window.showSlide = function(index) {
-            slides.forEach((slide, i) => {
-                slide.classList.toggle('active', i === index);
-            });
-            indicators.forEach((indicator, i) => {
-                indicator.classList.toggle('active', i === index);
-            });
-            currentSlideIndex = index;
-        }
-
-        function nextSlide() {
-            const nextIndex = (currentSlideIndex + 1) % totalSlides;
-            showSlide(nextIndex);
-        }
-
-        function startSlideshow() {
-            slideInterval = setInterval(nextSlide, 8000); // 8 seconds
-        }
-
-        function resetInterval() {
-            clearInterval(slideInterval);
-            startSlideshow();
-        }
-
-        // Global functions for navigation
-        window.currentSlide = function(index) {
-            showSlide(index);
-            resetInterval();
-        }
-
-        window.changeSlide = function(direction) {
-            let newIndex;
-            if (direction === 1) {
-                newIndex = (currentSlideIndex + 1) % totalSlides;
-            } else {
-                newIndex = (currentSlideIndex - 1 + totalSlides) % totalSlides;
+            function showSlide(index) {
+                slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+                indicators.forEach((ind, i) => ind.classList.toggle('active', i === index));
+                currentSlideIndex = index;
             }
-            showSlide(newIndex);
-            resetInterval();
-        }
 
-        // Setup indicator click handlers
-        indicators.forEach((indicator, index) => {
-            indicator.addEventListener('click', () => {
+            function nextSlide() {
+                showSlide((currentSlideIndex + 1) % totalSlides);
+            }
+
+            function startSlideshow() {
+                slideInterval = setInterval(nextSlide, 8000);
+            }
+
+            function resetInterval() {
+                clearInterval(slideInterval);
+                startSlideshow();
+            }
+
+            // Expose global functions
+            window.currentSlide = function(index) {
                 showSlide(index);
                 resetInterval();
-            });
-        });
-
-        // Pause on hover
-        const banner = document.querySelector('.banner-section');
-        if (banner) {
-            banner.addEventListener('mouseenter', () => clearInterval(slideInterval));
-            banner.addEventListener('mouseleave', startSlideshow);
-        }
-
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') {
-                changeSlide(-1);
-            } else if (e.key === 'ArrowRight') {
-                changeSlide(1);
             }
-        });
 
-        // Touch/swipe support for mobile
-        let touchStartX = 0;
-        let touchEndX = 0;
+            window.changeSlide = function(direction) {
+                const newIndex = (currentSlideIndex + direction + totalSlides) % totalSlides;
+                showSlide(newIndex);
+                resetInterval();
+            }
 
-        if (banner) {
-            banner.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
+            // Click indicators
+            indicators.forEach((indicator, index) => {
+                indicator.addEventListener('click', () => {
+                    showSlide(index);
+                    resetInterval();
+                });
             });
 
-            banner.addEventListener('touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-                handleSwipe();
-            });
-        }
+            // Hover pause
+            if (banner) {
+                banner.addEventListener('mouseenter', () => clearInterval(slideInterval));
+                banner.addEventListener('mouseleave', startSlideshow);
+            }
 
-        function handleSwipe() {
-            const swipeThreshold = 50;
-            const diff = touchStartX - touchEndX;
-            
-            if (Math.abs(diff) > swipeThreshold) {
-                if (diff > 0) {
-                    changeSlide(1); // Swipe left, next slide
-                } else {
-                    changeSlide(-1); // Swipe right, previous slide
-                }
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') changeSlide(-1);
+                if (e.key === 'ArrowRight') changeSlide(1);
+            });
+
+            // Touch swipe
+            let touchStartX = 0;
+
+            if (banner) {
+                banner.addEventListener('touchstart', (e) => {
+                    touchStartX = e.changedTouches[0].screenX;
+                });
+
+                banner.addEventListener('touchend', (e) => {
+                    const touchEndX = e.changedTouches[0].screenX;
+                    const diff = touchStartX - touchEndX;
+                    if (Math.abs(diff) > 50) {
+                        changeSlide(diff > 0 ? 1 : -1);
+                    }
+                });
+            }
+
+            // Initialize
+            if (totalSlides > 0) {
+                showSlide(0);
+                if (totalSlides > 1) startSlideshow();
             }
         }
-
-        // Start
-        if (totalSlides > 0) {
-            showSlide(0);
-            if (totalSlides > 1) startSlideshow();
-        }
-    }
 </script>
 {% with opening=opening_time closing=closing_time start_day=business.start_day end_day=business.end_day force_closed=business.force_closed %}
 <script>
@@ -2792,7 +2958,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 let optionText = `${variation.variation_name} (₱${parseFloat(priceInfo.price).toFixed(2)})`;
                 if (variation.track_stocks) {
-                    optionText += ` - Qty:${variation.stocks}`;
+                    optionText += ` - Stocks:${variation.stocks}`;
                     
                     if (variation.stocks <= 5) {
                         opt.style.color = '#ff6b6b';
