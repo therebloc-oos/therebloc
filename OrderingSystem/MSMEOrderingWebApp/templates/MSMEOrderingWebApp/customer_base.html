@@ -762,6 +762,35 @@
                 text-align: center;
             }
         }
+
+        /* Cart notification badge */
+        #cart-badge {
+            font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 12 %}{{ customization.body_font_size|default:10 }}{% else %}12{% endif %}px;
+            padding: 0.35em 0.5em;
+            min-width: 1.4em;
+            min-height: 1.4em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Medium screens */
+        @media (max-width: 992px) {
+            #cart-badge {
+                font-size: {% if customization.body_font_size and customization.body_font_size|add:'0' <= 14 %}{{ customization.body_font_size|default:10 }}{% else %}14{% endif %}px;
+                min-width: 1.6em;
+                min-height: 1.6em;
+            }
+        }
+
+        /* Small screens */
+        @media (max-width: 576px) {
+            #cart-badge {
+                font-size: 0.9em;
+                min-width: 1.8em;
+                min-height: 1.8em;
+            }
+        }
     </style>
     
 </head>
@@ -787,6 +816,12 @@
             class="position-relative {% if request.resolver_match.url_name == 'customer_cart' %}active{% endif %}"
             aria-label="Cart">
                 <i class="bi bi-cart-fill fs-5"></i>
+                {% if cart_count and cart_count > 0 %}
+                <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ cart_count }}
+                    <span class="visually-hidden">items in cart</span>
+                </span>
+                {% endif %}
             </a>
 
             <a href="{% url 'customer_notifications' %}"
@@ -1137,6 +1172,27 @@
                 overlay.classList.remove('show');
             }
         });
+
+        function updateCartBadge(count) {
+        let badge = document.getElementById("cart-badge");
+        const cartLink = document.querySelector('a[aria-label="Cart"]');
+        
+        if (!cartLink) return;
+        
+        if (count > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.id = 'cart-badge';
+                badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                badge.innerHTML = count + '<span class="visually-hidden">items in cart</span>';
+                cartLink.appendChild(badge);
+            } else {
+                badge.innerHTML = count + '<span class="visually-hidden">items in cart</span>';
+            }
+        } else if (badge) {
+            badge.remove();
+        }
+    }
     </script>
     {% if business %}
     <script>
