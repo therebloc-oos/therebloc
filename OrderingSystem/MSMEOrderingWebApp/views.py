@@ -2738,12 +2738,12 @@ def sales_report_excel(request):
 
 def _generate_sales_excel(ws, orders, add_table_header, add_data_row):
     from collections import defaultdict
+    from decimal import Decimal
     from openpyxl.styles import Font, Alignment
+    from django.utils.timezone import localtime
 
     gray_italic = Font(color="808080", italic=True)
     center = Alignment(horizontal="center")
-
-
 
     # ✅ Only completed orders
     completed_orders = orders.filter(status__iexact="completed").order_by("created_at")
@@ -2753,15 +2753,20 @@ def _generate_sales_excel(ws, orders, add_table_header, add_data_row):
     for order in completed_orders:
         grouped_orders[(order.order_code, str(order.group_id))].append(order)
 
-    # ===== METRICS =====
-    total_revenue = sum(float(order.price) for order in completed_orders)
+    # ===== METRICS (use sub_total for discounted orders) =====
+    total_revenue = Decimal("0.00")
+    for (order_code, group_id), items in grouped_orders.items():
+        # ✅ Use sub_total (discounted total) from the first item
+        order_total = items[0].sub_total if items[0].sub_total else sum(Decimal(str(item.price)) for item in items)
+        total_revenue += order_total
+
     total_orders = len(grouped_orders)
     total_items = sum(order.quantity for order in completed_orders)
-    avg_order_value = total_revenue / total_orders if total_orders > 0 else 0
+    avg_order_value = float(total_revenue) / total_orders if total_orders > 0 else 0
 
     metrics = [
         ["Metric", "Value"],
-        ["Total Sales", f"Php {total_revenue:,.2f}"],
+        ["Total Sales", f"Php {float(total_revenue):,.2f}"],
         ["Total Orders", str(total_orders)],
         ["Average Order Value", f"Php {avg_order_value:,.2f}"],
         ["Items Sold", str(total_items)],
@@ -2783,9 +2788,14 @@ def _generate_sales_excel(ws, orders, add_table_header, add_data_row):
     for (order_code, group_id), items in grouped_orders.items():
         first_order = items[0]
         customer_name = f"{first_order.first_name} {first_order.last_name}"
-        date_time = first_order.created_at.strftime("%Y-%m-%d %H:%M") if first_order.created_at else ""
+        
+        # ✅ Convert to local time (Asia/Manila)
+        date_time = localtime(first_order.created_at).strftime("%Y-%m-%d %I:%M %p") if first_order.created_at else ""
+        
         ordered_items = ", ".join([f"{o.product_name} (x{o.quantity})" for o in items])
-        total_value = sum(float(o.price) for o in items)
+        
+        # ✅ Use sub_total (discounted total) instead of summing item prices
+        total_value = float(first_order.sub_total) if first_order.sub_total else sum(float(o.price) for o in items)
 
         add_data_row([customer_name, date_time, order_code, ordered_items, f"Php {total_value:,.2f}"])
 
@@ -2796,9 +2806,12 @@ def _generate_sales_excel(ws, orders, add_table_header, add_data_row):
     ws.cell(ws.max_row, 1).font = Font(bold=True, size=12)
     ws.append([])
 
+    # ✅ Use sub_total for payment method summary
     payment_summary = defaultdict(float)
-    for order in completed_orders:
-        payment_summary[order.payment_method] += float(order.price)
+    for (order_code, group_id), items in grouped_orders.items():
+        first_order = items[0]
+        order_total = float(first_order.sub_total) if first_order.sub_total else sum(float(o.price) for o in items)
+        payment_summary[first_order.payment_method] += order_total
 
     if payment_summary:
         add_table_header(["Payment Method", "Total Sales"])
@@ -2825,10 +2838,13 @@ def _generate_sales_excel(ws, orders, add_table_header, add_data_row):
     ws.cell(ws.max_row, 1).font = Font(bold=True, size=12)
     ws.append([])
 
+    # ✅ Use sub_total for order type summary
     order_type_summary = defaultdict(float)
-    for order in completed_orders:
-        if order.order_type:
-            order_type_summary[order.order_type] += float(order.price)
+    for (order_code, group_id), items in grouped_orders.items():
+        first_order = items[0]
+        if first_order.order_type:
+            order_total = float(first_order.sub_total) if first_order.sub_total else sum(float(o.price) for o in items)
+            order_type_summary[first_order.order_type] += order_total
 
     if order_type_summary:
         add_table_header(["Order Type", "Total Sales"])
@@ -2864,11 +2880,11 @@ def _generate_sales_excel(ws, orders, add_table_header, add_data_row):
         product_sales[key]["unit_price"] = float(order.price) / order.quantity if order.quantity > 0 else 0
 
     add_table_header(["Rank", "Product", "Unit Price", "Units Sold", "% of Sales"])
-    total_sales = sum(p["revenue"] for p in product_sales.values())
+    total_product_sales = sum(p["revenue"] for p in product_sales.values())
     ranked = sorted(product_sales.items(), key=lambda x: x[1]["revenue"], reverse=True)
 
     for i, (prod, data) in enumerate(ranked, 1):
-        pct = (data["revenue"] / total_sales * 100) if total_sales > 0 else 0
+        pct = (data["revenue"] / total_product_sales * 100) if total_product_sales > 0 else 0
         add_data_row([
             str(i),
             prod[:40] + "..." if len(prod) > 40 else prod,
@@ -2879,7 +2895,7 @@ def _generate_sales_excel(ws, orders, add_table_header, add_data_row):
 
     if ranked:
         best_product, best_data = ranked[0]
-        best_pct = (best_data["revenue"] / total_sales * 100) if total_sales > 0 else 0
+        best_pct = (best_data["revenue"] / total_product_sales * 100) if total_product_sales > 0 else 0
         explanation = (
             f"The top-performing product is {best_product}, selling {best_data['quantity']} units "
             f"and contributing Php {best_data['revenue']:,.2f} ({best_pct:.1f}% of total sales)."
@@ -2900,12 +2916,13 @@ def _generate_sales_excel(ws, orders, add_table_header, add_data_row):
         first_order = items[0]
         key = f"{first_order.first_name} {first_order.last_name}"
         customer_sales[key]["orders"] += 1
-        customer_sales[key]["revenue"] += sum(float(o.price) for o in items)
+        # ✅ Use sub_total for customer revenue
+        order_total = float(first_order.sub_total) if first_order.sub_total else sum(float(o.price) for o in items)
+        customer_sales[key]["revenue"] += order_total
 
     add_table_header(["Customer", "Times Ordered", "Total Revenue"])
     for cust, data in sorted(customer_sales.items(), key=lambda x: x[1]["revenue"], reverse=True)[:10]:
         add_data_row([cust, str(data["orders"]), f"Php {data['revenue']:,.2f}"])
-
 
 def _generate_orders_excel(ws, orders, add_table_header, add_data_row):
     from collections import defaultdict
