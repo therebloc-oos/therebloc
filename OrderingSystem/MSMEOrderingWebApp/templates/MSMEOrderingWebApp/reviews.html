@@ -195,11 +195,6 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
   }
   
-  .review-card.hidden-review {
-    opacity: 0.6;
-    background-color: #f8f9fa;
-  }
-  
   .profile-img {
     width: 50px;
     height: 50px;
@@ -288,23 +283,8 @@
     color: {{ customization.button_text_color|default:'#ffffff' }};
   }
   
-  .btn-hide {
-    background: #b40012;
-    color: white;
-  }
-  
   .btn-hide:hover {
     background: #63000a;
-    color: white;
-  }
-  
-  .btn-unhide {
-    background: #009122;
-    color: white;
-  }
-  
-  .btn-unhide:hover {
-    background: #004910;
     color: white;
   }
   
@@ -587,12 +567,6 @@
       font-size: 0.85rem;
     }
     
-    .hidden-badge {
-      font-size: 0.7rem;
-      padding: 3px 8px;
-      margin-left: 8px;
-    }
-    
     .modal-dialog {
       margin: 0.5rem;
     }
@@ -677,12 +651,6 @@
       width: 24px;
       height: 24px;
       font-size: 10px;
-    }
-    
-    .hidden-badge {
-      font-size: 0.65rem;
-      padding: 2px 6px;
-      margin-left: 6px;
     }
   }
 
@@ -939,9 +907,6 @@
                         {{ review.name }}
                       {% endif %}
                     {% endif %}
-                    {% if review.is_hidden %}
-                      <span class="hidden-badge">HIDDEN</span>
-                    {% endif %}
                   </div>
 
                   <!-- Rating Stars -->
@@ -1010,21 +975,6 @@
                   </div>
                 {% endif %}
               </div>
-
-              <!-- Show/Hide Button aligned bottom left -->
-              <div class="mt-2">
-                {% if review.is_hidden %}
-                  <button class="btn action-btn btn-unhide btn-sm" onclick="toggleReviewVisibility({{ review.id }}, false)">
-                    <i class="fas fa-eye"></i>
-                    <span>Show</span>
-                  </button>
-                {% else %}
-                  <button class="btn action-btn btn-hide btn-sm" onclick="toggleReviewVisibility({{ review.id }}, true)">
-                    <i class="fas fa-eye-slash"></i>
-                    <span>Hide</span>
-                  </button>
-                {% endif %}
-              </div>
             </div>
           </div>
         {% endfor %}
@@ -1075,26 +1025,6 @@
   <button id="prevPhotoBtn" onclick="prevPhoto()" class="prev-btn">&#8592;</button>
   <img id="modalImg" src="" class="modal-img">
   <button id="nextPhotoBtn" onclick="nextPhoto()" class="next-btn">&#8594;</button>
-</div>
-
-<!-- Confirmation Modal -->
-<div class="modal fade" id="reviewActionModal" tabindex="-1" aria-labelledby="reviewActionModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="reviewActionModalLabel">
-          <i class="fas fa-info-circle me-2"></i> Review Action
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="reviewActionMessage">
-        <!-- Message will be injected here -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -1311,46 +1241,6 @@ function submitResponse() {
     .catch(error => {
         console.error('Error:', error);
         alert('An error occurred. Please try again.');
-    });
-}
-
-function toggleReviewVisibility(reviewId, hide) {
-    const action = hide ? 'hide' : 'show';
-    const url = hide ? `/hide-review/${reviewId}/` : `/show-review/${reviewId}/`;
-
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        const modalMessage = document.getElementById('reviewActionMessage');
-        const reviewModal = new bootstrap.Modal(document.getElementById('reviewActionModal'));
-
-        if (data.status === 'success') {
-            modalMessage.textContent = `Review ${action === 'hide' ? 'hidden' : 'shown'} successfully.`;
-            reviewModal.show();
-
-            // Auto refresh after modal closes
-            document.getElementById('reviewActionModal')
-                .addEventListener('hidden.bs.modal', function () {
-                    location.reload();
-                }, { once: true });
-
-        } else {
-            modalMessage.textContent = `Failed to ${action} review: ${data.message}`;
-            reviewModal.show();
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        const modalMessage = document.getElementById('reviewActionMessage');
-        modalMessage.textContent = `An error occurred while trying to ${action} the review.`;
-        const reviewModal = new bootstrap.Modal(document.getElementById('reviewActionModal'));
-        reviewModal.show();
     });
 }
 
