@@ -24,9 +24,9 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "therebloc.onrender.com,thereblo
 
 # CSRF Protection for HTTPS
 CSRF_TRUSTED_ORIGINS = [
-    'https://creativezone.onrender.com',
-    'https://creativezone.online',
-    'https://www.creativezone.online',
+    'https://therebloc.onrender.com',
+    'https://therebloc.online',
+    'https://www.therebloc.online',
 ]
 
 # Add your local development origins if needed
@@ -187,7 +187,7 @@ if IS_RENDER:
     # CRITICAL FOR RENDER
     SECURE_SSL_REDIRECT = False  # Render handles SSL
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    ALLOWED_HOSTS = ['creativezone.onrender.com', 'creativezone.online', 'www.creativezone.online']
+    ALLOWED_HOSTS = ['therebloc.onrender.com', 'therebloc.online', 'www.therebloc.online']
     DEBUG = False
 else:
     # Local development
