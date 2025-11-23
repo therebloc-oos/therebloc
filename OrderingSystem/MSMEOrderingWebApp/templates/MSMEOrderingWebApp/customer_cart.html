@@ -1215,7 +1215,10 @@
                                 <span class="summary-label">Total:</span>
                                 <span class="summary-value total-value">₱<span id="total">{{ subtotal }}</span></span>
                             </div>
-                        
+                            
+                            <div id="delivery-fee-container"></div>
+
+
                             <form method="get" action="{% url 'customer_checkout' %}" onsubmit="setScheduledDate()">
                                 <input type="hidden" name="order_type" id="order_type_input">
                                 <input type="hidden" name="scheduled_date" id="scheduled_date_input">
@@ -1665,13 +1668,14 @@ function showDeliveryFeeRequest() {
     if (!feeContainer) {
         feeContainer = document.createElement('div');
         feeContainer.id = 'delivery-fee-container';
+        feeContainer.style.marginBottom = "12px";
         feeContainer.innerHTML = `
             <div style="height: 20px; visibility: hidden;"></div>
             <button id="request-delivery-fee-btn" class="checkout-btn">Request Delivery Fee</button>
             <span id="delivery-fee-loading" style="display:none;">Your request is being processed, please wait and don't refresh...</span>
             <span id="delivery-fee-amount" style="display:none;"></span>
         `;
-        container.appendChild(feeContainer);
+        container.insertBefore(feeContainer, container.querySelector("form"));
 
         const requestBtn = document.getElementById('request-delivery-fee-btn');
 
