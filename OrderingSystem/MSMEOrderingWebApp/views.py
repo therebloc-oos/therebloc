@@ -7285,16 +7285,16 @@ def add_to_cart(request):
                 image=image_file  # ✅ final image
             )
 
-            return JsonResponse({'success': True})
+            # ✅ Get updated cart count for this user
+            cart_count = Cart.objects.filter(email=user.email).count()
+
+            return JsonResponse({'success': True, 'cart_count': cart_count})
 
         except Exception as e:
             print("Error in add_to_cart:", e)
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'Invalid method'})
-
-
-
 
 @csrf_exempt
 def forgot_password(request):
